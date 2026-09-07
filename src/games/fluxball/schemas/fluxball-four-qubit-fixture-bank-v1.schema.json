@@ -1,0 +1,491 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:fluxball:schema:four-qubit-fixture-bank:v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "fixtureBankId",
+    "defaultFixtureId",
+    "compiledAt",
+    "deliveryMode",
+    "acquisitionSource",
+    "derivationMethod",
+    "model",
+    "provenance",
+    "costEstimate",
+    "fixtures",
+    "calibration"
+  ],
+  "properties": {
+    "schemaVersion": { "const": "fluxball-four-qubit-fixture-bank-v1" },
+    "fixtureBankId": { "const": "fluxball-aer-four-qubit-v1" },
+    "defaultFixtureId": { "const": "fluxball-four-player-preparation-v1" },
+    "compiledAt": { "type": "string", "format": "date-time" },
+    "deliveryMode": { "const": "committed-fixture" },
+    "acquisitionSource": { "const": "finite-shot-aer" },
+    "derivationMethod": { "const": "direct-count-frequency" },
+    "model": { "$ref": "#/$defs/model" },
+    "provenance": { "$ref": "#/$defs/provenance" },
+    "costEstimate": { "$ref": "#/$defs/cost" },
+    "fixtures": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["fluxball-four-player-preparation-v1"],
+      "properties": {
+        "fluxball-four-player-preparation-v1": { "$ref": "#/$defs/fixture" }
+      }
+    },
+    "calibration": { "$ref": "#/$defs/calibration" }
+  },
+  "$defs": {
+    "sha": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+    "outcomes": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "++++",
+        "+++-",
+        "++-+",
+        "++--",
+        "+-++",
+        "+-+-",
+        "+--+",
+        "+---",
+        "-+++",
+        "-++-",
+        "-+-+",
+        "-+--",
+        "--++",
+        "--+-",
+        "---+",
+        "----"
+      ],
+      "properties": {
+        "++++": { "type": "number", "minimum": 0, "maximum": 1 },
+        "+++-": { "type": "number", "minimum": 0, "maximum": 1 },
+        "++-+": { "type": "number", "minimum": 0, "maximum": 1 },
+        "++--": { "type": "number", "minimum": 0, "maximum": 1 },
+        "+-++": { "type": "number", "minimum": 0, "maximum": 1 },
+        "+-+-": { "type": "number", "minimum": 0, "maximum": 1 },
+        "+--+": { "type": "number", "minimum": 0, "maximum": 1 },
+        "+---": { "type": "number", "minimum": 0, "maximum": 1 },
+        "-+++": { "type": "number", "minimum": 0, "maximum": 1 },
+        "-++-": { "type": "number", "minimum": 0, "maximum": 1 },
+        "-+-+": { "type": "number", "minimum": 0, "maximum": 1 },
+        "-+--": { "type": "number", "minimum": 0, "maximum": 1 },
+        "--++": { "type": "number", "minimum": 0, "maximum": 1 },
+        "--+-": { "type": "number", "minimum": 0, "maximum": 1 },
+        "---+": { "type": "number", "minimum": 0, "maximum": 1 },
+        "----": { "type": "number", "minimum": 0, "maximum": 1 }
+      }
+    },
+    "counts": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "++++",
+        "+++-",
+        "++-+",
+        "++--",
+        "+-++",
+        "+-+-",
+        "+--+",
+        "+---",
+        "-+++",
+        "-++-",
+        "-+-+",
+        "-+--",
+        "--++",
+        "--+-",
+        "---+",
+        "----"
+      ],
+      "properties": {
+        "++++": { "type": "integer", "minimum": 1 },
+        "+++-": { "type": "integer", "minimum": 1 },
+        "++-+": { "type": "integer", "minimum": 1 },
+        "++--": { "type": "integer", "minimum": 1 },
+        "+-++": { "type": "integer", "minimum": 1 },
+        "+-+-": { "type": "integer", "minimum": 1 },
+        "+--+": { "type": "integer", "minimum": 1 },
+        "+---": { "type": "integer", "minimum": 1 },
+        "-+++": { "type": "integer", "minimum": 1 },
+        "-++-": { "type": "integer", "minimum": 1 },
+        "-+-+": { "type": "integer", "minimum": 1 },
+        "-+--": { "type": "integer", "minimum": 1 },
+        "--++": { "type": "integer", "minimum": 1 },
+        "--+-": { "type": "integer", "minimum": 1 },
+        "---+": { "type": "integer", "minimum": 1 },
+        "----": { "type": "integer", "minimum": 1 }
+      }
+    },
+    "contexts": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["X", "Y", "Z"],
+      "properties": {
+        "X": { "$ref": "#/$defs/outcomes" },
+        "Y": { "$ref": "#/$defs/outcomes" },
+        "Z": { "$ref": "#/$defs/outcomes" }
+      }
+    },
+    "countContexts": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["X", "Y", "Z"],
+      "properties": {
+        "X": { "$ref": "#/$defs/counts" },
+        "Y": { "$ref": "#/$defs/counts" },
+        "Z": { "$ref": "#/$defs/counts" }
+      }
+    },
+    "contextNumbers": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["X", "Y", "Z"],
+      "properties": {
+        "X": { "type": "number" },
+        "Y": { "type": "number" },
+        "Z": { "type": "number" }
+      }
+    },
+    "playerNumbers": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["A", "B", "C", "D"],
+      "properties": {
+        "A": { "type": "number" },
+        "B": { "type": "number" },
+        "C": { "type": "number" },
+        "D": { "type": "number" }
+      }
+    },
+    "contextPlayerNumbers": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["X", "Y", "Z"],
+      "properties": {
+        "X": { "$ref": "#/$defs/playerNumbers" },
+        "Y": { "$ref": "#/$defs/playerNumbers" },
+        "Z": { "$ref": "#/$defs/playerNumbers" }
+      }
+    },
+    "circuit": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "format",
+        "sha256",
+        "depth",
+        "twoQubitDepth",
+        "operationCounts",
+        "serialization"
+      ],
+      "properties": {
+        "format": { "const": "OPENQASM 2" },
+        "sha256": { "$ref": "#/$defs/sha" },
+        "depth": { "type": "integer", "minimum": 1 },
+        "twoQubitDepth": { "type": "integer", "minimum": 1 },
+        "operationCounts": {
+          "type": "object",
+          "additionalProperties": { "type": "integer", "minimum": 1 }
+        },
+        "serialization": { "type": "string", "minLength": 1 }
+      }
+    },
+    "model": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "modelId",
+        "numQubits",
+        "playerOrder",
+        "qubitMap",
+        "configuredEdges",
+        "topologyKind",
+        "initialCircuit"
+      ],
+      "properties": {
+        "modelId": { "const": "fluxball-four-qubit-rulefield-v1" },
+        "numQubits": { "const": 4 },
+        "playerOrder": {
+          "const": ["A", "B", "C", "D"]
+        },
+        "qubitMap": {
+          "type": "array",
+          "minItems": 4,
+          "maxItems": 4,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["qubit", "playerId", "displayName"],
+            "properties": {
+              "qubit": { "type": "integer", "minimum": 0, "maximum": 3 },
+              "playerId": { "enum": ["A", "B", "C", "D"] },
+              "displayName": { "type": "string" }
+            }
+          }
+        },
+        "configuredEdges": {
+          "const": [
+            [0, 2],
+            [2, 1],
+            [1, 3],
+            [3, 0]
+          ]
+        },
+        "topologyKind": { "const": "four-player-court-ring" },
+        "initialCircuit": { "$ref": "#/$defs/circuit" }
+      }
+    },
+    "verifiedSource": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "url",
+        "vcs",
+        "commit",
+        "requestedRevision",
+        "directUrlSha256"
+      ],
+      "properties": {
+        "url": { "type": "string", "format": "uri" },
+        "vcs": { "const": "git" },
+        "commit": { "type": "string", "pattern": "^[0-9a-f]{40}$" },
+        "requestedRevision": { "type": "string", "pattern": "^[0-9a-f]{40}$" },
+        "directUrlSha256": { "$ref": "#/$defs/sha" }
+      }
+    },
+    "provenance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "python",
+        "platform",
+        "packageVersions",
+        "quantumGraphCommit",
+        "verifiedSources",
+        "sourceRelationship",
+        "qpu",
+        "remoteService",
+        "mothApi"
+      ],
+      "properties": {
+        "python": { "type": "string" },
+        "platform": { "type": "string" },
+        "packageVersions": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "quantumgraph",
+            "pairwise-tomography",
+            "qiskit",
+            "qiskit-aer",
+            "numpy",
+            "scipy"
+          ],
+          "properties": {
+            "quantumgraph": { "const": "0.0.1" },
+            "pairwise-tomography": { "const": "0.1.0" },
+            "qiskit": { "const": "2.2.3" },
+            "qiskit-aer": { "const": "0.17.2" },
+            "numpy": { "const": "2.0.2" },
+            "scipy": { "const": "1.13.1" }
+          }
+        },
+        "quantumGraphCommit": {
+          "const": "6917364b9496bd324225e87e6dd986bce52ecefd"
+        },
+        "verifiedSources": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["quantumgraph", "pairwise-tomography"],
+          "properties": {
+            "quantumgraph": { "$ref": "#/$defs/verifiedSource" },
+            "pairwise-tomography": { "$ref": "#/$defs/verifiedSource" }
+          }
+        },
+        "sourceRelationship": { "type": "string", "minLength": 1 },
+        "qpu": { "const": false },
+        "remoteService": { "const": false },
+        "mothApi": { "const": false }
+      }
+    },
+    "cost": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "fixtureCount",
+        "characterizationCircuitsPerFixture",
+        "totalCircuitExecutions",
+        "shotsPerCircuit",
+        "totalShots"
+      ],
+      "properties": {
+        "fixtureCount": { "const": 1 },
+        "characterizationCircuitsPerFixture": { "const": 3 },
+        "totalCircuitExecutions": { "const": 3 },
+        "shotsPerCircuit": {
+          "type": "integer",
+          "minimum": 128,
+          "maximum": 16384
+        },
+        "totalShots": { "type": "integer", "minimum": 384 }
+      }
+    },
+    "acquisition": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "backendClass",
+        "backendName",
+        "providerMode",
+        "providerName",
+        "mothApi",
+        "jobId",
+        "shotsPerCircuit",
+        "simulatorSeed",
+        "transpilerSeed",
+        "characterizationCircuitCount",
+        "measurementSettings",
+        "totalShots",
+        "logicalMeasurementCircuitQasm",
+        "logicalMeasurementCircuitSha256",
+        "transpiledAerCircuitQasm",
+        "transpiledAerCircuitSha256",
+        "rawCounts",
+        "rawCountsSha256",
+        "durableProviderResult",
+        "hardwareLayout",
+        "backendCalibration",
+        "fallbackFrom"
+      ],
+      "properties": {
+        "backendClass": { "const": "AerSimulator" },
+        "backendName": { "const": "aer_simulator" },
+        "providerMode": { "const": "local-aer" },
+        "providerName": { "const": "qiskit-aer" },
+        "mothApi": { "const": false },
+        "jobId": { "type": "string", "minLength": 1 },
+        "shotsPerCircuit": {
+          "type": "integer",
+          "minimum": 128,
+          "maximum": 16384
+        },
+        "simulatorSeed": { "type": "integer", "minimum": 0 },
+        "transpilerSeed": { "type": "integer", "minimum": 0 },
+        "characterizationCircuitCount": { "const": 3 },
+        "measurementSettings": { "const": ["XXXX", "YYYY", "ZZZZ"] },
+        "totalShots": { "type": "integer", "minimum": 384 },
+        "logicalMeasurementCircuitQasm": {
+          "type": "array",
+          "minItems": 3,
+          "maxItems": 3,
+          "items": { "type": "string", "minLength": 1 }
+        },
+        "logicalMeasurementCircuitSha256": {
+          "type": "array",
+          "minItems": 3,
+          "maxItems": 3,
+          "items": { "$ref": "#/$defs/sha" }
+        },
+        "transpiledAerCircuitQasm": {
+          "type": "array",
+          "minItems": 3,
+          "maxItems": 3,
+          "items": { "type": "string", "minLength": 1 }
+        },
+        "transpiledAerCircuitSha256": {
+          "type": "array",
+          "minItems": 3,
+          "maxItems": 3,
+          "items": { "$ref": "#/$defs/sha" }
+        },
+        "rawCounts": { "$ref": "#/$defs/countContexts" },
+        "rawCountsSha256": { "$ref": "#/$defs/sha" },
+        "durableProviderResult": { "const": false },
+        "hardwareLayout": { "type": "null" },
+        "backendCalibration": { "type": "null" },
+        "fallbackFrom": { "type": "null" }
+      }
+    },
+    "fixture": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "fixtureId",
+        "circuit",
+        "acquisition",
+        "derivation",
+        "distributions",
+        "productMarginalsControl",
+        "exactStateDiagnostic"
+      ],
+      "properties": {
+        "fixtureId": { "const": "fluxball-four-player-preparation-v1" },
+        "circuit": { "$ref": "#/$defs/circuit" },
+        "acquisition": { "$ref": "#/$defs/acquisition" },
+        "derivation": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["method", "outcomeOrder", "qiskitCountOrder"],
+          "properties": {
+            "method": { "const": "direct-count-frequency" },
+            "outcomeOrder": { "const": "q0-q1-q2-q3 / A-B-C-D" },
+            "qiskitCountOrder": {
+              "const": "c3-c2-c1-c0 reversed to q0-q1-q2-q3"
+            }
+          }
+        },
+        "distributions": { "$ref": "#/$defs/contexts" },
+        "productMarginalsControl": { "$ref": "#/$defs/contexts" },
+        "exactStateDiagnostic": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["acquisitionSource", "distributions"],
+          "properties": {
+            "acquisitionSource": { "const": "exact-statevector" },
+            "distributions": { "$ref": "#/$defs/contexts" }
+          }
+        }
+      }
+    },
+    "calibration": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "status",
+        "selectionMethod",
+        "finiteMinimumOutcomeProbability",
+        "finiteMaximumOutcomeProbability",
+        "finiteParityPlusProbability",
+        "finitePlayerPlusMarginals",
+        "finiteProductMarginalsTotalVariation",
+        "finiteVsExactTotalVariation",
+        "claimBoundary"
+      ],
+      "properties": {
+        "status": { "const": "accepted-for-local-prototype" },
+        "selectionMethod": { "const": "authored-rule-legibility-calibration" },
+        "finiteMinimumOutcomeProbability": {
+          "type": "number",
+          "exclusiveMinimum": 0,
+          "maximum": 1
+        },
+        "finiteMaximumOutcomeProbability": {
+          "type": "number",
+          "exclusiveMinimum": 0,
+          "maximum": 1
+        },
+        "finiteParityPlusProbability": { "$ref": "#/$defs/contextNumbers" },
+        "finitePlayerPlusMarginals": { "$ref": "#/$defs/contextPlayerNumbers" },
+        "finiteProductMarginalsTotalVariation": {
+          "$ref": "#/$defs/contextNumbers"
+        },
+        "finiteVsExactTotalVariation": { "$ref": "#/$defs/contextNumbers" },
+        "claimBoundary": { "type": "string", "minLength": 1 }
+      }
+    }
+  }
+}

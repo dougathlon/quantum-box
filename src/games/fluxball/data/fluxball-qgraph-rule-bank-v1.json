@@ -1,0 +1,4265 @@
+{
+  "schemaVersion": "fluxball-qgraph-rule-bank-v1",
+  "bankId": "fluxball-qgraph-qpu-bank-v2",
+  "selectionPolicy": "qpu-then-moth-emulator-then-local-aer-then-deterministic-classical",
+  "fallbackPacks": {
+    "2": {
+      "packId": "fluxball-aer-two-qubit-v1",
+      "contentSha256": "af91a70fc633ef4808e658268309ad67d7b808b1d10d77e5e36fcf35090feedb"
+    },
+    "4": {
+      "packId": "fluxball-aer-four-qubit-hybrid-v1",
+      "contentSha256": "ba9afa9d257d9a2f6e11d1b23cb3a21bf1a10f87e2c9ea6d54cde92873fe0db3"
+    }
+  },
+  "records": [
+    {
+      "recordId": "graph-v1-ibm-fez-2p-equal-r1-5993500c",
+      "source": "moth-qgraph-qpu",
+      "engineId": "graph-v1",
+      "competitorCount": 2,
+      "eligibleRounds": [
+        1
+      ],
+      "playerOrder": [
+        "A",
+        "B"
+      ],
+      "mode": "qpu",
+      "backendName": "ibm_fez",
+      "mothJobId": "5993500c-b459-465f-8480-2d7191343e56",
+      "ibmJobId": "daboc8o09bds739sd0tg",
+      "submittedAt": "2026-09-02T02:12:46Z",
+      "captureMethod": "committed-api-result",
+      "rawResultSha256": "ee0302c48c137c609947c6ad606a49923c9f116c04143df9699eb48a71bfeefb",
+      "evidencePath": "compiler/quantum_box_moth/evidence/fluxball-qgraph-qpu-bank-v2/2p-equal-r1.json",
+      "shots": 1024,
+      "numQubits": 2,
+      "couplingMap": [
+        [
+          0,
+          1
+        ]
+      ],
+      "operations": [
+        {
+          "type": "relationship",
+          "qubits": [
+            0,
+            1
+          ],
+          "paulis": {
+            "XX": 1.0,
+            "YY": -1.0,
+            "ZZ": 1.0
+          },
+          "update": true
+        }
+      ],
+      "measurementBasis": "computational",
+      "bitOrder": "qubit-0-leftmost",
+      "bitToSign": {
+        "0": "+",
+        "1": "-"
+      },
+      "measurements": [
+        {
+          "bitstring": "11",
+          "count": 509
+        },
+        {
+          "bitstring": "00",
+          "count": 496
+        },
+        {
+          "bitstring": "10",
+          "count": 13
+        },
+        {
+          "bitstring": "01",
+          "count": 6
+        }
+      ],
+      "claimBoundary": "This is a completed Moth graph-v1 IBM Fez result acquired before play. Fluxball samples the stored computational-basis distribution classically and makes no network call during active play."
+    },
+    {
+      "recordId": "graph-v1-ibm-fez-2p-opposed-r1-0cae60f0",
+      "source": "moth-qgraph-qpu",
+      "engineId": "graph-v1",
+      "competitorCount": 2,
+      "eligibleRounds": [
+        1
+      ],
+      "playerOrder": [
+        "A",
+        "B"
+      ],
+      "mode": "qpu",
+      "backendName": "ibm_fez",
+      "mothJobId": "0cae60f0-7f51-40b4-b082-a56593420248",
+      "ibmJobId": "dabq6pgc4p7c738kcr90",
+      "submittedAt": "2026-09-02T04:17:40Z",
+      "captureMethod": "committed-api-result",
+      "rawResultSha256": "78488487e3fca46084479090ac93031ef08230beb1280d0c17b40161e106506a",
+      "evidencePath": "compiler/quantum_box_moth/evidence/fluxball-qgraph-qpu-bank-v2/2p-opposed-r1.json",
+      "shots": 4096,
+      "numQubits": 2,
+      "couplingMap": [
+        [
+          0,
+          1
+        ]
+      ],
+      "operations": [
+        {
+          "type": "relationship",
+          "qubits": [
+            0,
+            1
+          ],
+          "paulis": {
+            "XX": 1.0,
+            "YY": 1.0,
+            "ZZ": -1.0
+          },
+          "update": true
+        }
+      ],
+      "measurementBasis": "computational",
+      "bitOrder": "qubit-0-leftmost",
+      "bitToSign": {
+        "0": "+",
+        "1": "-"
+      },
+      "measurements": [
+        {
+          "bitstring": "10",
+          "count": 1982
+        },
+        {
+          "bitstring": "01",
+          "count": 1935
+        },
+        {
+          "bitstring": "00",
+          "count": 120
+        },
+        {
+          "bitstring": "11",
+          "count": 59
+        }
+      ],
+      "claimBoundary": "This is a completed Moth graph-v1 IBM Fez result acquired before play. Fluxball samples the stored computational-basis distribution classically and makes no network call during active play."
+    },
+    {
+      "recordId": "graph-v1-ibm-fez-2p-equal-r2-ecf95b67",
+      "source": "moth-qgraph-qpu",
+      "engineId": "graph-v1",
+      "competitorCount": 2,
+      "eligibleRounds": [
+        2
+      ],
+      "playerOrder": [
+        "A",
+        "B"
+      ],
+      "mode": "qpu",
+      "backendName": "ibm_fez",
+      "mothJobId": "ecf95b67-11e8-44c3-aaed-ecf5215dd749",
+      "ibmJobId": "dabq6j009bds739sfmkg",
+      "submittedAt": "2026-09-02T04:17:12Z",
+      "captureMethod": "committed-api-result",
+      "rawResultSha256": "7b02096373f617be44e26f09ea6bbd0bc6ffb1ff5646747d0887f51110b76008",
+      "evidencePath": "compiler/quantum_box_moth/evidence/fluxball-qgraph-qpu-bank-v2/2p-equal-r2.json",
+      "shots": 4096,
+      "numQubits": 2,
+      "couplingMap": [
+        [
+          0,
+          1
+        ]
+      ],
+      "operations": [
+        {
+          "type": "relationship",
+          "qubits": [
+            0,
+            1
+          ],
+          "paulis": {
+            "XX": 1.0,
+            "YY": -1.0,
+            "ZZ": 1.0
+          },
+          "update": true
+        }
+      ],
+      "measurementBasis": "computational",
+      "bitOrder": "qubit-0-leftmost",
+      "bitToSign": {
+        "0": "+",
+        "1": "-"
+      },
+      "measurements": [
+        {
+          "bitstring": "11",
+          "count": 1982
+        },
+        {
+          "bitstring": "00",
+          "count": 1971
+        },
+        {
+          "bitstring": "01",
+          "count": 90
+        },
+        {
+          "bitstring": "10",
+          "count": 53
+        }
+      ],
+      "claimBoundary": "This is a completed Moth graph-v1 IBM Fez result acquired before play. Fluxball samples the stored computational-basis distribution classically and makes no network call during active play."
+    },
+    {
+      "recordId": "graph-v1-ibm-fez-2p-opposed-r2-b7951500",
+      "source": "moth-qgraph-qpu",
+      "engineId": "graph-v1",
+      "competitorCount": 2,
+      "eligibleRounds": [
+        2
+      ],
+      "playerOrder": [
+        "A",
+        "B"
+      ],
+      "mode": "qpu",
+      "backendName": "ibm_fez",
+      "mothJobId": "b7951500-ffdc-4e27-a2be-bcde2931d375",
+      "ibmJobId": "dabq75te36ac739fps50",
+      "submittedAt": "2026-09-02T04:17:44Z",
+      "captureMethod": "committed-api-result",
+      "rawResultSha256": "4a61ff5f5ce884a48bedd4a5a12f1a02a0ca7a8e4cfdccc16f931f96a8901cdc",
+      "evidencePath": "compiler/quantum_box_moth/evidence/fluxball-qgraph-qpu-bank-v2/2p-opposed-r2.json",
+      "shots": 4096,
+      "numQubits": 2,
+      "couplingMap": [
+        [
+          0,
+          1
+        ]
+      ],
+      "operations": [
+        {
+          "type": "relationship",
+          "qubits": [
+            0,
+            1
+          ],
+          "paulis": {
+            "XX": 1.0,
+            "YY": 1.0,
+            "ZZ": -1.0
+          },
+          "update": true
+        }
+      ],
+      "measurementBasis": "computational",
+      "bitOrder": "qubit-0-leftmost",
+      "bitToSign": {
+        "0": "+",
+        "1": "-"
+      },
+      "measurements": [
+        {
+          "bitstring": "01",
+          "count": 1953
+        },
+        {
+          "bitstring": "10",
+          "count": 1869
+        },
+        {
+          "bitstring": "00",
+          "count": 140
+        },
+        {
+          "bitstring": "11",
+          "count": 134
+        }
+      ],
+      "claimBoundary": "This is a completed Moth graph-v1 IBM Fez result acquired before play. Fluxball samples the stored computational-basis distribution classically and makes no network call during active play."
+    },
+    {
+      "recordId": "graph-v1-ibm-fez-2p-equal-r3-4fc3776f",
+      "source": "moth-qgraph-qpu",
+      "engineId": "graph-v1",
+      "competitorCount": 2,
+      "eligibleRounds": [
+        3
+      ],
+      "playerOrder": [
+        "A",
+        "B"
+      ],
+      "mode": "qpu",
+      "backendName": "ibm_fez",
+      "mothJobId": "4fc3776f-7d57-45ad-bed8-5435ae0a39bd",
+      "ibmJobId": "dabq6jp6e67c73a1ohl0",
+      "submittedAt": "2026-09-02T04:17:16Z",
+      "captureMethod": "committed-api-result",
+      "rawResultSha256": "e06bc6f5cfc1442431d79c25f857dd1e28de7d7f9400275aac71e4d6058604db",
+      "evidencePath": "compiler/quantum_box_moth/evidence/fluxball-qgraph-qpu-bank-v2/2p-equal-r3.json",
+      "shots": 4096,
+      "numQubits": 2,
+      "couplingMap": [
+        [
+          0,
+          1
+        ]
+      ],
+      "operations": [
+        {
+          "type": "relationship",
+          "qubits": [
+            0,
+            1
+          ],
+          "paulis": {
+            "XX": 1.0,
+            "YY": -1.0,
+            "ZZ": 1.0
+          },
+          "update": true
+        }
+      ],
+      "measurementBasis": "computational",
+      "bitOrder": "qubit-0-leftmost",
+      "bitToSign": {
+        "0": "+",
+        "1": "-"
+      },
+      "measurements": [
+        {
+          "bitstring": "11",
+          "count": 1876
+        },
+        {
+          "bitstring": "00",
+          "count": 1869
+        },
+        {
+          "bitstring": "01",
+          "count": 188
+        },
+        {
+          "bitstring": "10",
+          "count": 163
+        }
+      ],
+      "claimBoundary": "This is a completed Moth graph-v1 IBM Fez result acquired before play. Fluxball samples the stored computational-basis distribution classically and makes no network call during active play."
+    },
+    {
+      "recordId": "graph-v1-ibm-fez-2p-opposed-r3-0555eab1",
+      "source": "moth-qgraph-qpu",
+      "engineId": "graph-v1",
+      "competitorCount": 2,
+      "eligibleRounds": [
+        3
+      ],
+      "playerOrder": [
+        "A",
+        "B"
+      ],
+      "mode": "qpu",
+      "backendName": "ibm_fez",
+      "mothJobId": "0555eab1-59b1-47c1-a803-8d23e24e6637",
+      "ibmJobId": "dabq73809bds739sfnjg",
+      "submittedAt": "2026-09-02T04:17:47Z",
+      "captureMethod": "committed-api-result",
+      "rawResultSha256": "7b9cd10c2ab286f4aeed9a9618a9ca87780a8ceba634abb971acc13c9243e139",
+      "evidencePath": "compiler/quantum_box_moth/evidence/fluxball-qgraph-qpu-bank-v2/2p-opposed-r3.json",
+      "shots": 4096,
+      "numQubits": 2,
+      "couplingMap": [
+        [
+          0,
+          1
+        ]
+      ],
+      "operations": [
+        {
+          "type": "relationship",
+          "qubits": [
+            0,
+            1
+          ],
+          "paulis": {
+            "XX": 1.0,
+            "YY": 1.0,
+            "ZZ": -1.0
+          },
+          "update": true
+        }
+      ],
+      "measurementBasis": "computational",
+      "bitOrder": "qubit-0-leftmost",
+      "bitToSign": {
+        "0": "+",
+        "1": "-"
+      },
+      "measurements": [
+        {
+          "bitstring": "01",
+          "count": 2027
+        },
+        {
+          "bitstring": "10",
+          "count": 1979
+        },
+        {
+          "bitstring": "00",
+          "count": 65
+        },
+        {
+          "bitstring": "11",
+          "count": 25
+        }
+      ],
+      "claimBoundary": "This is a completed Moth graph-v1 IBM Fez result acquired before play. Fluxball samples the stored computational-basis distribution classically and makes no network call during active play."
+    },
+    {
+      "recordId": "graph-v1-ibm-fez-2p-equal-r4-66764159",
+      "source": "moth-qgraph-qpu",
+      "engineId": "graph-v1",
+      "competitorCount": 2,
+      "eligibleRounds": [
+        4
+      ],
+      "playerOrder": [
+        "A",
+        "B"
+      ],
+      "mode": "qpu",
+      "backendName": "ibm_fez",
+      "mothJobId": "66764159-71f9-44a6-8b21-c2e3cc7e4228",
+      "ibmJobId": "dabq6kp6e67c73a1ohn0",
+      "submittedAt": "2026-09-02T04:17:20Z",
+      "captureMethod": "committed-api-result",
+      "rawResultSha256": "9add5fb476f846408843a7192b190ebbd9b6def11797e024948166d48fbd7a56",
+      "evidencePath": "compiler/quantum_box_moth/evidence/fluxball-qgraph-qpu-bank-v2/2p-equal-r4.json",
+      "shots": 4096,
+      "numQubits": 2,
+      "couplingMap": [
+        [
+          0,
+          1
+        ]
+      ],
+      "operations": [
+        {
+          "type": "relationship",
+          "qubits": [
+            0,
+            1
+          ],
+          "paulis": {
+            "XX": 1.0,
+            "YY": -1.0,
+            "ZZ": 1.0
+          },
+          "update": true
+        }
+      ],
+      "measurementBasis": "computational",
+      "bitOrder": "qubit-0-leftmost",
+      "bitToSign": {
+        "0": "+",
+        "1": "-"
+      },
+      "measurements": [
+        {
+          "bitstring": "00",
+          "count": 1987
+        },
+        {
+          "bitstring": "11",
+          "count": 1915
+        },
+        {
+          "bitstring": "10",
+          "count": 111
+        },
+        {
+          "bitstring": "01",
+          "count": 83
+        }
+      ],
+      "claimBoundary": "This is a completed Moth graph-v1 IBM Fez result acquired before play. Fluxball samples the stored computational-basis distribution classically and makes no network call during active play."
+    },
+    {
+      "recordId": "graph-v1-ibm-fez-2p-opposed-r4-de041525",
+      "source": "moth-qgraph-qpu",
+      "engineId": "graph-v1",
+      "competitorCount": 2,
+      "eligibleRounds": [
+        4
+      ],
+      "playerOrder": [
+        "A",
+        "B"
+      ],
+      "mode": "qpu",
+      "backendName": "ibm_fez",
+      "mothJobId": "de041525-7c1c-4c16-941e-7395e902f34b",
+      "ibmJobId": "dabq75g09bds739sfnng",
+      "submittedAt": "2026-09-02T04:17:51Z",
+      "captureMethod": "committed-api-result",
+      "rawResultSha256": "090bceb0334ab8e3e83450e98c08632c3ca559611a1fd78c5b50114189beff35",
+      "evidencePath": "compiler/quantum_box_moth/evidence/fluxball-qgraph-qpu-bank-v2/2p-opposed-r4.json",
+      "shots": 4096,
+      "numQubits": 2,
+      "couplingMap": [
+        [
+          0,
+          1
+        ]
+      ],
+      "operations": [
+        {
+          "type": "relationship",
+          "qubits": [
+            0,
+            1
+          ],
+          "paulis": {
+            "XX": 1.0,
+            "YY": 1.0,
+            "ZZ": -1.0
+          },
+          "update": true
+        }
+      ],
+      "measurementBasis": "computational",
+      "bitOrder": "qubit-0-leftmost",
+      "bitToSign": {
+        "0": "+",
+        "1": "-"
+      },
+      "measurements": [
+        {
+          "bitstring": "01",
+          "count": 1986
+        },
+        {
+          "bitstring": "10",
+          "count": 1981
+        },
+        {
+          "bitstring": "00",
+          "count": 73
+        },
+        {
+          "bitstring": "11",
+          "count": 56
+        }
+      ],
+      "claimBoundary": "This is a completed Moth graph-v1 IBM Fez result acquired before play. Fluxball samples the stored computational-basis distribution classically and makes no network call during active play."
+    },
+    {
+      "recordId": "graph-v1-ibm-fez-2p-equal-r5-859ff5ae",
+      "source": "moth-qgraph-qpu",
+      "engineId": "graph-v1",
+      "competitorCount": 2,
+      "eligibleRounds": [
+        5
+      ],
+      "playerOrder": [
+        "A",
+        "B"
+      ],
+      "mode": "qpu",
+      "backendName": "ibm_fez",
+      "mothJobId": "859ff5ae-6f2b-4c10-85fe-8aabcc4d643e",
+      "ibmJobId": "dabq6lo09bds739sfmq0",
+      "submittedAt": "2026-09-02T04:17:24Z",
+      "captureMethod": "committed-api-result",
+      "rawResultSha256": "c059eb65a9c4be02bb7fef3480649491b4ee97c6e06a3c324f81ea0ef75da7a9",
+      "evidencePath": "compiler/quantum_box_moth/evidence/fluxball-qgraph-qpu-bank-v2/2p-equal-r5.json",
+      "shots": 4096,
+      "numQubits": 2,
+      "couplingMap": [
+        [
+          0,
+          1
+        ]
+      ],
+      "operations": [
+        {
+          "type": "relationship",
+          "qubits": [
+            0,
+            1
+          ],
+          "paulis": {
+            "XX": 1.0,
+            "YY": -1.0,
+            "ZZ": 1.0
+          },
+          "update": true
+        }
+      ],
+      "measurementBasis": "computational",
+      "bitOrder": "qubit-0-leftmost",
+      "bitToSign": {
+        "0": "+",
+        "1": "-"
+      },
+      "measurements": [
+        {
+          "bitstring": "00",
+          "count": 2034
+        },
+        {
+          "bitstring": "11",
+          "count": 1947
+        },
+        {
+          "bitstring": "10",
+          "count": 59
+        },
+        {
+          "bitstring": "01",
+          "count": 56
+        }
+      ],
+      "claimBoundary": "This is a completed Moth graph-v1 IBM Fez result acquired before play. Fluxball samples the stored computational-basis distribution classically and makes no network call during active play."
+    },
+    {
+      "recordId": "graph-v1-ibm-fez-2p-opposed-r5-eeceeba1",
+      "source": "moth-qgraph-qpu",
+      "engineId": "graph-v1",
+      "competitorCount": 2,
+      "eligibleRounds": [
+        5
+      ],
+      "playerOrder": [
+        "A",
+        "B"
+      ],
+      "mode": "qpu",
+      "backendName": "ibm_fez",
+      "mothJobId": "eeceeba1-703a-4f77-b475-91a159758010",
+      "ibmJobId": "dabq755e36ac739fps3g",
+      "submittedAt": "2026-09-02T04:17:55Z",
+      "captureMethod": "committed-api-result",
+      "rawResultSha256": "4739358741a32628a8b865e5151eb53a1bbde5bc65e04c90b234a4b68bce26e7",
+      "evidencePath": "compiler/quantum_box_moth/evidence/fluxball-qgraph-qpu-bank-v2/2p-opposed-r5.json",
+      "shots": 4096,
+      "numQubits": 2,
+      "couplingMap": [
+        [
+          0,
+          1
+        ]
+      ],
+      "operations": [
+        {
+          "type": "relationship",
+          "qubits": [
+            0,
+            1
+          ],
+          "paulis": {
+            "XX": 1.0,
+            "YY": 1.0,
+            "ZZ": -1.0
+          },
+          "update": true
+        }
+      ],
+      "measurementBasis": "computational",
+      "bitOrder": "qubit-0-leftmost",
+      "bitToSign": {
+        "0": "+",
+        "1": "-"
+      },
+      "measurements": [
+        {
+          "bitstring": "01",
+          "count": 1956
+        },
+        {
+          "bitstring": "10",
+          "count": 1956
+        },
+        {
+          "bitstring": "00",
+          "count": 146
+        },
+        {
+          "bitstring": "11",
+          "count": 38
+        }
+      ],
+      "claimBoundary": "This is a completed Moth graph-v1 IBM Fez result acquired before play. Fluxball samples the stored computational-basis distribution classically and makes no network call during active play."
+    },
+    {
+      "recordId": "graph-v1-ibm-fez-2p-equal-r6-11b7c086",
+      "source": "moth-qgraph-qpu",
+      "engineId": "graph-v1",
+      "competitorCount": 2,
+      "eligibleRounds": [
+        6
+      ],
+      "playerOrder": [
+        "A",
+        "B"
+      ],
+      "mode": "qpu",
+      "backendName": "ibm_fez",
+      "mothJobId": "11b7c086-9edf-43df-8141-3cb00086b5fb",
+      "ibmJobId": "dabq6mg09bds739sfms0",
+      "submittedAt": "2026-09-02T04:17:28Z",
+      "captureMethod": "committed-api-result",
+      "rawResultSha256": "2333dd7364baaddc0e770962cbf3ad2280999a607a091bd89688136a6357e72d",
+      "evidencePath": "compiler/quantum_box_moth/evidence/fluxball-qgraph-qpu-bank-v2/2p-equal-r6.json",
+      "shots": 4096,
+      "numQubits": 2,
+      "couplingMap": [
+        [
+          0,
+          1
+        ]
+      ],
+      "operations": [
+        {
+          "type": "relationship",
+          "qubits": [
+            0,
+            1
+          ],
+          "paulis": {
+            "XX": 1.0,
+            "YY": -1.0,
+            "ZZ": 1.0
+          },
+          "update": true
+        }
+      ],
+      "measurementBasis": "computational",
+      "bitOrder": "qubit-0-leftmost",
+      "bitToSign": {
+        "0": "+",
+        "1": "-"
+      },
+      "measurements": [
+        {
+          "bitstring": "00",
+          "count": 2030
+        },
+        {
+          "bitstring": "11",
+          "count": 1929
+        },
+        {
+          "bitstring": "01",
+          "count": 98
+        },
+        {
+          "bitstring": "10",
+          "count": 39
+        }
+      ],
+      "claimBoundary": "This is a completed Moth graph-v1 IBM Fez result acquired before play. Fluxball samples the stored computational-basis distribution classically and makes no network call during active play."
+    },
+    {
+      "recordId": "graph-v1-ibm-fez-2p-opposed-r6-c9df60c0",
+      "source": "moth-qgraph-qpu",
+      "engineId": "graph-v1",
+      "competitorCount": 2,
+      "eligibleRounds": [
+        6
+      ],
+      "playerOrder": [
+        "A",
+        "B"
+      ],
+      "mode": "qpu",
+      "backendName": "ibm_fez",
+      "mothJobId": "c9df60c0-0a46-434a-8d0f-401799884582",
+      "ibmJobId": "dabq74te36ac739fps20",
+      "submittedAt": "2026-09-02T04:17:59Z",
+      "captureMethod": "committed-api-result",
+      "rawResultSha256": "abde2ecd8bc71b72353a3bf4b825372b79180a042cdfe1df8b0ca399d8245bfd",
+      "evidencePath": "compiler/quantum_box_moth/evidence/fluxball-qgraph-qpu-bank-v2/2p-opposed-r6.json",
+      "shots": 4096,
+      "numQubits": 2,
+      "couplingMap": [
+        [
+          0,
+          1
+        ]
+      ],
+      "operations": [
+        {
+          "type": "relationship",
+          "qubits": [
+            0,
+            1
+          ],
+          "paulis": {
+            "XX": 1.0,
+            "YY": 1.0,
+            "ZZ": -1.0
+          },
+          "update": true
+        }
+      ],
+      "measurementBasis": "computational",
+      "bitOrder": "qubit-0-leftmost",
+      "bitToSign": {
+        "0": "+",
+        "1": "-"
+      },
+      "measurements": [
+        {
+          "bitstring": "10",
+          "count": 1956
+        },
+        {
+          "bitstring": "01",
+          "count": 1942
+        },
+        {
+          "bitstring": "00",
+          "count": 142
+        },
+        {
+          "bitstring": "11",
+          "count": 56
+        }
+      ],
+      "claimBoundary": "This is a completed Moth graph-v1 IBM Fez result acquired before play. Fluxball samples the stored computational-basis distribution classically and makes no network call during active play."
+    },
+    {
+      "recordId": "graph-v1-ibm-fez-2p-equal-r7-1abea0a4",
+      "source": "moth-qgraph-qpu",
+      "engineId": "graph-v1",
+      "competitorCount": 2,
+      "eligibleRounds": [
+        7
+      ],
+      "playerOrder": [
+        "A",
+        "B"
+      ],
+      "mode": "qpu",
+      "backendName": "ibm_fez",
+      "mothJobId": "1abea0a4-5ce2-46dd-95f1-950c6304112e",
+      "ibmJobId": "dabq6nte36ac739fprd0",
+      "submittedAt": "2026-09-02T04:17:32Z",
+      "captureMethod": "committed-api-result",
+      "rawResultSha256": "6e7fe43d49c8c25a80635c43bfcd9639a0b31485dd758edaded19d623c229f64",
+      "evidencePath": "compiler/quantum_box_moth/evidence/fluxball-qgraph-qpu-bank-v2/2p-equal-r7.json",
+      "shots": 4096,
+      "numQubits": 2,
+      "couplingMap": [
+        [
+          0,
+          1
+        ]
+      ],
+      "operations": [
+        {
+          "type": "relationship",
+          "qubits": [
+            0,
+            1
+          ],
+          "paulis": {
+            "XX": 1.0,
+            "YY": -1.0,
+            "ZZ": 1.0
+          },
+          "update": true
+        }
+      ],
+      "measurementBasis": "computational",
+      "bitOrder": "qubit-0-leftmost",
+      "bitToSign": {
+        "0": "+",
+        "1": "-"
+      },
+      "measurements": [
+        {
+          "bitstring": "00",
+          "count": 2077
+        },
+        {
+          "bitstring": "11",
+          "count": 1918
+        },
+        {
+          "bitstring": "10",
+          "count": 54
+        },
+        {
+          "bitstring": "01",
+          "count": 47
+        }
+      ],
+      "claimBoundary": "This is a completed Moth graph-v1 IBM Fez result acquired before play. Fluxball samples the stored computational-basis distribution classically and makes no network call during active play."
+    },
+    {
+      "recordId": "graph-v1-ibm-fez-2p-opposed-r7-43a41656",
+      "source": "moth-qgraph-qpu",
+      "engineId": "graph-v1",
+      "competitorCount": 2,
+      "eligibleRounds": [
+        7
+      ],
+      "playerOrder": [
+        "A",
+        "B"
+      ],
+      "mode": "qpu",
+      "backendName": "ibm_fez",
+      "mothJobId": "43a41656-02e0-4d7a-8af5-89aeb936fbbc",
+      "ibmJobId": "dabq7496e67c73a1oifg",
+      "submittedAt": "2026-09-02T04:18:02Z",
+      "captureMethod": "committed-api-result",
+      "rawResultSha256": "af79174f03696d5d98327532c6f03374ab972275a6379f38916ec9effb179647",
+      "evidencePath": "compiler/quantum_box_moth/evidence/fluxball-qgraph-qpu-bank-v2/2p-opposed-r7.json",
+      "shots": 4096,
+      "numQubits": 2,
+      "couplingMap": [
+        [
+          0,
+          1
+        ]
+      ],
+      "operations": [
+        {
+          "type": "relationship",
+          "qubits": [
+            0,
+            1
+          ],
+          "paulis": {
+            "XX": 1.0,
+            "YY": 1.0,
+            "ZZ": -1.0
+          },
+          "update": true
+        }
+      ],
+      "measurementBasis": "computational",
+      "bitOrder": "qubit-0-leftmost",
+      "bitToSign": {
+        "0": "+",
+        "1": "-"
+      },
+      "measurements": [
+        {
+          "bitstring": "01",
+          "count": 2067
+        },
+        {
+          "bitstring": "10",
+          "count": 1898
+        },
+        {
+          "bitstring": "00",
+          "count": 80
+        },
+        {
+          "bitstring": "11",
+          "count": 51
+        }
+      ],
+      "claimBoundary": "This is a completed Moth graph-v1 IBM Fez result acquired before play. Fluxball samples the stored computational-basis distribution classically and makes no network call during active play."
+    },
+    {
+      "recordId": "graph-v1-ibm-fez-2p-equal-r8-2dcec134",
+      "source": "moth-qgraph-qpu",
+      "engineId": "graph-v1",
+      "competitorCount": 2,
+      "eligibleRounds": [
+        8
+      ],
+      "playerOrder": [
+        "A",
+        "B"
+      ],
+      "mode": "qpu",
+      "backendName": "ibm_fez",
+      "mothJobId": "2dcec134-ff68-443c-8d6b-40309502f589",
+      "ibmJobId": "dabq6oh6e67c73a1ohu0",
+      "submittedAt": "2026-09-02T04:17:36Z",
+      "captureMethod": "committed-api-result",
+      "rawResultSha256": "a28ff1cb86fad4aecfa65c68d505a4cf6da431447ae722ecfe08e48877b45def",
+      "evidencePath": "compiler/quantum_box_moth/evidence/fluxball-qgraph-qpu-bank-v2/2p-equal-r8.json",
+      "shots": 4096,
+      "numQubits": 2,
+      "couplingMap": [
+        [
+          0,
+          1
+        ]
+      ],
+      "operations": [
+        {
+          "type": "relationship",
+          "qubits": [
+            0,
+            1
+          ],
+          "paulis": {
+            "XX": 1.0,
+            "YY": -1.0,
+            "ZZ": 1.0
+          },
+          "update": true
+        }
+      ],
+      "measurementBasis": "computational",
+      "bitOrder": "qubit-0-leftmost",
+      "bitToSign": {
+        "0": "+",
+        "1": "-"
+      },
+      "measurements": [
+        {
+          "bitstring": "11",
+          "count": 1993
+        },
+        {
+          "bitstring": "00",
+          "count": 1976
+        },
+        {
+          "bitstring": "01",
+          "count": 87
+        },
+        {
+          "bitstring": "10",
+          "count": 40
+        }
+      ],
+      "claimBoundary": "This is a completed Moth graph-v1 IBM Fez result acquired before play. Fluxball samples the stored computational-basis distribution classically and makes no network call during active play."
+    },
+    {
+      "recordId": "graph-v1-ibm-fez-2p-opposed-r8-c742c96d",
+      "source": "moth-qgraph-qpu",
+      "engineId": "graph-v1",
+      "competitorCount": 2,
+      "eligibleRounds": [
+        8
+      ],
+      "playerOrder": [
+        "A",
+        "B"
+      ],
+      "mode": "qpu",
+      "backendName": "ibm_fez",
+      "mothJobId": "c742c96d-d982-4441-b433-b4caf946abaf",
+      "ibmJobId": "dabq7416e67c73a1oif0",
+      "submittedAt": "2026-09-02T04:18:06Z",
+      "captureMethod": "committed-api-result",
+      "rawResultSha256": "081aa9ca65361ebb567f51fa174e9b81f93abe03e473e552e79bb0063fc8ce2d",
+      "evidencePath": "compiler/quantum_box_moth/evidence/fluxball-qgraph-qpu-bank-v2/2p-opposed-r8.json",
+      "shots": 4096,
+      "numQubits": 2,
+      "couplingMap": [
+        [
+          0,
+          1
+        ]
+      ],
+      "operations": [
+        {
+          "type": "relationship",
+          "qubits": [
+            0,
+            1
+          ],
+          "paulis": {
+            "XX": 1.0,
+            "YY": 1.0,
+            "ZZ": -1.0
+          },
+          "update": true
+        }
+      ],
+      "measurementBasis": "computational",
+      "bitOrder": "qubit-0-leftmost",
+      "bitToSign": {
+        "0": "+",
+        "1": "-"
+      },
+      "measurements": [
+        {
+          "bitstring": "01",
+          "count": 1947
+        },
+        {
+          "bitstring": "10",
+          "count": 1917
+        },
+        {
+          "bitstring": "00",
+          "count": 153
+        },
+        {
+          "bitstring": "11",
+          "count": 79
+        }
+      ],
+      "claimBoundary": "This is a completed Moth graph-v1 IBM Fez result acquired before play. Fluxball samples the stored computational-basis distribution classically and makes no network call during active play."
+    },
+    {
+      "recordId": "graph-v1-ibm-fez-4p-ab-cd-equal-equal-r1-ea99a27a",
+      "source": "moth-qgraph-qpu",
+      "engineId": "graph-v1",
+      "competitorCount": 4,
+      "eligibleRounds": [
+        1
+      ],
+      "playerOrder": [
+        "A",
+        "B",
+        "C",
+        "D"
+      ],
+      "mode": "qpu",
+      "backendName": "ibm_fez",
+      "mothJobId": "ea99a27a-3d00-4b66-b335-ce2f97293478",
+      "ibmJobId": "dabp67p6e67c73a1n73g",
+      "submittedAt": "2026-09-02T03:08:10Z",
+      "captureMethod": "committed-api-result",
+      "rawResultSha256": "d900d6c1f71b89b997d05dcf73f1633865f015dc008aca12057a43e2d445f96b",
+      "evidencePath": "compiler/quantum_box_moth/evidence/fluxball-qgraph-qpu-bank-v2/4p-ab-cd-equal-equal-r1.json",
+      "shots": 4096,
+      "numQubits": 4,
+      "couplingMap": [
+        [
+          0,
+          1
+        ],
+        [
+          2,
+          3
+        ]
+      ],
+      "operations": [
+        {
+          "type": "relationship",
+          "qubits": [
+            0,
+            1
+          ],
+          "paulis": {
+            "XX": 1.0,
+            "YY": -1.0,
+            "ZZ": 1.0
+          },
+          "update": true
+        },
+        {
+          "type": "relationship",
+          "qubits": [
+            2,
+            3
+          ],
+          "paulis": {
+            "XX": 1.0,
+            "YY": -1.0,
+            "ZZ": 1.0
+          },
+          "update": true
+        }
+      ],
+      "measurementBasis": "computational",
+      "bitOrder": "qubit-0-leftmost",
+      "bitToSign": {
+        "0": "+",
+        "1": "-"
+      },
+      "measurements": [
+        {
+          "bitstring": "0011",
+          "count": 960
+        },
+        {
+          "bitstring": "1111",
+          "count": 936
+        },
+        {
+          "bitstring": "0000",
+          "count": 917
+        },
+        {
+          "bitstring": "1100",
+          "count": 907
+        },
+        {
+          "bitstring": "0100",
+          "count": 73
+        },
+        {
+          "bitstring": "0001",
+          "count": 64
+        },
+        {
+          "bitstring": "0111",
+          "count": 64
+        },
+        {
+          "bitstring": "1101",
+          "count": 42
+        },
+        {
+          "bitstring": "1000",
+          "count": 39
+        },
+        {
+          "bitstring": "1011",
+          "count": 35
+        },
+        {
+          "bitstring": "0010",
+          "count": 27
+        },
+        {
+          "bitstring": "1110",
+          "count": 26
+        },
+        {
+          "bitstring": "1001",
+          "count": 2
+        },
+        {
+          "bitstring": "1010",
+          "count": 2
+        },
+        {
+          "bitstring": "0101",
+          "count": 1
+        },
+        {
+          "bitstring": "0110",
+          "count": 1
+        }
+      ],
+      "claimBoundary": "This is a completed Moth graph-v1 IBM Fez result acquired before play. Fluxball samples the stored computational-basis distribution classically and makes no network call during active play."
+    },
+    {
+      "recordId": "graph-v1-ibm-fez-4p-ac-bd-equal-equal-r1-c65e778a",
+      "source": "moth-qgraph-qpu",
+      "engineId": "graph-v1",
+      "competitorCount": 4,
+      "eligibleRounds": [
+        1
+      ],
+      "playerOrder": [
+        "A",
+        "C",
+        "B",
+        "D"
+      ],
+      "mode": "qpu",
+      "backendName": "ibm_fez",
+      "mothJobId": "c65e778a-ff6f-45b1-a6f7-bd790a14757d",
+      "ibmJobId": "dabq7mte36ac739fpt70",
+      "submittedAt": "2026-09-02T04:18:36Z",
+      "captureMethod": "committed-api-result",
+      "rawResultSha256": "43acf255b0fc3402940403dd51bb6eaa26a5609fa2e8be8ecc005dafff2c4092",
+      "evidencePath": "compiler/quantum_box_moth/evidence/fluxball-qgraph-qpu-bank-v2/4p-ac-bd-equal-equal-r1.json",
+      "shots": 4096,
+      "numQubits": 4,
+      "couplingMap": [
+        [
+          0,
+          1
+        ],
+        [
+          2,
+          3
+        ]
+      ],
+      "operations": [
+        {
+          "type": "relationship",
+          "qubits": [
+            0,
+            1
+          ],
+          "paulis": {
+            "XX": 1.0,
+            "YY": -1.0,
+            "ZZ": 1.0
+          },
+          "update": true
+        },
+        {
+          "type": "relationship",
+          "qubits": [
+            2,
+            3
+          ],
+          "paulis": {
+            "XX": 1.0,
+            "YY": -1.0,
+            "ZZ": 1.0
+          },
+          "update": true
+        }
+      ],
+      "measurementBasis": "computational",
+      "bitOrder": "qubit-0-leftmost",
+      "bitToSign": {
+        "0": "+",
+        "1": "-"
+      },
+      "measurements": [
+        {
+          "bitstring": "0000",
+          "count": 957
+        },
+        {
+          "bitstring": "0011",
+          "count": 916
+        },
+        {
+          "bitstring": "1100",
+          "count": 890
+        },
+        {
+          "bitstring": "1111",
+          "count": 839
+        },
+        {
+          "bitstring": "0111",
+          "count": 85
+        },
+        {
+          "bitstring": "0100",
+          "count": 84
+        },
+        {
+          "bitstring": "1101",
+          "count": 72
+        },
+        {
+          "bitstring": "1110",
+          "count": 63
+        },
+        {
+          "bitstring": "0010",
+          "count": 59
+        },
+        {
+          "bitstring": "0001",
+          "count": 58
+        },
+        {
+          "bitstring": "1000",
+          "count": 30
+        },
+        {
+          "bitstring": "1011",
+          "count": 26
+        },
+        {
+          "bitstring": "0110",
+          "count": 7
+        },
+        {
+          "bitstring": "0101",
+          "count": 6
+        },
+        {
+          "bitstring": "1001",
+          "count": 4
+        }
+      ],
+      "claimBoundary": "This is a completed Moth graph-v1 IBM Fez result acquired before play. Fluxball samples the stored computational-basis distribution classically and makes no network call during active play."
+    },
+    {
+      "recordId": "graph-v1-ibm-fez-4p-ad-bc-equal-equal-r1-a75443e6",
+      "source": "moth-qgraph-qpu",
+      "engineId": "graph-v1",
+      "competitorCount": 4,
+      "eligibleRounds": [
+        1
+      ],
+      "playerOrder": [
+        "A",
+        "D",
+        "B",
+        "C"
+      ],
+      "mode": "qpu",
+      "backendName": "ibm_fez",
+      "mothJobId": "a75443e6-fd6f-4392-9edb-2bfba0e5060b",
+      "ibmJobId": "dabq7ng09bds739sfong",
+      "submittedAt": "2026-09-02T04:19:06Z",
+      "captureMethod": "committed-api-result",
+      "rawResultSha256": "0e22318f3e605f6c50a1f78da0705417c8cc06595037480db043150f147aa0bb",
+      "evidencePath": "compiler/quantum_box_moth/evidence/fluxball-qgraph-qpu-bank-v2/4p-ad-bc-equal-equal-r1.json",
+      "shots": 4096,
+      "numQubits": 4,
+      "couplingMap": [
+        [
+          0,
+          1
+        ],
+        [
+          2,
+          3
+        ]
+      ],
+      "operations": [
+        {
+          "type": "relationship",
+          "qubits": [
+            0,
+            1
+          ],
+          "paulis": {
+            "XX": 1.0,
+            "YY": -1.0,
+            "ZZ": 1.0
+          },
+          "update": true
+        },
+        {
+          "type": "relationship",
+          "qubits": [
+            2,
+            3
+          ],
+          "paulis": {
+            "XX": 1.0,
+            "YY": -1.0,
+            "ZZ": 1.0
+          },
+          "update": true
+        }
+      ],
+      "measurementBasis": "computational",
+      "bitOrder": "qubit-0-leftmost",
+      "bitToSign": {
+        "0": "+",
+        "1": "-"
+      },
+      "measurements": [
+        {
+          "bitstring": "0011",
+          "count": 995
+        },
+        {
+          "bitstring": "0000",
+          "count": 963
+        },
+        {
+          "bitstring": "1100",
+          "count": 886
+        },
+        {
+          "bitstring": "1111",
+          "count": 855
+        },
+        {
+          "bitstring": "0001",
+          "count": 101
+        },
+        {
+          "bitstring": "1101",
+          "count": 86
+        },
+        {
+          "bitstring": "0100",
+          "count": 47
+        },
+        {
+          "bitstring": "1110",
+          "count": 44
+        },
+        {
+          "bitstring": "0010",
+          "count": 33
+        },
+        {
+          "bitstring": "0111",
+          "count": 29
+        },
+        {
+          "bitstring": "1000",
+          "count": 23
+        },
+        {
+          "bitstring": "1011",
+          "count": 23
+        },
+        {
+          "bitstring": "0101",
+          "count": 5
+        },
+        {
+          "bitstring": "1010",
+          "count": 3
+        },
+        {
+          "bitstring": "1001",
+          "count": 2
+        },
+        {
+          "bitstring": "0110",
+          "count": 1
+        }
+      ],
+      "claimBoundary": "This is a completed Moth graph-v1 IBM Fez result acquired before play. Fluxball samples the stored computational-basis distribution classically and makes no network call during active play."
+    },
+    {
+      "recordId": "graph-v1-ibm-fez-4p-ab-cd-equal-equal-r2-d166bd90",
+      "source": "moth-qgraph-qpu",
+      "engineId": "graph-v1",
+      "competitorCount": 4,
+      "eligibleRounds": [
+        2
+      ],
+      "playerOrder": [
+        "A",
+        "B",
+        "C",
+        "D"
+      ],
+      "mode": "qpu",
+      "backendName": "ibm_fez",
+      "mothJobId": "d166bd90-ebe3-4e49-ad97-2d5f4c337d30",
+      "ibmJobId": "dabq76le36ac739fps6g",
+      "submittedAt": "2026-09-02T04:18:10Z",
+      "captureMethod": "committed-api-result",
+      "rawResultSha256": "d14ba895da2e97bb581387a45dfe9260823e84e70b7657894823fa4a15b809a8",
+      "evidencePath": "compiler/quantum_box_moth/evidence/fluxball-qgraph-qpu-bank-v2/4p-ab-cd-equal-equal-r2.json",
+      "shots": 4096,
+      "numQubits": 4,
+      "couplingMap": [
+        [
+          0,
+          1
+        ],
+        [
+          2,
+          3
+        ]
+      ],
+      "operations": [
+        {
+          "type": "relationship",
+          "qubits": [
+            0,
+            1
+          ],
+          "paulis": {
+            "XX": 1.0,
+            "YY": -1.0,
+            "ZZ": 1.0
+          },
+          "update": true
+        },
+        {
+          "type": "relationship",
+          "qubits": [
+            2,
+            3
+          ],
+          "paulis": {
+            "XX": 1.0,
+            "YY": -1.0,
+            "ZZ": 1.0
+          },
+          "update": true
+        }
+      ],
+      "measurementBasis": "computational",
+      "bitOrder": "qubit-0-leftmost",
+      "bitToSign": {
+        "0": "+",
+        "1": "-"
+      },
+      "measurements": [
+        {
+          "bitstring": "0011",
+          "count": 913
+        },
+        {
+          "bitstring": "0000",
+          "count": 892
+        },
+        {
+          "bitstring": "1111",
+          "count": 839
+        },
+        {
+          "bitstring": "1100",
+          "count": 787
+        },
+        {
+          "bitstring": "1000",
+          "count": 175
+        },
+        {
+          "bitstring": "1011",
+          "count": 155
+        },
+        {
+          "bitstring": "0111",
+          "count": 71
+        },
+        {
+          "bitstring": "0100",
+          "count": 70
+        },
+        {
+          "bitstring": "1101",
+          "count": 59
+        },
+        {
+          "bitstring": "0001",
+          "count": 50
+        },
+        {
+          "bitstring": "0010",
+          "count": 32
+        },
+        {
+          "bitstring": "1110",
+          "count": 25
+        },
+        {
+          "bitstring": "1001",
+          "count": 12
+        },
+        {
+          "bitstring": "0101",
+          "count": 7
+        },
+        {
+          "bitstring": "0110",
+          "count": 5
+        },
+        {
+          "bitstring": "1010",
+          "count": 4
+        }
+      ],
+      "claimBoundary": "This is a completed Moth graph-v1 IBM Fez result acquired before play. Fluxball samples the stored computational-basis distribution classically and makes no network call during active play."
+    },
+    {
+      "recordId": "graph-v1-ibm-fez-4p-ac-bd-equal-equal-r2-e6ee9c48",
+      "source": "moth-qgraph-qpu",
+      "engineId": "graph-v1",
+      "competitorCount": 4,
+      "eligibleRounds": [
+        2
+      ],
+      "playerOrder": [
+        "A",
+        "C",
+        "B",
+        "D"
+      ],
+      "mode": "qpu",
+      "backendName": "ibm_fez",
+      "mothJobId": "e6ee9c48-8ddb-4046-b105-b786e637ea07",
+      "ibmJobId": "dabq79de36ac739fpscg",
+      "submittedAt": "2026-09-02T04:18:40Z",
+      "captureMethod": "committed-api-result",
+      "rawResultSha256": "05cecec8c8f86ecb5ec01dc58556cd48c1cbed7eb781cab9af1e1647657bc91e",
+      "evidencePath": "compiler/quantum_box_moth/evidence/fluxball-qgraph-qpu-bank-v2/4p-ac-bd-equal-equal-r2.json",
+      "shots": 4096,
+      "numQubits": 4,
+      "couplingMap": [
+        [
+          0,
+          1
+        ],
+        [
+          2,
+          3
+        ]
+      ],
+      "operations": [
+        {
+          "type": "relationship",
+          "qubits": [
+            0,
+            1
+          ],
+          "paulis": {
+            "XX": 1.0,
+            "YY": -1.0,
+            "ZZ": 1.0
+          },
+          "update": true
+        },
+        {
+          "type": "relationship",
+          "qubits": [
+            2,
+            3
+          ],
+          "paulis": {
+            "XX": 1.0,
+            "YY": -1.0,
+            "ZZ": 1.0
+          },
+          "update": true
+        }
+      ],
+      "measurementBasis": "computational",
+      "bitOrder": "qubit-0-leftmost",
+      "bitToSign": {
+        "0": "+",
+        "1": "-"
+      },
+      "measurements": [
+        {
+          "bitstring": "0000",
+          "count": 1052
+        },
+        {
+          "bitstring": "1100",
+          "count": 955
+        },
+        {
+          "bitstring": "0011",
+          "count": 938
+        },
+        {
+          "bitstring": "1111",
+          "count": 892
+        },
+        {
+          "bitstring": "1000",
+          "count": 50
+        },
+        {
+          "bitstring": "1011",
+          "count": 40
+        },
+        {
+          "bitstring": "0111",
+          "count": 39
+        },
+        {
+          "bitstring": "0100",
+          "count": 34
+        },
+        {
+          "bitstring": "0010",
+          "count": 28
+        },
+        {
+          "bitstring": "1101",
+          "count": 26
+        },
+        {
+          "bitstring": "0001",
+          "count": 22
+        },
+        {
+          "bitstring": "1110",
+          "count": 17
+        },
+        {
+          "bitstring": "0110",
+          "count": 2
+        },
+        {
+          "bitstring": "1010",
+          "count": 1
+        }
+      ],
+      "claimBoundary": "This is a completed Moth graph-v1 IBM Fez result acquired before play. Fluxball samples the stored computational-basis distribution classically and makes no network call during active play."
+    },
+    {
+      "recordId": "graph-v1-ibm-fez-4p-ad-bc-equal-equal-r2-e96e8249",
+      "source": "moth-qgraph-qpu",
+      "engineId": "graph-v1",
+      "competitorCount": 4,
+      "eligibleRounds": [
+        2
+      ],
+      "playerOrder": [
+        "A",
+        "D",
+        "B",
+        "C"
+      ],
+      "mode": "qpu",
+      "backendName": "ibm_fez",
+      "mothJobId": "e96e8249-fb75-4e02-84d7-dd702d8e3c6f",
+      "ibmJobId": "dabq7qle36ac739fptfg",
+      "submittedAt": "2026-09-02T04:19:10Z",
+      "captureMethod": "committed-api-result",
+      "rawResultSha256": "75b5cf941ef369157a8da5b508327209e5c918eed42cb40b6a1b572d21a49a54",
+      "evidencePath": "compiler/quantum_box_moth/evidence/fluxball-qgraph-qpu-bank-v2/4p-ad-bc-equal-equal-r2.json",
+      "shots": 4096,
+      "numQubits": 4,
+      "couplingMap": [
+        [
+          0,
+          1
+        ],
+        [
+          2,
+          3
+        ]
+      ],
+      "operations": [
+        {
+          "type": "relationship",
+          "qubits": [
+            0,
+            1
+          ],
+          "paulis": {
+            "XX": 1.0,
+            "YY": -1.0,
+            "ZZ": 1.0
+          },
+          "update": true
+        },
+        {
+          "type": "relationship",
+          "qubits": [
+            2,
+            3
+          ],
+          "paulis": {
+            "XX": 1.0,
+            "YY": -1.0,
+            "ZZ": 1.0
+          },
+          "update": true
+        }
+      ],
+      "measurementBasis": "computational",
+      "bitOrder": "qubit-0-leftmost",
+      "bitToSign": {
+        "0": "+",
+        "1": "-"
+      },
+      "measurements": [
+        {
+          "bitstring": "0000",
+          "count": 940
+        },
+        {
+          "bitstring": "0011",
+          "count": 925
+        },
+        {
+          "bitstring": "1111",
+          "count": 881
+        },
+        {
+          "bitstring": "1100",
+          "count": 865
+        },
+        {
+          "bitstring": "1011",
+          "count": 128
+        },
+        {
+          "bitstring": "1000",
+          "count": 100
+        },
+        {
+          "bitstring": "0111",
+          "count": 56
+        },
+        {
+          "bitstring": "0001",
+          "count": 45
+        },
+        {
+          "bitstring": "0100",
+          "count": 42
+        },
+        {
+          "bitstring": "1101",
+          "count": 39
+        },
+        {
+          "bitstring": "0010",
+          "count": 35
+        },
+        {
+          "bitstring": "1110",
+          "count": 30
+        },
+        {
+          "bitstring": "1010",
+          "count": 5
+        },
+        {
+          "bitstring": "1001",
+          "count": 3
+        },
+        {
+          "bitstring": "0101",
+          "count": 2
+        }
+      ],
+      "claimBoundary": "This is a completed Moth graph-v1 IBM Fez result acquired before play. Fluxball samples the stored computational-basis distribution classically and makes no network call during active play."
+    },
+    {
+      "recordId": "graph-v1-ibm-fez-4p-ab-cd-equal-opposed-r1-d5c1e1e1",
+      "source": "moth-qgraph-qpu",
+      "engineId": "graph-v1",
+      "competitorCount": 4,
+      "eligibleRounds": [
+        3
+      ],
+      "playerOrder": [
+        "A",
+        "B",
+        "C",
+        "D"
+      ],
+      "mode": "qpu",
+      "backendName": "ibm_fez",
+      "mothJobId": "d5c1e1e1-1dfc-42e1-ab41-0e9bf8846736",
+      "ibmJobId": "dabq7716e67c73a1oikg",
+      "submittedAt": "2026-09-02T04:18:14Z",
+      "captureMethod": "committed-api-result",
+      "rawResultSha256": "a871a3493c403094518afcaa165c1a9f52c527a5b60be3471aa9bc540572ec4f",
+      "evidencePath": "compiler/quantum_box_moth/evidence/fluxball-qgraph-qpu-bank-v2/4p-ab-cd-equal-opposed-r1.json",
+      "shots": 4096,
+      "numQubits": 4,
+      "couplingMap": [
+        [
+          0,
+          1
+        ],
+        [
+          2,
+          3
+        ]
+      ],
+      "operations": [
+        {
+          "type": "relationship",
+          "qubits": [
+            0,
+            1
+          ],
+          "paulis": {
+            "XX": 1.0,
+            "YY": -1.0,
+            "ZZ": 1.0
+          },
+          "update": true
+        },
+        {
+          "type": "relationship",
+          "qubits": [
+            2,
+            3
+          ],
+          "paulis": {
+            "XX": 1.0,
+            "YY": 1.0,
+            "ZZ": -1.0
+          },
+          "update": true
+        }
+      ],
+      "measurementBasis": "computational",
+      "bitOrder": "qubit-0-leftmost",
+      "bitToSign": {
+        "0": "+",
+        "1": "-"
+      },
+      "measurements": [
+        {
+          "bitstring": "1101",
+          "count": 920
+        },
+        {
+          "bitstring": "0001",
+          "count": 916
+        },
+        {
+          "bitstring": "0010",
+          "count": 852
+        },
+        {
+          "bitstring": "1110",
+          "count": 833
+        },
+        {
+          "bitstring": "0101",
+          "count": 96
+        },
+        {
+          "bitstring": "0110",
+          "count": 85
+        },
+        {
+          "bitstring": "1001",
+          "count": 70
+        },
+        {
+          "bitstring": "0011",
+          "count": 68
+        },
+        {
+          "bitstring": "1111",
+          "count": 66
+        },
+        {
+          "bitstring": "0000",
+          "count": 61
+        },
+        {
+          "bitstring": "1010",
+          "count": 57
+        },
+        {
+          "bitstring": "1100",
+          "count": 52
+        },
+        {
+          "bitstring": "0111",
+          "count": 6
+        },
+        {
+          "bitstring": "0100",
+          "count": 5
+        },
+        {
+          "bitstring": "1000",
+          "count": 5
+        },
+        {
+          "bitstring": "1011",
+          "count": 4
+        }
+      ],
+      "claimBoundary": "This is a completed Moth graph-v1 IBM Fez result acquired before play. Fluxball samples the stored computational-basis distribution classically and makes no network call during active play."
+    },
+    {
+      "recordId": "graph-v1-ibm-fez-4p-ac-bd-equal-opposed-r1-ed973c59",
+      "source": "moth-qgraph-qpu",
+      "engineId": "graph-v1",
+      "competitorCount": 4,
+      "eligibleRounds": [
+        3
+      ],
+      "playerOrder": [
+        "A",
+        "C",
+        "B",
+        "D"
+      ],
+      "mode": "qpu",
+      "backendName": "ibm_fez",
+      "mothJobId": "ed973c59-1cb9-4a2a-900c-f32b269de899",
+      "ibmJobId": "dabq7oo09bds739sfoqg",
+      "submittedAt": "2026-09-02T04:18:44Z",
+      "captureMethod": "committed-api-result",
+      "rawResultSha256": "7c26b0204d02470049425b71fb2688e17a2e418ec6460eed5eb1f4e9ee7c01ac",
+      "evidencePath": "compiler/quantum_box_moth/evidence/fluxball-qgraph-qpu-bank-v2/4p-ac-bd-equal-opposed-r1.json",
+      "shots": 4096,
+      "numQubits": 4,
+      "couplingMap": [
+        [
+          0,
+          1
+        ],
+        [
+          2,
+          3
+        ]
+      ],
+      "operations": [
+        {
+          "type": "relationship",
+          "qubits": [
+            0,
+            1
+          ],
+          "paulis": {
+            "XX": 1.0,
+            "YY": -1.0,
+            "ZZ": 1.0
+          },
+          "update": true
+        },
+        {
+          "type": "relationship",
+          "qubits": [
+            2,
+            3
+          ],
+          "paulis": {
+            "XX": 1.0,
+            "YY": 1.0,
+            "ZZ": -1.0
+          },
+          "update": true
+        }
+      ],
+      "measurementBasis": "computational",
+      "bitOrder": "qubit-0-leftmost",
+      "bitToSign": {
+        "0": "+",
+        "1": "-"
+      },
+      "measurements": [
+        {
+          "bitstring": "1110",
+          "count": 1041
+        },
+        {
+          "bitstring": "0010",
+          "count": 1021
+        },
+        {
+          "bitstring": "0001",
+          "count": 962
+        },
+        {
+          "bitstring": "1101",
+          "count": 878
+        },
+        {
+          "bitstring": "1100",
+          "count": 60
+        },
+        {
+          "bitstring": "0000",
+          "count": 45
+        },
+        {
+          "bitstring": "1001",
+          "count": 23
+        },
+        {
+          "bitstring": "1010",
+          "count": 21
+        },
+        {
+          "bitstring": "0011",
+          "count": 12
+        },
+        {
+          "bitstring": "0101",
+          "count": 10
+        },
+        {
+          "bitstring": "0110",
+          "count": 10
+        },
+        {
+          "bitstring": "1111",
+          "count": 10
+        },
+        {
+          "bitstring": "0100",
+          "count": 1
+        },
+        {
+          "bitstring": "0111",
+          "count": 1
+        },
+        {
+          "bitstring": "1000",
+          "count": 1
+        }
+      ],
+      "claimBoundary": "This is a completed Moth graph-v1 IBM Fez result acquired before play. Fluxball samples the stored computational-basis distribution classically and makes no network call during active play."
+    },
+    {
+      "recordId": "graph-v1-ibm-fez-4p-ad-bc-equal-opposed-r1-71525743",
+      "source": "moth-qgraph-qpu",
+      "engineId": "graph-v1",
+      "competitorCount": 4,
+      "eligibleRounds": [
+        3
+      ],
+      "playerOrder": [
+        "A",
+        "D",
+        "B",
+        "C"
+      ],
+      "mode": "qpu",
+      "backendName": "ibm_fez",
+      "mothJobId": "71525743-4961-45fc-8a33-79782fc38e77",
+      "ibmJobId": "dabq7r009bds739sfovg",
+      "submittedAt": "2026-09-02T04:19:14Z",
+      "captureMethod": "committed-api-result",
+      "rawResultSha256": "d25d2c6bf4245f176ff120c3bdeb4f289d8568cd76d72fee2ddd1fff1af75a8f",
+      "evidencePath": "compiler/quantum_box_moth/evidence/fluxball-qgraph-qpu-bank-v2/4p-ad-bc-equal-opposed-r1.json",
+      "shots": 4096,
+      "numQubits": 4,
+      "couplingMap": [
+        [
+          0,
+          1
+        ],
+        [
+          2,
+          3
+        ]
+      ],
+      "operations": [
+        {
+          "type": "relationship",
+          "qubits": [
+            0,
+            1
+          ],
+          "paulis": {
+            "XX": 1.0,
+            "YY": -1.0,
+            "ZZ": 1.0
+          },
+          "update": true
+        },
+        {
+          "type": "relationship",
+          "qubits": [
+            2,
+            3
+          ],
+          "paulis": {
+            "XX": 1.0,
+            "YY": 1.0,
+            "ZZ": -1.0
+          },
+          "update": true
+        }
+      ],
+      "measurementBasis": "computational",
+      "bitOrder": "qubit-0-leftmost",
+      "bitToSign": {
+        "0": "+",
+        "1": "-"
+      },
+      "measurements": [
+        {
+          "bitstring": "0001",
+          "count": 1130
+        },
+        {
+          "bitstring": "1101",
+          "count": 1026
+        },
+        {
+          "bitstring": "0010",
+          "count": 872
+        },
+        {
+          "bitstring": "1110",
+          "count": 781
+        },
+        {
+          "bitstring": "0000",
+          "count": 66
+        },
+        {
+          "bitstring": "1100",
+          "count": 43
+        },
+        {
+          "bitstring": "0101",
+          "count": 42
+        },
+        {
+          "bitstring": "1001",
+          "count": 34
+        },
+        {
+          "bitstring": "0110",
+          "count": 31
+        },
+        {
+          "bitstring": "0011",
+          "count": 28
+        },
+        {
+          "bitstring": "1010",
+          "count": 21
+        },
+        {
+          "bitstring": "1111",
+          "count": 21
+        },
+        {
+          "bitstring": "0100",
+          "count": 1
+        }
+      ],
+      "claimBoundary": "This is a completed Moth graph-v1 IBM Fez result acquired before play. Fluxball samples the stored computational-basis distribution classically and makes no network call during active play."
+    },
+    {
+      "recordId": "graph-v1-ibm-fez-4p-ab-cd-equal-opposed-r2-b6e59271",
+      "source": "moth-qgraph-qpu",
+      "engineId": "graph-v1",
+      "competitorCount": 4,
+      "eligibleRounds": [
+        4
+      ],
+      "playerOrder": [
+        "A",
+        "B",
+        "C",
+        "D"
+      ],
+      "mode": "qpu",
+      "backendName": "ibm_fez",
+      "mothJobId": "b6e59271-4a70-49b8-be23-59a71e5c296a",
+      "ibmJobId": "dabq7a96e67c73a1oirg",
+      "submittedAt": "2026-09-02T04:18:17Z",
+      "captureMethod": "committed-api-result",
+      "rawResultSha256": "1c1e0d77623adead07f62c98842b73aa2fceac641a3c3910a2ac134672d4c810",
+      "evidencePath": "compiler/quantum_box_moth/evidence/fluxball-qgraph-qpu-bank-v2/4p-ab-cd-equal-opposed-r2.json",
+      "shots": 4096,
+      "numQubits": 4,
+      "couplingMap": [
+        [
+          0,
+          1
+        ],
+        [
+          2,
+          3
+        ]
+      ],
+      "operations": [
+        {
+          "type": "relationship",
+          "qubits": [
+            0,
+            1
+          ],
+          "paulis": {
+            "XX": 1.0,
+            "YY": -1.0,
+            "ZZ": 1.0
+          },
+          "update": true
+        },
+        {
+          "type": "relationship",
+          "qubits": [
+            2,
+            3
+          ],
+          "paulis": {
+            "XX": 1.0,
+            "YY": 1.0,
+            "ZZ": -1.0
+          },
+          "update": true
+        }
+      ],
+      "measurementBasis": "computational",
+      "bitOrder": "qubit-0-leftmost",
+      "bitToSign": {
+        "0": "+",
+        "1": "-"
+      },
+      "measurements": [
+        {
+          "bitstring": "1110",
+          "count": 1060
+        },
+        {
+          "bitstring": "0010",
+          "count": 1036
+        },
+        {
+          "bitstring": "0001",
+          "count": 881
+        },
+        {
+          "bitstring": "1101",
+          "count": 873
+        },
+        {
+          "bitstring": "1100",
+          "count": 50
+        },
+        {
+          "bitstring": "0000",
+          "count": 44
+        },
+        {
+          "bitstring": "0110",
+          "count": 41
+        },
+        {
+          "bitstring": "0101",
+          "count": 35
+        },
+        {
+          "bitstring": "1111",
+          "count": 23
+        },
+        {
+          "bitstring": "1010",
+          "count": 22
+        },
+        {
+          "bitstring": "0011",
+          "count": 15
+        },
+        {
+          "bitstring": "1001",
+          "count": 13
+        },
+        {
+          "bitstring": "0100",
+          "count": 2
+        },
+        {
+          "bitstring": "1011",
+          "count": 1
+        }
+      ],
+      "claimBoundary": "This is a completed Moth graph-v1 IBM Fez result acquired before play. Fluxball samples the stored computational-basis distribution classically and makes no network call during active play."
+    },
+    {
+      "recordId": "graph-v1-ibm-fez-4p-ac-bd-equal-opposed-r2-e3948cc1",
+      "source": "moth-qgraph-qpu",
+      "engineId": "graph-v1",
+      "competitorCount": 4,
+      "eligibleRounds": [
+        4
+      ],
+      "playerOrder": [
+        "A",
+        "C",
+        "B",
+        "D"
+      ],
+      "mode": "qpu",
+      "backendName": "ibm_fez",
+      "mothJobId": "e3948cc1-314c-4b9e-8eea-b0ae0151f968",
+      "ibmJobId": "dabq7pp6e67c73a1ojog",
+      "submittedAt": "2026-09-02T04:18:47Z",
+      "captureMethod": "committed-api-result",
+      "rawResultSha256": "9877aee28acaf704376548c2076ef1035d976eb0ac6ed1e09160039619ec2307",
+      "evidencePath": "compiler/quantum_box_moth/evidence/fluxball-qgraph-qpu-bank-v2/4p-ac-bd-equal-opposed-r2.json",
+      "shots": 4096,
+      "numQubits": 4,
+      "couplingMap": [
+        [
+          0,
+          1
+        ],
+        [
+          2,
+          3
+        ]
+      ],
+      "operations": [
+        {
+          "type": "relationship",
+          "qubits": [
+            0,
+            1
+          ],
+          "paulis": {
+            "XX": 1.0,
+            "YY": -1.0,
+            "ZZ": 1.0
+          },
+          "update": true
+        },
+        {
+          "type": "relationship",
+          "qubits": [
+            2,
+            3
+          ],
+          "paulis": {
+            "XX": 1.0,
+            "YY": 1.0,
+            "ZZ": -1.0
+          },
+          "update": true
+        }
+      ],
+      "measurementBasis": "computational",
+      "bitOrder": "qubit-0-leftmost",
+      "bitToSign": {
+        "0": "+",
+        "1": "-"
+      },
+      "measurements": [
+        {
+          "bitstring": "1101",
+          "count": 1019
+        },
+        {
+          "bitstring": "0001",
+          "count": 988
+        },
+        {
+          "bitstring": "0010",
+          "count": 786
+        },
+        {
+          "bitstring": "1110",
+          "count": 778
+        },
+        {
+          "bitstring": "0011",
+          "count": 174
+        },
+        {
+          "bitstring": "1111",
+          "count": 153
+        },
+        {
+          "bitstring": "0000",
+          "count": 51
+        },
+        {
+          "bitstring": "1100",
+          "count": 44
+        },
+        {
+          "bitstring": "1001",
+          "count": 35
+        },
+        {
+          "bitstring": "0101",
+          "count": 25
+        },
+        {
+          "bitstring": "1010",
+          "count": 20
+        },
+        {
+          "bitstring": "0110",
+          "count": 15
+        },
+        {
+          "bitstring": "1011",
+          "count": 5
+        },
+        {
+          "bitstring": "1000",
+          "count": 3
+        }
+      ],
+      "claimBoundary": "This is a completed Moth graph-v1 IBM Fez result acquired before play. Fluxball samples the stored computational-basis distribution classically and makes no network call during active play."
+    },
+    {
+      "recordId": "graph-v1-ibm-fez-4p-ad-bc-equal-opposed-r2-16928edf",
+      "source": "moth-qgraph-qpu",
+      "engineId": "graph-v1",
+      "competitorCount": 4,
+      "eligibleRounds": [
+        4
+      ],
+      "playerOrder": [
+        "A",
+        "D",
+        "B",
+        "C"
+      ],
+      "mode": "qpu",
+      "backendName": "ibm_fez",
+      "mothJobId": "16928edf-4b7c-4311-98c4-854c3541b8f0",
+      "ibmJobId": "dabq7s009bds739sfp10",
+      "submittedAt": "2026-09-02T04:19:18Z",
+      "captureMethod": "committed-api-result",
+      "rawResultSha256": "a285fc4721611a064aed701246a9e98d1f6e3bfc99cd9952accee83d945d515b",
+      "evidencePath": "compiler/quantum_box_moth/evidence/fluxball-qgraph-qpu-bank-v2/4p-ad-bc-equal-opposed-r2.json",
+      "shots": 4096,
+      "numQubits": 4,
+      "couplingMap": [
+        [
+          0,
+          1
+        ],
+        [
+          2,
+          3
+        ]
+      ],
+      "operations": [
+        {
+          "type": "relationship",
+          "qubits": [
+            0,
+            1
+          ],
+          "paulis": {
+            "XX": 1.0,
+            "YY": -1.0,
+            "ZZ": 1.0
+          },
+          "update": true
+        },
+        {
+          "type": "relationship",
+          "qubits": [
+            2,
+            3
+          ],
+          "paulis": {
+            "XX": 1.0,
+            "YY": 1.0,
+            "ZZ": -1.0
+          },
+          "update": true
+        }
+      ],
+      "measurementBasis": "computational",
+      "bitOrder": "qubit-0-leftmost",
+      "bitToSign": {
+        "0": "+",
+        "1": "-"
+      },
+      "measurements": [
+        {
+          "bitstring": "1101",
+          "count": 991
+        },
+        {
+          "bitstring": "0001",
+          "count": 974
+        },
+        {
+          "bitstring": "1110",
+          "count": 961
+        },
+        {
+          "bitstring": "0010",
+          "count": 947
+        },
+        {
+          "bitstring": "0000",
+          "count": 44
+        },
+        {
+          "bitstring": "1100",
+          "count": 39
+        },
+        {
+          "bitstring": "1010",
+          "count": 32
+        },
+        {
+          "bitstring": "1001",
+          "count": 30
+        },
+        {
+          "bitstring": "0011",
+          "count": 21
+        },
+        {
+          "bitstring": "1111",
+          "count": 21
+        },
+        {
+          "bitstring": "0101",
+          "count": 20
+        },
+        {
+          "bitstring": "0110",
+          "count": 13
+        },
+        {
+          "bitstring": "0111",
+          "count": 3
+        }
+      ],
+      "claimBoundary": "This is a completed Moth graph-v1 IBM Fez result acquired before play. Fluxball samples the stored computational-basis distribution classically and makes no network call during active play."
+    },
+    {
+      "recordId": "graph-v1-ibm-fez-4p-ab-cd-opposed-equal-r1-a2941831",
+      "source": "moth-qgraph-qpu",
+      "engineId": "graph-v1",
+      "competitorCount": 4,
+      "eligibleRounds": [
+        5
+      ],
+      "playerOrder": [
+        "A",
+        "B",
+        "C",
+        "D"
+      ],
+      "mode": "qpu",
+      "backendName": "ibm_fez",
+      "mothJobId": "a2941831-4d11-499f-ad04-7704a4a759ea",
+      "ibmJobId": "dabq7796e67c73a1oimg",
+      "submittedAt": "2026-09-02T04:18:21Z",
+      "captureMethod": "committed-api-result",
+      "rawResultSha256": "acb887014561d2e2454ffefe2ac9b047ac4f2a05c10e760956885d06e8434da7",
+      "evidencePath": "compiler/quantum_box_moth/evidence/fluxball-qgraph-qpu-bank-v2/4p-ab-cd-opposed-equal-r1.json",
+      "shots": 4096,
+      "numQubits": 4,
+      "couplingMap": [
+        [
+          0,
+          1
+        ],
+        [
+          2,
+          3
+        ]
+      ],
+      "operations": [
+        {
+          "type": "relationship",
+          "qubits": [
+            0,
+            1
+          ],
+          "paulis": {
+            "XX": 1.0,
+            "YY": 1.0,
+            "ZZ": -1.0
+          },
+          "update": true
+        },
+        {
+          "type": "relationship",
+          "qubits": [
+            2,
+            3
+          ],
+          "paulis": {
+            "XX": 1.0,
+            "YY": -1.0,
+            "ZZ": 1.0
+          },
+          "update": true
+        }
+      ],
+      "measurementBasis": "computational",
+      "bitOrder": "qubit-0-leftmost",
+      "bitToSign": {
+        "0": "+",
+        "1": "-"
+      },
+      "measurements": [
+        {
+          "bitstring": "1011",
+          "count": 954
+        },
+        {
+          "bitstring": "1000",
+          "count": 940
+        },
+        {
+          "bitstring": "0111",
+          "count": 930
+        },
+        {
+          "bitstring": "0100",
+          "count": 909
+        },
+        {
+          "bitstring": "1001",
+          "count": 106
+        },
+        {
+          "bitstring": "0101",
+          "count": 98
+        },
+        {
+          "bitstring": "0000",
+          "count": 31
+        },
+        {
+          "bitstring": "1010",
+          "count": 30
+        },
+        {
+          "bitstring": "1100",
+          "count": 30
+        },
+        {
+          "bitstring": "0011",
+          "count": 24
+        },
+        {
+          "bitstring": "1111",
+          "count": 24
+        },
+        {
+          "bitstring": "0110",
+          "count": 14
+        },
+        {
+          "bitstring": "1101",
+          "count": 3
+        },
+        {
+          "bitstring": "0010",
+          "count": 2
+        },
+        {
+          "bitstring": "0001",
+          "count": 1
+        }
+      ],
+      "claimBoundary": "This is a completed Moth graph-v1 IBM Fez result acquired before play. Fluxball samples the stored computational-basis distribution classically and makes no network call during active play."
+    },
+    {
+      "recordId": "graph-v1-ibm-fez-4p-ac-bd-opposed-equal-r1-4c96cf2f",
+      "source": "moth-qgraph-qpu",
+      "engineId": "graph-v1",
+      "competitorCount": 4,
+      "eligibleRounds": [
+        5
+      ],
+      "playerOrder": [
+        "A",
+        "C",
+        "B",
+        "D"
+      ],
+      "mode": "qpu",
+      "backendName": "ibm_fez",
+      "mothJobId": "4c96cf2f-ec88-47ae-888a-1ace5e635040",
+      "ibmJobId": "dabq7qde36ac739fpteg",
+      "submittedAt": "2026-09-02T04:18:51Z",
+      "captureMethod": "committed-api-result",
+      "rawResultSha256": "099118e80d1a98bbc8d61e6c6a9fc1b98be8caae85266947b837c65aaea73281",
+      "evidencePath": "compiler/quantum_box_moth/evidence/fluxball-qgraph-qpu-bank-v2/4p-ac-bd-opposed-equal-r1.json",
+      "shots": 4096,
+      "numQubits": 4,
+      "couplingMap": [
+        [
+          0,
+          1
+        ],
+        [
+          2,
+          3
+        ]
+      ],
+      "operations": [
+        {
+          "type": "relationship",
+          "qubits": [
+            0,
+            1
+          ],
+          "paulis": {
+            "XX": 1.0,
+            "YY": 1.0,
+            "ZZ": -1.0
+          },
+          "update": true
+        },
+        {
+          "type": "relationship",
+          "qubits": [
+            2,
+            3
+          ],
+          "paulis": {
+            "XX": 1.0,
+            "YY": -1.0,
+            "ZZ": 1.0
+          },
+          "update": true
+        }
+      ],
+      "measurementBasis": "computational",
+      "bitOrder": "qubit-0-leftmost",
+      "bitToSign": {
+        "0": "+",
+        "1": "-"
+      },
+      "measurements": [
+        {
+          "bitstring": "0100",
+          "count": 936
+        },
+        {
+          "bitstring": "1000",
+          "count": 933
+        },
+        {
+          "bitstring": "0111",
+          "count": 894
+        },
+        {
+          "bitstring": "1011",
+          "count": 858
+        },
+        {
+          "bitstring": "0101",
+          "count": 102
+        },
+        {
+          "bitstring": "1001",
+          "count": 97
+        },
+        {
+          "bitstring": "0110",
+          "count": 70
+        },
+        {
+          "bitstring": "0000",
+          "count": 55
+        },
+        {
+          "bitstring": "1010",
+          "count": 47
+        },
+        {
+          "bitstring": "0011",
+          "count": 43
+        },
+        {
+          "bitstring": "1100",
+          "count": 23
+        },
+        {
+          "bitstring": "1111",
+          "count": 23
+        },
+        {
+          "bitstring": "0010",
+          "count": 5
+        },
+        {
+          "bitstring": "0001",
+          "count": 4
+        },
+        {
+          "bitstring": "1110",
+          "count": 4
+        },
+        {
+          "bitstring": "1101",
+          "count": 2
+        }
+      ],
+      "claimBoundary": "This is a completed Moth graph-v1 IBM Fez result acquired before play. Fluxball samples the stored computational-basis distribution classically and makes no network call during active play."
+    },
+    {
+      "recordId": "graph-v1-ibm-fez-4p-ad-bc-opposed-equal-r1-bad238fa",
+      "source": "moth-qgraph-qpu",
+      "engineId": "graph-v1",
+      "competitorCount": 4,
+      "eligibleRounds": [
+        5
+      ],
+      "playerOrder": [
+        "A",
+        "D",
+        "B",
+        "C"
+      ],
+      "mode": "qpu",
+      "backendName": "ibm_fez",
+      "mothJobId": "bad238fa-c94b-4a4e-acf9-3d6791923a35",
+      "ibmJobId": "dabq7o16e67c73a1ojkg",
+      "submittedAt": "2026-09-02T04:19:22Z",
+      "captureMethod": "committed-api-result",
+      "rawResultSha256": "ae870b361cce385e0a4e4109f149405137deed1279fe269e1d54f16bee146791",
+      "evidencePath": "compiler/quantum_box_moth/evidence/fluxball-qgraph-qpu-bank-v2/4p-ad-bc-opposed-equal-r1.json",
+      "shots": 4096,
+      "numQubits": 4,
+      "couplingMap": [
+        [
+          0,
+          1
+        ],
+        [
+          2,
+          3
+        ]
+      ],
+      "operations": [
+        {
+          "type": "relationship",
+          "qubits": [
+            0,
+            1
+          ],
+          "paulis": {
+            "XX": 1.0,
+            "YY": 1.0,
+            "ZZ": -1.0
+          },
+          "update": true
+        },
+        {
+          "type": "relationship",
+          "qubits": [
+            2,
+            3
+          ],
+          "paulis": {
+            "XX": 1.0,
+            "YY": -1.0,
+            "ZZ": 1.0
+          },
+          "update": true
+        }
+      ],
+      "measurementBasis": "computational",
+      "bitOrder": "qubit-0-leftmost",
+      "bitToSign": {
+        "0": "+",
+        "1": "-"
+      },
+      "measurements": [
+        {
+          "bitstring": "1000",
+          "count": 1017
+        },
+        {
+          "bitstring": "0111",
+          "count": 993
+        },
+        {
+          "bitstring": "1011",
+          "count": 970
+        },
+        {
+          "bitstring": "0100",
+          "count": 924
+        },
+        {
+          "bitstring": "0011",
+          "count": 43
+        },
+        {
+          "bitstring": "1100",
+          "count": 27
+        },
+        {
+          "bitstring": "1001",
+          "count": 26
+        },
+        {
+          "bitstring": "0000",
+          "count": 24
+        },
+        {
+          "bitstring": "0101",
+          "count": 19
+        },
+        {
+          "bitstring": "0110",
+          "count": 19
+        },
+        {
+          "bitstring": "1111",
+          "count": 17
+        },
+        {
+          "bitstring": "1010",
+          "count": 12
+        },
+        {
+          "bitstring": "0001",
+          "count": 3
+        },
+        {
+          "bitstring": "0010",
+          "count": 2
+        }
+      ],
+      "claimBoundary": "This is a completed Moth graph-v1 IBM Fez result acquired before play. Fluxball samples the stored computational-basis distribution classically and makes no network call during active play."
+    },
+    {
+      "recordId": "graph-v1-ibm-fez-4p-ab-cd-opposed-equal-r2-602839b2",
+      "source": "moth-qgraph-qpu",
+      "engineId": "graph-v1",
+      "competitorCount": 4,
+      "eligibleRounds": [
+        6
+      ],
+      "playerOrder": [
+        "A",
+        "B",
+        "C",
+        "D"
+      ],
+      "mode": "qpu",
+      "backendName": "ibm_fez",
+      "mothJobId": "602839b2-4cf7-46a9-a3f8-a597420f9c73",
+      "ibmJobId": "dabq77te36ac739fps90",
+      "submittedAt": "2026-09-02T04:18:25Z",
+      "captureMethod": "committed-api-result",
+      "rawResultSha256": "6eebc3c7838a068f0db41c1f7be2612455d2c83cff9b355e84d50218c4cc46d9",
+      "evidencePath": "compiler/quantum_box_moth/evidence/fluxball-qgraph-qpu-bank-v2/4p-ab-cd-opposed-equal-r2.json",
+      "shots": 4096,
+      "numQubits": 4,
+      "couplingMap": [
+        [
+          0,
+          1
+        ],
+        [
+          2,
+          3
+        ]
+      ],
+      "operations": [
+        {
+          "type": "relationship",
+          "qubits": [
+            0,
+            1
+          ],
+          "paulis": {
+            "XX": 1.0,
+            "YY": 1.0,
+            "ZZ": -1.0
+          },
+          "update": true
+        },
+        {
+          "type": "relationship",
+          "qubits": [
+            2,
+            3
+          ],
+          "paulis": {
+            "XX": 1.0,
+            "YY": -1.0,
+            "ZZ": 1.0
+          },
+          "update": true
+        }
+      ],
+      "measurementBasis": "computational",
+      "bitOrder": "qubit-0-leftmost",
+      "bitToSign": {
+        "0": "+",
+        "1": "-"
+      },
+      "measurements": [
+        {
+          "bitstring": "1000",
+          "count": 1439
+        },
+        {
+          "bitstring": "0100",
+          "count": 1364
+        },
+        {
+          "bitstring": "1001",
+          "count": 221
+        },
+        {
+          "bitstring": "1011",
+          "count": 218
+        },
+        {
+          "bitstring": "0101",
+          "count": 209
+        },
+        {
+          "bitstring": "0111",
+          "count": 201
+        },
+        {
+          "bitstring": "0110",
+          "count": 179
+        },
+        {
+          "bitstring": "1010",
+          "count": 168
+        },
+        {
+          "bitstring": "0000",
+          "count": 45
+        },
+        {
+          "bitstring": "1100",
+          "count": 24
+        },
+        {
+          "bitstring": "1111",
+          "count": 7
+        },
+        {
+          "bitstring": "0010",
+          "count": 6
+        },
+        {
+          "bitstring": "1110",
+          "count": 5
+        },
+        {
+          "bitstring": "0001",
+          "count": 4
+        },
+        {
+          "bitstring": "0011",
+          "count": 3
+        },
+        {
+          "bitstring": "1101",
+          "count": 3
+        }
+      ],
+      "claimBoundary": "This is a completed Moth graph-v1 IBM Fez result acquired before play. Fluxball samples the stored computational-basis distribution classically and makes no network call during active play."
+    },
+    {
+      "recordId": "graph-v1-ibm-fez-4p-ac-bd-opposed-equal-r2-5b47dbcc",
+      "source": "moth-qgraph-qpu",
+      "engineId": "graph-v1",
+      "competitorCount": 4,
+      "eligibleRounds": [
+        6
+      ],
+      "playerOrder": [
+        "A",
+        "C",
+        "B",
+        "D"
+      ],
+      "mode": "qpu",
+      "backendName": "ibm_fez",
+      "mothJobId": "5b47dbcc-2bf7-428e-b700-c3fed9ea5e0d",
+      "ibmJobId": "dabq7rde36ac739fpthg",
+      "submittedAt": "2026-09-02T04:18:55Z",
+      "captureMethod": "committed-api-result",
+      "rawResultSha256": "d4d1021ecdc137a196cbe337a12de90aad6911cd1118ee81fd830bbeebb29552",
+      "evidencePath": "compiler/quantum_box_moth/evidence/fluxball-qgraph-qpu-bank-v2/4p-ac-bd-opposed-equal-r2.json",
+      "shots": 4096,
+      "numQubits": 4,
+      "couplingMap": [
+        [
+          0,
+          1
+        ],
+        [
+          2,
+          3
+        ]
+      ],
+      "operations": [
+        {
+          "type": "relationship",
+          "qubits": [
+            0,
+            1
+          ],
+          "paulis": {
+            "XX": 1.0,
+            "YY": 1.0,
+            "ZZ": -1.0
+          },
+          "update": true
+        },
+        {
+          "type": "relationship",
+          "qubits": [
+            2,
+            3
+          ],
+          "paulis": {
+            "XX": 1.0,
+            "YY": -1.0,
+            "ZZ": 1.0
+          },
+          "update": true
+        }
+      ],
+      "measurementBasis": "computational",
+      "bitOrder": "qubit-0-leftmost",
+      "bitToSign": {
+        "0": "+",
+        "1": "-"
+      },
+      "measurements": [
+        {
+          "bitstring": "0100",
+          "count": 905
+        },
+        {
+          "bitstring": "1011",
+          "count": 905
+        },
+        {
+          "bitstring": "1000",
+          "count": 852
+        },
+        {
+          "bitstring": "0111",
+          "count": 838
+        },
+        {
+          "bitstring": "0101",
+          "count": 187
+        },
+        {
+          "bitstring": "1001",
+          "count": 153
+        },
+        {
+          "bitstring": "1010",
+          "count": 59
+        },
+        {
+          "bitstring": "0110",
+          "count": 53
+        },
+        {
+          "bitstring": "0000",
+          "count": 49
+        },
+        {
+          "bitstring": "0011",
+          "count": 41
+        },
+        {
+          "bitstring": "1100",
+          "count": 23
+        },
+        {
+          "bitstring": "1111",
+          "count": 23
+        },
+        {
+          "bitstring": "1101",
+          "count": 4
+        },
+        {
+          "bitstring": "0001",
+          "count": 3
+        },
+        {
+          "bitstring": "0010",
+          "count": 1
+        }
+      ],
+      "claimBoundary": "This is a completed Moth graph-v1 IBM Fez result acquired before play. Fluxball samples the stored computational-basis distribution classically and makes no network call during active play."
+    },
+    {
+      "recordId": "graph-v1-ibm-fez-4p-ad-bc-opposed-equal-r2-7934d275",
+      "source": "moth-qgraph-qpu",
+      "engineId": "graph-v1",
+      "competitorCount": 4,
+      "eligibleRounds": [
+        6
+      ],
+      "playerOrder": [
+        "A",
+        "D",
+        "B",
+        "C"
+      ],
+      "mode": "qpu",
+      "backendName": "ibm_fez",
+      "mothJobId": "7934d275-2b61-4a56-a75c-c5c4381de80a",
+      "ibmJobId": "dabq7rte36ac739fpti0",
+      "submittedAt": "2026-09-02T04:19:26Z",
+      "captureMethod": "committed-api-result",
+      "rawResultSha256": "72c283e6acec9115db01131f5335b63357e35a60024894995ee058646464dec4",
+      "evidencePath": "compiler/quantum_box_moth/evidence/fluxball-qgraph-qpu-bank-v2/4p-ad-bc-opposed-equal-r2.json",
+      "shots": 4096,
+      "numQubits": 4,
+      "couplingMap": [
+        [
+          0,
+          1
+        ],
+        [
+          2,
+          3
+        ]
+      ],
+      "operations": [
+        {
+          "type": "relationship",
+          "qubits": [
+            0,
+            1
+          ],
+          "paulis": {
+            "XX": 1.0,
+            "YY": 1.0,
+            "ZZ": -1.0
+          },
+          "update": true
+        },
+        {
+          "type": "relationship",
+          "qubits": [
+            2,
+            3
+          ],
+          "paulis": {
+            "XX": 1.0,
+            "YY": -1.0,
+            "ZZ": 1.0
+          },
+          "update": true
+        }
+      ],
+      "measurementBasis": "computational",
+      "bitOrder": "qubit-0-leftmost",
+      "bitToSign": {
+        "0": "+",
+        "1": "-"
+      },
+      "measurements": [
+        {
+          "bitstring": "1000",
+          "count": 999
+        },
+        {
+          "bitstring": "0100",
+          "count": 795
+        },
+        {
+          "bitstring": "1011",
+          "count": 718
+        },
+        {
+          "bitstring": "0111",
+          "count": 634
+        },
+        {
+          "bitstring": "1001",
+          "count": 205
+        },
+        {
+          "bitstring": "0101",
+          "count": 189
+        },
+        {
+          "bitstring": "1010",
+          "count": 169
+        },
+        {
+          "bitstring": "0110",
+          "count": 124
+        },
+        {
+          "bitstring": "0000",
+          "count": 58
+        },
+        {
+          "bitstring": "1111",
+          "count": 57
+        },
+        {
+          "bitstring": "0011",
+          "count": 54
+        },
+        {
+          "bitstring": "1100",
+          "count": 51
+        },
+        {
+          "bitstring": "0001",
+          "count": 14
+        },
+        {
+          "bitstring": "1101",
+          "count": 13
+        },
+        {
+          "bitstring": "0010",
+          "count": 9
+        },
+        {
+          "bitstring": "1110",
+          "count": 7
+        }
+      ],
+      "claimBoundary": "This is a completed Moth graph-v1 IBM Fez result acquired before play. Fluxball samples the stored computational-basis distribution classically and makes no network call during active play."
+    },
+    {
+      "recordId": "graph-v1-ibm-fez-4p-ab-cd-opposed-opposed-r1-c117a8fb",
+      "source": "moth-qgraph-qpu",
+      "engineId": "graph-v1",
+      "competitorCount": 4,
+      "eligibleRounds": [
+        7
+      ],
+      "playerOrder": [
+        "A",
+        "B",
+        "C",
+        "D"
+      ],
+      "mode": "qpu",
+      "backendName": "ibm_fez",
+      "mothJobId": "c117a8fb-5a05-47da-8c27-1f5bc6af78ba",
+      "ibmJobId": "dabq78de36ac739fpsag",
+      "submittedAt": "2026-09-02T04:18:29Z",
+      "captureMethod": "committed-api-result",
+      "rawResultSha256": "c668b08d737c680103ef3c1411019d19ee51aa13b5457723a610cabd59a57ff2",
+      "evidencePath": "compiler/quantum_box_moth/evidence/fluxball-qgraph-qpu-bank-v2/4p-ab-cd-opposed-opposed-r1.json",
+      "shots": 4096,
+      "numQubits": 4,
+      "couplingMap": [
+        [
+          0,
+          1
+        ],
+        [
+          2,
+          3
+        ]
+      ],
+      "operations": [
+        {
+          "type": "relationship",
+          "qubits": [
+            0,
+            1
+          ],
+          "paulis": {
+            "XX": 1.0,
+            "YY": 1.0,
+            "ZZ": -1.0
+          },
+          "update": true
+        },
+        {
+          "type": "relationship",
+          "qubits": [
+            2,
+            3
+          ],
+          "paulis": {
+            "XX": 1.0,
+            "YY": 1.0,
+            "ZZ": -1.0
+          },
+          "update": true
+        }
+      ],
+      "measurementBasis": "computational",
+      "bitOrder": "qubit-0-leftmost",
+      "bitToSign": {
+        "0": "+",
+        "1": "-"
+      },
+      "measurements": [
+        {
+          "bitstring": "0110",
+          "count": 1042
+        },
+        {
+          "bitstring": "0101",
+          "count": 994
+        },
+        {
+          "bitstring": "1001",
+          "count": 956
+        },
+        {
+          "bitstring": "1010",
+          "count": 935
+        },
+        {
+          "bitstring": "1011",
+          "count": 31
+        },
+        {
+          "bitstring": "0001",
+          "count": 30
+        },
+        {
+          "bitstring": "1000",
+          "count": 26
+        },
+        {
+          "bitstring": "0111",
+          "count": 23
+        },
+        {
+          "bitstring": "0010",
+          "count": 22
+        },
+        {
+          "bitstring": "0100",
+          "count": 20
+        },
+        {
+          "bitstring": "1110",
+          "count": 10
+        },
+        {
+          "bitstring": "1101",
+          "count": 6
+        },
+        {
+          "bitstring": "0000",
+          "count": 1
+        }
+      ],
+      "claimBoundary": "This is a completed Moth graph-v1 IBM Fez result acquired before play. Fluxball samples the stored computational-basis distribution classically and makes no network call during active play."
+    },
+    {
+      "recordId": "graph-v1-ibm-fez-4p-ac-bd-opposed-opposed-r1-66e7bccf",
+      "source": "moth-qgraph-qpu",
+      "engineId": "graph-v1",
+      "competitorCount": 4,
+      "eligibleRounds": [
+        7
+      ],
+      "playerOrder": [
+        "A",
+        "C",
+        "B",
+        "D"
+      ],
+      "mode": "qpu",
+      "backendName": "ibm_fez",
+      "mothJobId": "66e7bccf-9cea-4895-937d-f05b0149467f",
+      "ibmJobId": "dabq7sg09bds739sfp3g",
+      "submittedAt": "2026-09-02T04:18:59Z",
+      "captureMethod": "committed-api-result",
+      "rawResultSha256": "78328629d4158310677c599d685e8dab4d86f0be4d053f8ee7d4c78be37ac6b8",
+      "evidencePath": "compiler/quantum_box_moth/evidence/fluxball-qgraph-qpu-bank-v2/4p-ac-bd-opposed-opposed-r1.json",
+      "shots": 4096,
+      "numQubits": 4,
+      "couplingMap": [
+        [
+          0,
+          1
+        ],
+        [
+          2,
+          3
+        ]
+      ],
+      "operations": [
+        {
+          "type": "relationship",
+          "qubits": [
+            0,
+            1
+          ],
+          "paulis": {
+            "XX": 1.0,
+            "YY": 1.0,
+            "ZZ": -1.0
+          },
+          "update": true
+        },
+        {
+          "type": "relationship",
+          "qubits": [
+            2,
+            3
+          ],
+          "paulis": {
+            "XX": 1.0,
+            "YY": 1.0,
+            "ZZ": -1.0
+          },
+          "update": true
+        }
+      ],
+      "measurementBasis": "computational",
+      "bitOrder": "qubit-0-leftmost",
+      "bitToSign": {
+        "0": "+",
+        "1": "-"
+      },
+      "measurements": [
+        {
+          "bitstring": "1001",
+          "count": 961
+        },
+        {
+          "bitstring": "1010",
+          "count": 939
+        },
+        {
+          "bitstring": "0101",
+          "count": 885
+        },
+        {
+          "bitstring": "0110",
+          "count": 875
+        },
+        {
+          "bitstring": "0010",
+          "count": 122
+        },
+        {
+          "bitstring": "0001",
+          "count": 97
+        },
+        {
+          "bitstring": "1110",
+          "count": 70
+        },
+        {
+          "bitstring": "1101",
+          "count": 68
+        },
+        {
+          "bitstring": "0100",
+          "count": 27
+        },
+        {
+          "bitstring": "1000",
+          "count": 24
+        },
+        {
+          "bitstring": "1011",
+          "count": 13
+        },
+        {
+          "bitstring": "0111",
+          "count": 8
+        },
+        {
+          "bitstring": "0000",
+          "count": 5
+        },
+        {
+          "bitstring": "1111",
+          "count": 2
+        }
+      ],
+      "claimBoundary": "This is a completed Moth graph-v1 IBM Fez result acquired before play. Fluxball samples the stored computational-basis distribution classically and makes no network call during active play."
+    },
+    {
+      "recordId": "graph-v1-ibm-fez-4p-ad-bc-opposed-opposed-r1-cd70931e",
+      "source": "moth-qgraph-qpu",
+      "engineId": "graph-v1",
+      "competitorCount": 4,
+      "eligibleRounds": [
+        7
+      ],
+      "playerOrder": [
+        "A",
+        "D",
+        "B",
+        "C"
+      ],
+      "mode": "qpu",
+      "backendName": "ibm_fez",
+      "mothJobId": "cd70931e-9cd5-451e-bbb8-4db00933c438",
+      "ibmJobId": "dabq7q5e36ac739fptdg",
+      "submittedAt": "2026-09-02T04:19:29Z",
+      "captureMethod": "committed-api-result",
+      "rawResultSha256": "7e3e17869c786d9621823c57dc2a39e1bba66523a477ea15058175698e712d4e",
+      "evidencePath": "compiler/quantum_box_moth/evidence/fluxball-qgraph-qpu-bank-v2/4p-ad-bc-opposed-opposed-r1.json",
+      "shots": 4096,
+      "numQubits": 4,
+      "couplingMap": [
+        [
+          0,
+          1
+        ],
+        [
+          2,
+          3
+        ]
+      ],
+      "operations": [
+        {
+          "type": "relationship",
+          "qubits": [
+            0,
+            1
+          ],
+          "paulis": {
+            "XX": 1.0,
+            "YY": 1.0,
+            "ZZ": -1.0
+          },
+          "update": true
+        },
+        {
+          "type": "relationship",
+          "qubits": [
+            2,
+            3
+          ],
+          "paulis": {
+            "XX": 1.0,
+            "YY": 1.0,
+            "ZZ": -1.0
+          },
+          "update": true
+        }
+      ],
+      "measurementBasis": "computational",
+      "bitOrder": "qubit-0-leftmost",
+      "bitToSign": {
+        "0": "+",
+        "1": "-"
+      },
+      "measurements": [
+        {
+          "bitstring": "0110",
+          "count": 1049
+        },
+        {
+          "bitstring": "1010",
+          "count": 953
+        },
+        {
+          "bitstring": "0101",
+          "count": 946
+        },
+        {
+          "bitstring": "1001",
+          "count": 923
+        },
+        {
+          "bitstring": "0010",
+          "count": 51
+        },
+        {
+          "bitstring": "0001",
+          "count": 49
+        },
+        {
+          "bitstring": "0100",
+          "count": 33
+        },
+        {
+          "bitstring": "1000",
+          "count": 29
+        },
+        {
+          "bitstring": "0111",
+          "count": 23
+        },
+        {
+          "bitstring": "1011",
+          "count": 14
+        },
+        {
+          "bitstring": "1110",
+          "count": 13
+        },
+        {
+          "bitstring": "1101",
+          "count": 11
+        },
+        {
+          "bitstring": "0000",
+          "count": 1
+        },
+        {
+          "bitstring": "0011",
+          "count": 1
+        }
+      ],
+      "claimBoundary": "This is a completed Moth graph-v1 IBM Fez result acquired before play. Fluxball samples the stored computational-basis distribution classically and makes no network call during active play."
+    },
+    {
+      "recordId": "graph-v1-ibm-fez-4p-ab-cd-opposed-opposed-r2-8253dab4",
+      "source": "moth-qgraph-qpu",
+      "engineId": "graph-v1",
+      "competitorCount": 4,
+      "eligibleRounds": [
+        8
+      ],
+      "playerOrder": [
+        "A",
+        "B",
+        "C",
+        "D"
+      ],
+      "mode": "qpu",
+      "backendName": "ibm_fez",
+      "mothJobId": "8253dab4-db8e-40c9-ba98-c230bed08660",
+      "ibmJobId": "dabq79oc4p7c738kcsa0",
+      "submittedAt": "2026-09-02T04:18:32Z",
+      "captureMethod": "committed-api-result",
+      "rawResultSha256": "eb1c4c7a9e13342be6cd6a43b4210e6fa867e8b801e4e31349e834ca8ec6973b",
+      "evidencePath": "compiler/quantum_box_moth/evidence/fluxball-qgraph-qpu-bank-v2/4p-ab-cd-opposed-opposed-r2.json",
+      "shots": 4096,
+      "numQubits": 4,
+      "couplingMap": [
+        [
+          0,
+          1
+        ],
+        [
+          2,
+          3
+        ]
+      ],
+      "operations": [
+        {
+          "type": "relationship",
+          "qubits": [
+            0,
+            1
+          ],
+          "paulis": {
+            "XX": 1.0,
+            "YY": 1.0,
+            "ZZ": -1.0
+          },
+          "update": true
+        },
+        {
+          "type": "relationship",
+          "qubits": [
+            2,
+            3
+          ],
+          "paulis": {
+            "XX": 1.0,
+            "YY": 1.0,
+            "ZZ": -1.0
+          },
+          "update": true
+        }
+      ],
+      "measurementBasis": "computational",
+      "bitOrder": "qubit-0-leftmost",
+      "bitToSign": {
+        "0": "+",
+        "1": "-"
+      },
+      "measurements": [
+        {
+          "bitstring": "1001",
+          "count": 990
+        },
+        {
+          "bitstring": "1010",
+          "count": 957
+        },
+        {
+          "bitstring": "0101",
+          "count": 908
+        },
+        {
+          "bitstring": "0110",
+          "count": 873
+        },
+        {
+          "bitstring": "0100",
+          "count": 71
+        },
+        {
+          "bitstring": "0010",
+          "count": 64
+        },
+        {
+          "bitstring": "0001",
+          "count": 59
+        },
+        {
+          "bitstring": "1000",
+          "count": 55
+        },
+        {
+          "bitstring": "1110",
+          "count": 47
+        },
+        {
+          "bitstring": "1101",
+          "count": 27
+        },
+        {
+          "bitstring": "1011",
+          "count": 18
+        },
+        {
+          "bitstring": "0111",
+          "count": 15
+        },
+        {
+          "bitstring": "0000",
+          "count": 9
+        },
+        {
+          "bitstring": "0011",
+          "count": 1
+        },
+        {
+          "bitstring": "1100",
+          "count": 1
+        },
+        {
+          "bitstring": "1111",
+          "count": 1
+        }
+      ],
+      "claimBoundary": "This is a completed Moth graph-v1 IBM Fez result acquired before play. Fluxball samples the stored computational-basis distribution classically and makes no network call during active play."
+    },
+    {
+      "recordId": "graph-v1-ibm-fez-4p-ac-bd-opposed-opposed-r2-981afa87",
+      "source": "moth-qgraph-qpu",
+      "engineId": "graph-v1",
+      "competitorCount": 4,
+      "eligibleRounds": [
+        8
+      ],
+      "playerOrder": [
+        "A",
+        "C",
+        "B",
+        "D"
+      ],
+      "mode": "qpu",
+      "backendName": "ibm_fez",
+      "mothJobId": "981afa87-5477-4f65-ac57-f79c0114a298",
+      "ibmJobId": "dabq7p0c4p7c738kct8g",
+      "submittedAt": "2026-09-02T04:19:03Z",
+      "captureMethod": "committed-api-result",
+      "rawResultSha256": "892d4156e03b4165fea78618eb73cbbdd8a1e8229dd26c2eaec1ae25d9801cb7",
+      "evidencePath": "compiler/quantum_box_moth/evidence/fluxball-qgraph-qpu-bank-v2/4p-ac-bd-opposed-opposed-r2.json",
+      "shots": 4096,
+      "numQubits": 4,
+      "couplingMap": [
+        [
+          0,
+          1
+        ],
+        [
+          2,
+          3
+        ]
+      ],
+      "operations": [
+        {
+          "type": "relationship",
+          "qubits": [
+            0,
+            1
+          ],
+          "paulis": {
+            "XX": 1.0,
+            "YY": 1.0,
+            "ZZ": -1.0
+          },
+          "update": true
+        },
+        {
+          "type": "relationship",
+          "qubits": [
+            2,
+            3
+          ],
+          "paulis": {
+            "XX": 1.0,
+            "YY": 1.0,
+            "ZZ": -1.0
+          },
+          "update": true
+        }
+      ],
+      "measurementBasis": "computational",
+      "bitOrder": "qubit-0-leftmost",
+      "bitToSign": {
+        "0": "+",
+        "1": "-"
+      },
+      "measurements": [
+        {
+          "bitstring": "0101",
+          "count": 1132
+        },
+        {
+          "bitstring": "0110",
+          "count": 952
+        },
+        {
+          "bitstring": "1001",
+          "count": 897
+        },
+        {
+          "bitstring": "1010",
+          "count": 878
+        },
+        {
+          "bitstring": "0100",
+          "count": 48
+        },
+        {
+          "bitstring": "0010",
+          "count": 36
+        },
+        {
+          "bitstring": "1000",
+          "count": 36
+        },
+        {
+          "bitstring": "1101",
+          "count": 33
+        },
+        {
+          "bitstring": "1110",
+          "count": 30
+        },
+        {
+          "bitstring": "0001",
+          "count": 27
+        },
+        {
+          "bitstring": "0111",
+          "count": 13
+        },
+        {
+          "bitstring": "1011",
+          "count": 13
+        },
+        {
+          "bitstring": "0011",
+          "count": 1
+        }
+      ],
+      "claimBoundary": "This is a completed Moth graph-v1 IBM Fez result acquired before play. Fluxball samples the stored computational-basis distribution classically and makes no network call during active play."
+    },
+    {
+      "recordId": "graph-v1-ibm-fez-4p-ad-bc-opposed-opposed-r2-38c709f6",
+      "source": "moth-qgraph-qpu",
+      "engineId": "graph-v1",
+      "competitorCount": 4,
+      "eligibleRounds": [
+        8
+      ],
+      "playerOrder": [
+        "A",
+        "D",
+        "B",
+        "C"
+      ],
+      "mode": "qpu",
+      "backendName": "ibm_fez",
+      "mothJobId": "38c709f6-830c-4cf0-8537-2b7042a73979",
+      "ibmJobId": "dabq7sde36ac739fptj0",
+      "submittedAt": "2026-09-02T04:19:33Z",
+      "captureMethod": "committed-api-result",
+      "rawResultSha256": "7746542c905f42fbf445ca9a8947bfc935d7f7391d9d16de2f6e71431d9029f3",
+      "evidencePath": "compiler/quantum_box_moth/evidence/fluxball-qgraph-qpu-bank-v2/4p-ad-bc-opposed-opposed-r2.json",
+      "shots": 4096,
+      "numQubits": 4,
+      "couplingMap": [
+        [
+          0,
+          1
+        ],
+        [
+          2,
+          3
+        ]
+      ],
+      "operations": [
+        {
+          "type": "relationship",
+          "qubits": [
+            0,
+            1
+          ],
+          "paulis": {
+            "XX": 1.0,
+            "YY": 1.0,
+            "ZZ": -1.0
+          },
+          "update": true
+        },
+        {
+          "type": "relationship",
+          "qubits": [
+            2,
+            3
+          ],
+          "paulis": {
+            "XX": 1.0,
+            "YY": 1.0,
+            "ZZ": -1.0
+          },
+          "update": true
+        }
+      ],
+      "measurementBasis": "computational",
+      "bitOrder": "qubit-0-leftmost",
+      "bitToSign": {
+        "0": "+",
+        "1": "-"
+      },
+      "measurements": [
+        {
+          "bitstring": "1001",
+          "count": 991
+        },
+        {
+          "bitstring": "0110",
+          "count": 972
+        },
+        {
+          "bitstring": "0101",
+          "count": 957
+        },
+        {
+          "bitstring": "1010",
+          "count": 942
+        },
+        {
+          "bitstring": "0001",
+          "count": 47
+        },
+        {
+          "bitstring": "1000",
+          "count": 41
+        },
+        {
+          "bitstring": "0100",
+          "count": 39
+        },
+        {
+          "bitstring": "0010",
+          "count": 38
+        },
+        {
+          "bitstring": "1110",
+          "count": 22
+        },
+        {
+          "bitstring": "0111",
+          "count": 14
+        },
+        {
+          "bitstring": "1011",
+          "count": 13
+        },
+        {
+          "bitstring": "1101",
+          "count": 12
+        },
+        {
+          "bitstring": "0011",
+          "count": 4
+        },
+        {
+          "bitstring": "1100",
+          "count": 3
+        },
+        {
+          "bitstring": "0000",
+          "count": 1
+        }
+      ],
+      "claimBoundary": "This is a completed Moth graph-v1 IBM Fez result acquired before play. Fluxball samples the stored computational-basis distribution classically and makes no network call during active play."
+    }
+  ]
+}

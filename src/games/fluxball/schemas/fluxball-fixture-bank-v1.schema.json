@@ -1,0 +1,543 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:fluxball:schema:fixture-bank:v1",
+  "title": "Fluxball finite-shot fixture bank v1",
+  "description": "One committed two-qubit local-Aer preparation characterized through the pinned QuantumGraph and pairwise-tomography stack.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "fixtureBankId",
+    "defaultFixtureId",
+    "compiledAt",
+    "deliveryMode",
+    "acquisitionSource",
+    "derivationMethod",
+    "model",
+    "provenance",
+    "costEstimate",
+    "fixtures",
+    "calibration"
+  ],
+  "properties": {
+    "schemaVersion": { "const": "fluxball-fixture-bank-v1" },
+    "fixtureBankId": { "const": "fluxball-aer-two-qubit-v1" },
+    "defaultFixtureId": { "const": "fluxball-preparation-v1" },
+    "compiledAt": { "type": "string", "format": "date-time" },
+    "deliveryMode": { "const": "committed-fixture" },
+    "acquisitionSource": { "const": "finite-shot-aer" },
+    "derivationMethod": { "const": "lstsq-psd" },
+    "model": { "$ref": "#/$defs/model" },
+    "provenance": { "$ref": "#/$defs/provenance" },
+    "costEstimate": { "$ref": "#/$defs/costEstimate" },
+    "fixtures": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["fluxball-preparation-v1"],
+      "properties": {
+        "fluxball-preparation-v1": { "$ref": "#/$defs/fixture" }
+      }
+    },
+    "calibration": { "$ref": "#/$defs/calibration" }
+  },
+  "$defs": {
+    "sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "gitObjectId": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{40,64}$"
+    },
+    "canonicalEdge": {
+      "const": [0, 1]
+    },
+    "probabilityVector": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["pp", "pm", "mp", "mm"],
+      "properties": {
+        "pp": { "type": "number", "minimum": 0, "maximum": 1 },
+        "pm": { "type": "number", "minimum": 0, "maximum": 1 },
+        "mp": { "type": "number", "minimum": 0, "maximum": 1 },
+        "mm": { "type": "number", "minimum": 0, "maximum": 1 }
+      }
+    },
+    "contextDistributions": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["X", "Y", "Z"],
+      "properties": {
+        "X": { "$ref": "#/$defs/probabilityVector" },
+        "Y": { "$ref": "#/$defs/probabilityVector" },
+        "Z": { "$ref": "#/$defs/probabilityVector" }
+      }
+    },
+    "complex": {
+      "type": "array",
+      "prefixItems": [{ "type": "number" }, { "type": "number" }],
+      "items": false,
+      "minItems": 2,
+      "maxItems": 2
+    },
+    "densityRow": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/complex" },
+      "minItems": 4,
+      "maxItems": 4
+    },
+    "densityMatrix": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/densityRow" },
+      "minItems": 4,
+      "maxItems": 4
+    },
+    "pauliExpectations": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "IX",
+        "IY",
+        "IZ",
+        "XI",
+        "XX",
+        "XY",
+        "XZ",
+        "YI",
+        "YX",
+        "YY",
+        "YZ",
+        "ZI",
+        "ZX",
+        "ZY",
+        "ZZ"
+      ],
+      "properties": {
+        "IX": { "type": "number", "minimum": -1, "maximum": 1 },
+        "IY": { "type": "number", "minimum": -1, "maximum": 1 },
+        "IZ": { "type": "number", "minimum": -1, "maximum": 1 },
+        "XI": { "type": "number", "minimum": -1, "maximum": 1 },
+        "XX": { "type": "number", "minimum": -1, "maximum": 1 },
+        "XY": { "type": "number", "minimum": -1, "maximum": 1 },
+        "XZ": { "type": "number", "minimum": -1, "maximum": 1 },
+        "YI": { "type": "number", "minimum": -1, "maximum": 1 },
+        "YX": { "type": "number", "minimum": -1, "maximum": 1 },
+        "YY": { "type": "number", "minimum": -1, "maximum": 1 },
+        "YZ": { "type": "number", "minimum": -1, "maximum": 1 },
+        "ZI": { "type": "number", "minimum": -1, "maximum": 1 },
+        "ZX": { "type": "number", "minimum": -1, "maximum": 1 },
+        "ZY": { "type": "number", "minimum": -1, "maximum": 1 },
+        "ZZ": { "type": "number", "minimum": -1, "maximum": 1 }
+      }
+    },
+    "circuit": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "format",
+        "sha256",
+        "depth",
+        "twoQubitDepth",
+        "operationCounts",
+        "serialization"
+      ],
+      "properties": {
+        "format": { "const": "OPENQASM 2" },
+        "sha256": { "$ref": "#/$defs/sha256" },
+        "depth": { "type": "integer", "minimum": 1 },
+        "twoQubitDepth": { "type": "integer", "minimum": 1 },
+        "operationCounts": {
+          "type": "object",
+          "additionalProperties": { "type": "integer", "minimum": 1 },
+          "propertyNames": { "pattern": "^[a-z][a-z0-9_]*$" }
+        },
+        "serialization": { "type": "string", "minLength": 1 }
+      }
+    },
+    "model": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "modelId",
+        "numQubits",
+        "qubitMap",
+        "configuredEdges",
+        "topologyKind",
+        "initialCircuit"
+      ],
+      "properties": {
+        "modelId": { "const": "fluxball-two-qubit-rulefield-v1" },
+        "numQubits": { "const": 2 },
+        "qubitMap": {
+          "type": "array",
+          "prefixItems": [
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["qubit", "playerId", "displayName"],
+              "properties": {
+                "qubit": { "const": 0 },
+                "playerId": { "const": "A" },
+                "displayName": { "const": "Player A" }
+              }
+            },
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["qubit", "playerId", "displayName"],
+              "properties": {
+                "qubit": { "const": 1 },
+                "playerId": { "const": "B" },
+                "displayName": { "const": "Player B" }
+              }
+            }
+          ],
+          "items": false,
+          "minItems": 2,
+          "maxItems": 2
+        },
+        "configuredEdges": {
+          "type": "array",
+          "prefixItems": [{ "$ref": "#/$defs/canonicalEdge" }],
+          "items": false,
+          "minItems": 1,
+          "maxItems": 1
+        },
+        "topologyKind": { "const": "single-two-qubit-rule-relation" },
+        "initialCircuit": { "$ref": "#/$defs/circuit" }
+      }
+    },
+    "packageVersions": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "quantumgraph",
+        "pairwise-tomography",
+        "qiskit",
+        "qiskit-aer",
+        "numpy",
+        "scipy"
+      ],
+      "properties": {
+        "quantumgraph": { "const": "0.0.1" },
+        "pairwise-tomography": { "const": "0.1.0" },
+        "qiskit": { "const": "2.2.3" },
+        "qiskit-aer": { "const": "0.17.2" },
+        "numpy": { "const": "2.0.2" },
+        "scipy": { "const": "1.13.1" }
+      }
+    },
+    "verifiedSource": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "url",
+        "vcs",
+        "commit",
+        "requestedRevision",
+        "directUrlSha256"
+      ],
+      "properties": {
+        "url": { "type": "string", "minLength": 1 },
+        "vcs": { "const": "git" },
+        "commit": { "$ref": "#/$defs/gitObjectId" },
+        "requestedRevision": { "$ref": "#/$defs/gitObjectId" },
+        "directUrlSha256": { "$ref": "#/$defs/sha256" }
+      }
+    },
+    "verifiedSources": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["quantumgraph", "pairwise-tomography"],
+      "properties": {
+        "quantumgraph": {
+          "allOf": [
+            { "$ref": "#/$defs/verifiedSource" },
+            {
+              "type": "object",
+              "properties": {
+                "url": {
+                  "const": "https://github.com/moth-quantum/QuantumGraph.git"
+                },
+                "commit": {
+                  "const": "6917364b9496bd324225e87e6dd986bce52ecefd"
+                },
+                "requestedRevision": {
+                  "const": "6917364b9496bd324225e87e6dd986bce52ecefd"
+                }
+              }
+            }
+          ]
+        },
+        "pairwise-tomography": {
+          "allOf": [
+            { "$ref": "#/$defs/verifiedSource" },
+            {
+              "type": "object",
+              "properties": {
+                "url": {
+                  "const": "https://github.com/moth-quantum/pairwise-tomography.git"
+                },
+                "commit": {
+                  "const": "dbab12513281bd8ca7828252cf2e98a1a5749761"
+                },
+                "requestedRevision": {
+                  "const": "dbab12513281bd8ca7828252cf2e98a1a5749761"
+                }
+              }
+            }
+          ]
+        }
+      }
+    },
+    "provenance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "python",
+        "platform",
+        "packageVersions",
+        "quantumGraphCommit",
+        "pairwiseTomographyCommit",
+        "verifiedSources",
+        "sourceRelationship",
+        "qpu",
+        "remoteService",
+        "mothApi"
+      ],
+      "properties": {
+        "python": { "type": "string", "minLength": 1 },
+        "platform": { "type": "string", "minLength": 1 },
+        "packageVersions": { "$ref": "#/$defs/packageVersions" },
+        "quantumGraphCommit": {
+          "const": "6917364b9496bd324225e87e6dd986bce52ecefd"
+        },
+        "pairwiseTomographyCommit": {
+          "const": "dbab12513281bd8ca7828252cf2e98a1a5749761"
+        },
+        "verifiedSources": { "$ref": "#/$defs/verifiedSources" },
+        "sourceRelationship": { "type": "string", "minLength": 1 },
+        "qpu": { "const": false },
+        "remoteService": { "const": false },
+        "mothApi": { "const": false }
+      }
+    },
+    "costEstimate": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "fixtureCount",
+        "tomographyCircuitsPerFixture",
+        "totalCircuitExecutions",
+        "shotsPerCircuit",
+        "totalShots"
+      ],
+      "properties": {
+        "fixtureCount": { "const": 1 },
+        "tomographyCircuitsPerFixture": { "const": 9 },
+        "totalCircuitExecutions": { "const": 9 },
+        "shotsPerCircuit": { "type": "integer", "minimum": 128 },
+        "totalShots": { "type": "integer", "minimum": 1152 }
+      }
+    },
+    "acquisition": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "backendClass",
+        "backendName",
+        "providerMode",
+        "providerName",
+        "mothApi",
+        "jobId",
+        "shotsPerCircuit",
+        "simulatorSeed",
+        "transpilerSeed",
+        "tomographyCircuitCount",
+        "tomographyMeasurementSettings",
+        "totalShots",
+        "logicalMeasurementCircuitQasm",
+        "logicalMeasurementCircuitSha256",
+        "transpiledAerCircuitQasm",
+        "transpiledAerCircuitSha256",
+        "rawCountsSha256",
+        "durableProviderResult",
+        "hardwareLayout",
+        "backendCalibration",
+        "fallbackFrom"
+      ],
+      "properties": {
+        "backendClass": { "const": "AerSimulator" },
+        "backendName": { "const": "aer_simulator" },
+        "providerMode": { "const": "local-aer" },
+        "providerName": { "const": "qiskit-aer" },
+        "mothApi": { "const": false },
+        "jobId": { "type": "string", "minLength": 1 },
+        "shotsPerCircuit": { "type": "integer", "minimum": 128 },
+        "simulatorSeed": { "type": "integer", "minimum": 0 },
+        "transpilerSeed": { "type": "integer", "minimum": 0 },
+        "tomographyCircuitCount": { "const": 9 },
+        "tomographyMeasurementSettings": {
+          "const": ["XX", "XY", "XZ", "YX", "YY", "YZ", "ZX", "ZY", "ZZ"]
+        },
+        "totalShots": { "type": "integer", "minimum": 1152 },
+        "logicalMeasurementCircuitQasm": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^OPENQASM 2\\.0;",
+            "minLength": 1
+          },
+          "minItems": 9,
+          "maxItems": 9
+        },
+        "logicalMeasurementCircuitSha256": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/sha256" },
+          "minItems": 9,
+          "maxItems": 9
+        },
+        "transpiledAerCircuitQasm": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^OPENQASM 2\\.0;",
+            "minLength": 1
+          },
+          "minItems": 9,
+          "maxItems": 9
+        },
+        "transpiledAerCircuitSha256": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/sha256" },
+          "minItems": 9,
+          "maxItems": 9
+        },
+        "rawCountsSha256": { "$ref": "#/$defs/sha256" },
+        "durableProviderResult": { "const": false },
+        "hardwareLayout": { "type": "null" },
+        "backendCalibration": { "type": "null" },
+        "fallbackFrom": { "type": "null" }
+      }
+    },
+    "derivation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "method",
+        "matrixOrder",
+        "probabilityProjectors",
+        "maxFiniteVsExactTotalVariation"
+      ],
+      "properties": {
+        "method": { "const": "lstsq-psd" },
+        "matrixOrder": { "const": "hi-tensor-lo" },
+        "probabilityProjectors": { "const": "Pi_hi tensor Pi_lo" },
+        "maxFiniteVsExactTotalVariation": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        }
+      }
+    },
+    "pair": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "canonicalEdge",
+        "matrixOrder",
+        "densityMatrix",
+        "pauliExpectations",
+        "distributions",
+        "productMarginalsControl"
+      ],
+      "properties": {
+        "canonicalEdge": { "$ref": "#/$defs/canonicalEdge" },
+        "matrixOrder": { "const": "hi-tensor-lo" },
+        "densityMatrix": { "$ref": "#/$defs/densityMatrix" },
+        "pauliExpectations": { "$ref": "#/$defs/pauliExpectations" },
+        "distributions": { "$ref": "#/$defs/contextDistributions" },
+        "productMarginalsControl": { "$ref": "#/$defs/contextDistributions" }
+      }
+    },
+    "exactStateDiagnostic": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["acquisitionSource", "pair"],
+      "properties": {
+        "acquisitionSource": { "const": "exact-statevector" },
+        "pair": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["distributions", "pauliExpectations"],
+          "properties": {
+            "distributions": { "$ref": "#/$defs/contextDistributions" },
+            "pauliExpectations": { "$ref": "#/$defs/pauliExpectations" }
+          }
+        }
+      }
+    },
+    "fixture": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "fixtureId",
+        "circuit",
+        "acquisition",
+        "derivation",
+        "pair",
+        "exactStateDiagnostic"
+      ],
+      "properties": {
+        "fixtureId": { "const": "fluxball-preparation-v1" },
+        "circuit": { "$ref": "#/$defs/circuit" },
+        "acquisition": { "$ref": "#/$defs/acquisition" },
+        "derivation": { "$ref": "#/$defs/derivation" },
+        "pair": { "$ref": "#/$defs/pair" },
+        "exactStateDiagnostic": { "$ref": "#/$defs/exactStateDiagnostic" }
+      }
+    },
+    "contextNumber": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["X", "Y", "Z"],
+      "properties": {
+        "X": { "type": "number", "minimum": 0, "maximum": 1 },
+        "Y": { "type": "number", "minimum": 0, "maximum": 1 },
+        "Z": { "type": "number", "minimum": 0, "maximum": 1 }
+      }
+    },
+    "calibration": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "status",
+        "selectionMethod",
+        "finiteMinimumOutcomeProbability",
+        "finiteMaximumOutcomeProbability",
+        "finiteSameParityProbability",
+        "finiteProductMarginalsTotalVariation",
+        "claimBoundary"
+      ],
+      "properties": {
+        "status": { "const": "accepted-for-local-prototype" },
+        "selectionMethod": { "const": "authored-rule-legibility-calibration" },
+        "finiteMinimumOutcomeProbability": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "finiteMaximumOutcomeProbability": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "finiteSameParityProbability": { "$ref": "#/$defs/contextNumber" },
+        "finiteProductMarginalsTotalVariation": {
+          "$ref": "#/$defs/contextNumber"
+        },
+        "claimBoundary": { "type": "string", "minLength": 1 }
+      }
+    }
+  }
+}

@@ -1,0 +1,287 @@
+{
+  "schemaVersion": "fluxball-qgraph-evidence-index-v1",
+  "bankId": "fluxball-qgraph-qpu-bank-v2",
+  "captureCount": 40,
+  "captures": [
+    {
+      "targetId": "2p-equal-r1",
+      "capturePath": "compiler/quantum_box_moth/evidence/fluxball-qgraph-qpu-bank-v2/2p-equal-r1.json",
+      "captureByteSha256": "79ea44ccef8b72b88289e35028962efebddc3d605bacebf6441fbbe5adf08d3e",
+      "captureContentSha256": "152cc3c62526ec8f09493f748d0b9ac1b5db8ec65421f58f7aeeea536b921782",
+      "rawResultSha256": "ee0302c48c137c609947c6ad606a49923c9f116c04143df9699eb48a71bfeefb"
+    },
+    {
+      "targetId": "2p-equal-r2",
+      "capturePath": "compiler/quantum_box_moth/evidence/fluxball-qgraph-qpu-bank-v2/2p-equal-r2.json",
+      "captureByteSha256": "aafe93dd38958b01737bc1eaec79a51487d35bdb3d99b2ed558c007d3694e3cd",
+      "captureContentSha256": "d99d60c08c5cde47cfbd246dda870c89a059195678c2328de95cc52b03ff1839",
+      "rawResultSha256": "7b02096373f617be44e26f09ea6bbd0bc6ffb1ff5646747d0887f51110b76008"
+    },
+    {
+      "targetId": "2p-equal-r3",
+      "capturePath": "compiler/quantum_box_moth/evidence/fluxball-qgraph-qpu-bank-v2/2p-equal-r3.json",
+      "captureByteSha256": "90fdc9a911bcaf28c6198ccc48d6472321ae28298530d6f8dde21ec37e2ce5cd",
+      "captureContentSha256": "6072a6e20de69bc5292bcf129eac8086244c6e134534c87ead59d6660598042b",
+      "rawResultSha256": "e06bc6f5cfc1442431d79c25f857dd1e28de7d7f9400275aac71e4d6058604db"
+    },
+    {
+      "targetId": "2p-equal-r4",
+      "capturePath": "compiler/quantum_box_moth/evidence/fluxball-qgraph-qpu-bank-v2/2p-equal-r4.json",
+      "captureByteSha256": "48df3e4607ccd69a4932af3e12cc46fc6d422bfd539adc985f51f5c6a7d7b42e",
+      "captureContentSha256": "d60a22ea097b7045f9179a2108be9341d1c9ae233c65ae7990faf05291e04575",
+      "rawResultSha256": "9add5fb476f846408843a7192b190ebbd9b6def11797e024948166d48fbd7a56"
+    },
+    {
+      "targetId": "2p-equal-r5",
+      "capturePath": "compiler/quantum_box_moth/evidence/fluxball-qgraph-qpu-bank-v2/2p-equal-r5.json",
+      "captureByteSha256": "3d547ba3da4474dbccbeb244f69e67c4336f3e6e2b8e37db070b23863ef22f5a",
+      "captureContentSha256": "a24d4405db05ea5b0dc4a36e2d3a5faa7e6e70fae3d7794f075c7ac1ace5db1d",
+      "rawResultSha256": "c059eb65a9c4be02bb7fef3480649491b4ee97c6e06a3c324f81ea0ef75da7a9"
+    },
+    {
+      "targetId": "2p-equal-r6",
+      "capturePath": "compiler/quantum_box_moth/evidence/fluxball-qgraph-qpu-bank-v2/2p-equal-r6.json",
+      "captureByteSha256": "cd15c8839f7e5884d6a3d1e8df9e747532d3c374c8c230d50f157ef5536593dc",
+      "captureContentSha256": "94b925112a209360ddc61e15147e5ffa384ced45a7f6f43ed16050b87c434ec9",
+      "rawResultSha256": "2333dd7364baaddc0e770962cbf3ad2280999a607a091bd89688136a6357e72d"
+    },
+    {
+      "targetId": "2p-equal-r7",
+      "capturePath": "compiler/quantum_box_moth/evidence/fluxball-qgraph-qpu-bank-v2/2p-equal-r7.json",
+      "captureByteSha256": "3d925cf048feb9f64c9d788799cacb659fe061d02dafd77afad2ada67e5b5eb9",
+      "captureContentSha256": "0da9846d149e93e027d983f0252d76e1402034681553497c6b047c88cfea9c6e",
+      "rawResultSha256": "6e7fe43d49c8c25a80635c43bfcd9639a0b31485dd758edaded19d623c229f64"
+    },
+    {
+      "targetId": "2p-equal-r8",
+      "capturePath": "compiler/quantum_box_moth/evidence/fluxball-qgraph-qpu-bank-v2/2p-equal-r8.json",
+      "captureByteSha256": "329e3f28fdcd64f96128028d0623e5af6edbb4b8e80732a7b76d687e2634ca6f",
+      "captureContentSha256": "38ee8eaf279589d0a043ade926d77b4bca72fedd28c8c00a74f1c3ebde958d0e",
+      "rawResultSha256": "a28ff1cb86fad4aecfa65c68d505a4cf6da431447ae722ecfe08e48877b45def"
+    },
+    {
+      "targetId": "2p-opposed-r1",
+      "capturePath": "compiler/quantum_box_moth/evidence/fluxball-qgraph-qpu-bank-v2/2p-opposed-r1.json",
+      "captureByteSha256": "7cd866d0c34342c01d33867e0a7aaa3f3b09a39fb85f82d83e6869c86f4e6687",
+      "captureContentSha256": "e184a24da33f5fa2ef5b255f1bdd6955340242491c67b80af056e7215688c1ee",
+      "rawResultSha256": "78488487e3fca46084479090ac93031ef08230beb1280d0c17b40161e106506a"
+    },
+    {
+      "targetId": "2p-opposed-r2",
+      "capturePath": "compiler/quantum_box_moth/evidence/fluxball-qgraph-qpu-bank-v2/2p-opposed-r2.json",
+      "captureByteSha256": "0ddbc3c744c96dc1d06ff521e12af4a8d484545eca6c6dbcfca444203174036f",
+      "captureContentSha256": "0db3bb6a3437fa02659780c92b3457f38cdad0275272c0f1af544c1c88f1ca6d",
+      "rawResultSha256": "4a61ff5f5ce884a48bedd4a5a12f1a02a0ca7a8e4cfdccc16f931f96a8901cdc"
+    },
+    {
+      "targetId": "2p-opposed-r3",
+      "capturePath": "compiler/quantum_box_moth/evidence/fluxball-qgraph-qpu-bank-v2/2p-opposed-r3.json",
+      "captureByteSha256": "1a3aa7d1226115453ce6beda54dce94d49da7b98b62d161198cf2f689a2953aa",
+      "captureContentSha256": "f32f8d50f593cc5704b85977c5c0c5ae377395cc7d1efa80c5d98b41b18cf715",
+      "rawResultSha256": "7b9cd10c2ab286f4aeed9a9618a9ca87780a8ceba634abb971acc13c9243e139"
+    },
+    {
+      "targetId": "2p-opposed-r4",
+      "capturePath": "compiler/quantum_box_moth/evidence/fluxball-qgraph-qpu-bank-v2/2p-opposed-r4.json",
+      "captureByteSha256": "6cfd4e9d4ec4085aef34eb6a033cf67be2c28195a17dc7929566deb6adfa14bf",
+      "captureContentSha256": "97a636e7596ea1ee00909fea09fe0836bc4f2978342f7e34be0e12a09af477cc",
+      "rawResultSha256": "090bceb0334ab8e3e83450e98c08632c3ca559611a1fd78c5b50114189beff35"
+    },
+    {
+      "targetId": "2p-opposed-r5",
+      "capturePath": "compiler/quantum_box_moth/evidence/fluxball-qgraph-qpu-bank-v2/2p-opposed-r5.json",
+      "captureByteSha256": "e3c104bc7842d95ef4c45dc2f6ae634c99a0655567b3b20bbc74daf94fd85e43",
+      "captureContentSha256": "b8729e085ec9ecbf9da18781b33cc7afc6fad9b056eb12fa9f0a8a66e872b168",
+      "rawResultSha256": "4739358741a32628a8b865e5151eb53a1bbde5bc65e04c90b234a4b68bce26e7"
+    },
+    {
+      "targetId": "2p-opposed-r6",
+      "capturePath": "compiler/quantum_box_moth/evidence/fluxball-qgraph-qpu-bank-v2/2p-opposed-r6.json",
+      "captureByteSha256": "bdb293c9a831a4f4544959e405eb0e35480f815e7614be1b9622401eeb456a6a",
+      "captureContentSha256": "b560effad404eb94fc49497f7d41731b6107883a1ca264863c0973c9b0df2e94",
+      "rawResultSha256": "abde2ecd8bc71b72353a3bf4b825372b79180a042cdfe1df8b0ca399d8245bfd"
+    },
+    {
+      "targetId": "2p-opposed-r7",
+      "capturePath": "compiler/quantum_box_moth/evidence/fluxball-qgraph-qpu-bank-v2/2p-opposed-r7.json",
+      "captureByteSha256": "41fbcff46a6b63d22b993266d4057ce13d50c82c5780ba7864e7cae86e6dc37f",
+      "captureContentSha256": "27f151345207240c4fe6b9c1c2c6ebc554ca86f781b4cd967a3f3f78a98c095f",
+      "rawResultSha256": "af79174f03696d5d98327532c6f03374ab972275a6379f38916ec9effb179647"
+    },
+    {
+      "targetId": "2p-opposed-r8",
+      "capturePath": "compiler/quantum_box_moth/evidence/fluxball-qgraph-qpu-bank-v2/2p-opposed-r8.json",
+      "captureByteSha256": "ed16971f9eeac1bb8805feb3b3720e1cce2b5b68f49d38350a6cadf3a05ed83d",
+      "captureContentSha256": "e9cb410f6924843b7d99d25320f3b74030e32eb6e96f04e0e7b3f957d7a0ad1f",
+      "rawResultSha256": "081aa9ca65361ebb567f51fa174e9b81f93abe03e473e552e79bb0063fc8ce2d"
+    },
+    {
+      "targetId": "4p-ab-cd-equal-equal-r1",
+      "capturePath": "compiler/quantum_box_moth/evidence/fluxball-qgraph-qpu-bank-v2/4p-ab-cd-equal-equal-r1.json",
+      "captureByteSha256": "cffabea1a8f024b0b10a2a10f5c60400ee39749114d636a1c6807400c86061a4",
+      "captureContentSha256": "62e1c7547284ae5ab553655e6b443e6e7387a20f91b62dc7968554712e61b929",
+      "rawResultSha256": "d900d6c1f71b89b997d05dcf73f1633865f015dc008aca12057a43e2d445f96b"
+    },
+    {
+      "targetId": "4p-ab-cd-equal-equal-r2",
+      "capturePath": "compiler/quantum_box_moth/evidence/fluxball-qgraph-qpu-bank-v2/4p-ab-cd-equal-equal-r2.json",
+      "captureByteSha256": "224d6af27ab355823f83a83ef268ff0c9b2d3a6c230c8778ee65dec792336c93",
+      "captureContentSha256": "e9275a2472819c6fa8f009bac0e71ed771b655434bf51a5223cc5e4b78f70114",
+      "rawResultSha256": "d14ba895da2e97bb581387a45dfe9260823e84e70b7657894823fa4a15b809a8"
+    },
+    {
+      "targetId": "4p-ab-cd-equal-opposed-r1",
+      "capturePath": "compiler/quantum_box_moth/evidence/fluxball-qgraph-qpu-bank-v2/4p-ab-cd-equal-opposed-r1.json",
+      "captureByteSha256": "71990e478218ca7f43acb66c8b51104a7d5f53f38f5cc8b863dcd74d356acf70",
+      "captureContentSha256": "76b3bd49405a314340a33ee491f845f6801a1f3d2659729fcc9b1a67829ed313",
+      "rawResultSha256": "a871a3493c403094518afcaa165c1a9f52c527a5b60be3471aa9bc540572ec4f"
+    },
+    {
+      "targetId": "4p-ab-cd-equal-opposed-r2",
+      "capturePath": "compiler/quantum_box_moth/evidence/fluxball-qgraph-qpu-bank-v2/4p-ab-cd-equal-opposed-r2.json",
+      "captureByteSha256": "7929f4dddacba01f426d470a7310ba302677882d2f24a462b3de11649dc9c3f3",
+      "captureContentSha256": "937c986ce037d9162bcbf842fb54bb8e91ac111d340f82b02150a233d3be6edf",
+      "rawResultSha256": "1c1e0d77623adead07f62c98842b73aa2fceac641a3c3910a2ac134672d4c810"
+    },
+    {
+      "targetId": "4p-ab-cd-opposed-equal-r1",
+      "capturePath": "compiler/quantum_box_moth/evidence/fluxball-qgraph-qpu-bank-v2/4p-ab-cd-opposed-equal-r1.json",
+      "captureByteSha256": "9251dc4f4a1b55f7f033bf989d1878c3b62554ac267cd8b3b1fdb266745fc0de",
+      "captureContentSha256": "edb0335d697e9da409cbc1cb158bd9872ae527e837ae0a763601021be7e96920",
+      "rawResultSha256": "acb887014561d2e2454ffefe2ac9b047ac4f2a05c10e760956885d06e8434da7"
+    },
+    {
+      "targetId": "4p-ab-cd-opposed-equal-r2",
+      "capturePath": "compiler/quantum_box_moth/evidence/fluxball-qgraph-qpu-bank-v2/4p-ab-cd-opposed-equal-r2.json",
+      "captureByteSha256": "900c3ceae7690de6948ba840c17fc0bdbff66a6df91a78e61748c142a5ec7696",
+      "captureContentSha256": "5cf69f35053e2d6bee43e28a1623197ff7a4ef48ca7e26e2bc27e6b12c9741b4",
+      "rawResultSha256": "6eebc3c7838a068f0db41c1f7be2612455d2c83cff9b355e84d50218c4cc46d9"
+    },
+    {
+      "targetId": "4p-ab-cd-opposed-opposed-r1",
+      "capturePath": "compiler/quantum_box_moth/evidence/fluxball-qgraph-qpu-bank-v2/4p-ab-cd-opposed-opposed-r1.json",
+      "captureByteSha256": "ad37f0166df2bdc55da9188ced94666de207b8fc3154391ef32f33e21a42db09",
+      "captureContentSha256": "c60086659780c1975ecd9f26e92c2081e7c9b3705f2417f4ee27b18aa0e13a58",
+      "rawResultSha256": "c668b08d737c680103ef3c1411019d19ee51aa13b5457723a610cabd59a57ff2"
+    },
+    {
+      "targetId": "4p-ab-cd-opposed-opposed-r2",
+      "capturePath": "compiler/quantum_box_moth/evidence/fluxball-qgraph-qpu-bank-v2/4p-ab-cd-opposed-opposed-r2.json",
+      "captureByteSha256": "546dc107bc257178e49791d012206ddbaf4a199fe3fa141a4b90a10feccb6732",
+      "captureContentSha256": "7a078a49d0a4c2d7e48ab7fe03c95f38f751ed208900a4a2d45fca1534d93916",
+      "rawResultSha256": "eb1c4c7a9e13342be6cd6a43b4210e6fa867e8b801e4e31349e834ca8ec6973b"
+    },
+    {
+      "targetId": "4p-ac-bd-equal-equal-r1",
+      "capturePath": "compiler/quantum_box_moth/evidence/fluxball-qgraph-qpu-bank-v2/4p-ac-bd-equal-equal-r1.json",
+      "captureByteSha256": "9f58c1338a1b28a217c256c95f0041c0fea72d215479fee0cadc8c55f21724fc",
+      "captureContentSha256": "c2a65539d2c5a73f3a7e4d03c9c9a1f96ec2132e981a8104749bb012c97a32d9",
+      "rawResultSha256": "43acf255b0fc3402940403dd51bb6eaa26a5609fa2e8be8ecc005dafff2c4092"
+    },
+    {
+      "targetId": "4p-ac-bd-equal-equal-r2",
+      "capturePath": "compiler/quantum_box_moth/evidence/fluxball-qgraph-qpu-bank-v2/4p-ac-bd-equal-equal-r2.json",
+      "captureByteSha256": "f223c7c1230d12a33118f9ce36aa25f3166881e64b7da31360a9bf5d5cfdc35f",
+      "captureContentSha256": "fb2e2065f26a9fb073564b17ff0331a658d2719816f8a1ce4ef5bf140b274a1f",
+      "rawResultSha256": "05cecec8c8f86ecb5ec01dc58556cd48c1cbed7eb781cab9af1e1647657bc91e"
+    },
+    {
+      "targetId": "4p-ac-bd-equal-opposed-r1",
+      "capturePath": "compiler/quantum_box_moth/evidence/fluxball-qgraph-qpu-bank-v2/4p-ac-bd-equal-opposed-r1.json",
+      "captureByteSha256": "1ae7eac9d8fbaf5c6fed1ea82611bbdd605fbf763560c18f897b79c56544f944",
+      "captureContentSha256": "0e29e62f909ae4f551507db48d642148fbe7f235f878396eafbf64923bb6bc3b",
+      "rawResultSha256": "7c26b0204d02470049425b71fb2688e17a2e418ec6460eed5eb1f4e9ee7c01ac"
+    },
+    {
+      "targetId": "4p-ac-bd-equal-opposed-r2",
+      "capturePath": "compiler/quantum_box_moth/evidence/fluxball-qgraph-qpu-bank-v2/4p-ac-bd-equal-opposed-r2.json",
+      "captureByteSha256": "d9332d5030965f731c0db01930263250d79092899f5255940656121a11f25630",
+      "captureContentSha256": "4876cf14a1a535f81656e3057aadf9d46a6c00d48c4ef117e71114a79ae462be",
+      "rawResultSha256": "9877aee28acaf704376548c2076ef1035d976eb0ac6ed1e09160039619ec2307"
+    },
+    {
+      "targetId": "4p-ac-bd-opposed-equal-r1",
+      "capturePath": "compiler/quantum_box_moth/evidence/fluxball-qgraph-qpu-bank-v2/4p-ac-bd-opposed-equal-r1.json",
+      "captureByteSha256": "765f76eff5ec4f99ed1f056854f6b1cbc891c284ec7629c40d3722c9a89ee33b",
+      "captureContentSha256": "c155a1f0b225e3e1dcd18ecbcfc8a7ff08d826d1c170f4e842f978b19fe5ef8a",
+      "rawResultSha256": "099118e80d1a98bbc8d61e6c6a9fc1b98be8caae85266947b837c65aaea73281"
+    },
+    {
+      "targetId": "4p-ac-bd-opposed-equal-r2",
+      "capturePath": "compiler/quantum_box_moth/evidence/fluxball-qgraph-qpu-bank-v2/4p-ac-bd-opposed-equal-r2.json",
+      "captureByteSha256": "2cc13819a3217710920f4f198eee4be7aa90ad310524a2b6d12397319edf9323",
+      "captureContentSha256": "19dbad1d7843641db165d824227af74ea48a3f04086ef73a59b4db68d5a7640e",
+      "rawResultSha256": "d4d1021ecdc137a196cbe337a12de90aad6911cd1118ee81fd830bbeebb29552"
+    },
+    {
+      "targetId": "4p-ac-bd-opposed-opposed-r1",
+      "capturePath": "compiler/quantum_box_moth/evidence/fluxball-qgraph-qpu-bank-v2/4p-ac-bd-opposed-opposed-r1.json",
+      "captureByteSha256": "a29269848f47ec8d4782b74f94d2ffa0d5044993ce912ac47cf4fa11a2e0b958",
+      "captureContentSha256": "6f68ea5c4cc8029e3af690352b9df597e195edf0ef8bc18b54d2796f21eab072",
+      "rawResultSha256": "78328629d4158310677c599d685e8dab4d86f0be4d053f8ee7d4c78be37ac6b8"
+    },
+    {
+      "targetId": "4p-ac-bd-opposed-opposed-r2",
+      "capturePath": "compiler/quantum_box_moth/evidence/fluxball-qgraph-qpu-bank-v2/4p-ac-bd-opposed-opposed-r2.json",
+      "captureByteSha256": "a0a132c334b16faac43d4c09c2498718d2a173bb51bc0fa6abe31dc875e39a68",
+      "captureContentSha256": "917610cfc9a4633479d8fca41b2d485fa6b2318899d1eeefa1ba601c4c5c1fec",
+      "rawResultSha256": "892d4156e03b4165fea78618eb73cbbdd8a1e8229dd26c2eaec1ae25d9801cb7"
+    },
+    {
+      "targetId": "4p-ad-bc-equal-equal-r1",
+      "capturePath": "compiler/quantum_box_moth/evidence/fluxball-qgraph-qpu-bank-v2/4p-ad-bc-equal-equal-r1.json",
+      "captureByteSha256": "0f23b9dfa599042d9dc6060fc170ed43448cd2167e1b8ab63ab6fba87b28f0ae",
+      "captureContentSha256": "49d2c520303a25511a501e7146d117ca10c25d669146a4fcc391e08ef2d1b2c2",
+      "rawResultSha256": "0e22318f3e605f6c50a1f78da0705417c8cc06595037480db043150f147aa0bb"
+    },
+    {
+      "targetId": "4p-ad-bc-equal-equal-r2",
+      "capturePath": "compiler/quantum_box_moth/evidence/fluxball-qgraph-qpu-bank-v2/4p-ad-bc-equal-equal-r2.json",
+      "captureByteSha256": "0313baadc27e63f5eb8f4a394aed7805763a9c27e0f75f62483256b2394a2c25",
+      "captureContentSha256": "7fcec6c2048629bca340f2f1161a76109d6475c267029cff89281c5d5beff65c",
+      "rawResultSha256": "75b5cf941ef369157a8da5b508327209e5c918eed42cb40b6a1b572d21a49a54"
+    },
+    {
+      "targetId": "4p-ad-bc-equal-opposed-r1",
+      "capturePath": "compiler/quantum_box_moth/evidence/fluxball-qgraph-qpu-bank-v2/4p-ad-bc-equal-opposed-r1.json",
+      "captureByteSha256": "b38121ae2c3462a2e653fe7117330968c4e068389bbe98c897f0c4f14ab64e2d",
+      "captureContentSha256": "af6136b98f2550c23fb96aa659522abae9b13c4924f8cd07af9299a5ffa8cc70",
+      "rawResultSha256": "d25d2c6bf4245f176ff120c3bdeb4f289d8568cd76d72fee2ddd1fff1af75a8f"
+    },
+    {
+      "targetId": "4p-ad-bc-equal-opposed-r2",
+      "capturePath": "compiler/quantum_box_moth/evidence/fluxball-qgraph-qpu-bank-v2/4p-ad-bc-equal-opposed-r2.json",
+      "captureByteSha256": "6d0a12817573d0bccd5cb3862f14a21447137f4098b309fae0fd0a7f65b6e37a",
+      "captureContentSha256": "9ba367db8c4f3b8ce953c6506dad412a92371d9867e61ab1b5a31f051f7a4a39",
+      "rawResultSha256": "a285fc4721611a064aed701246a9e98d1f6e3bfc99cd9952accee83d945d515b"
+    },
+    {
+      "targetId": "4p-ad-bc-opposed-equal-r1",
+      "capturePath": "compiler/quantum_box_moth/evidence/fluxball-qgraph-qpu-bank-v2/4p-ad-bc-opposed-equal-r1.json",
+      "captureByteSha256": "d91e40ac6274ff4c3d832c8a7d8498cdc0fcdf221421c560d19e90e89f6abf65",
+      "captureContentSha256": "bb0eb45566ab9acc65db81c349b6bf21d9726ccedc7ac6f48bba48adee68a074",
+      "rawResultSha256": "ae870b361cce385e0a4e4109f149405137deed1279fe269e1d54f16bee146791"
+    },
+    {
+      "targetId": "4p-ad-bc-opposed-equal-r2",
+      "capturePath": "compiler/quantum_box_moth/evidence/fluxball-qgraph-qpu-bank-v2/4p-ad-bc-opposed-equal-r2.json",
+      "captureByteSha256": "d864af47f3a289c6da44343543cefdb1b51b36411ad5eec14474825c359be3d8",
+      "captureContentSha256": "2ecf35d251ae975cae72e9e83758ad782a51b57c86602da7e442bc8e4f378961",
+      "rawResultSha256": "72c283e6acec9115db01131f5335b63357e35a60024894995ee058646464dec4"
+    },
+    {
+      "targetId": "4p-ad-bc-opposed-opposed-r1",
+      "capturePath": "compiler/quantum_box_moth/evidence/fluxball-qgraph-qpu-bank-v2/4p-ad-bc-opposed-opposed-r1.json",
+      "captureByteSha256": "19914df744a89ca62b03c89e557774c7af815b0ad745978b5b85b955cbd1f713",
+      "captureContentSha256": "06aa8982de2b50683c04b1649cec03326a59abeb3186d7a2791957728e7f83b6",
+      "rawResultSha256": "7e3e17869c786d9621823c57dc2a39e1bba66523a477ea15058175698e712d4e"
+    },
+    {
+      "targetId": "4p-ad-bc-opposed-opposed-r2",
+      "capturePath": "compiler/quantum_box_moth/evidence/fluxball-qgraph-qpu-bank-v2/4p-ad-bc-opposed-opposed-r2.json",
+      "captureByteSha256": "22ecbf9f5c52813362a18c56a515f5ccd6636b5377c4381965f771623eef60a8",
+      "captureContentSha256": "3efd6945dcb684cd0e053e70624c0fac6d53c320fb026809e1599be5e866063f",
+      "rawResultSha256": "7746542c905f42fbf445ca9a8947bfc935d7f7391d9d16de2f6e71431d9029f3"
+    }
+  ]
+}

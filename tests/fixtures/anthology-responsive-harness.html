@@ -1,0 +1,163 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Quantum Box anthology responsive QA</title>
+    <style>
+      :root {
+        color: #ead7aa;
+        background: #160d08;
+        font-family: ui-monospace, monospace;
+      }
+
+      body {
+        margin: 0;
+        padding: 24px;
+      }
+
+      h1 {
+        margin: 0 0 8px;
+        font-size: 18px;
+      }
+
+      body > p {
+        max-width: 76ch;
+        margin: 0 0 28px;
+        color: #a9926d;
+        font-size: 12px;
+        line-height: 1.45;
+      }
+
+      section {
+        margin-block: 28px;
+      }
+
+      h2 {
+        margin: 0 0 8px;
+        color: #d39124;
+        font-size: 13px;
+      }
+
+      .viewport {
+        overflow: hidden;
+        border: 1px solid #6d583b;
+        background: #160d08;
+      }
+
+      iframe {
+        display: block;
+        border: 0;
+        transform-origin: top left;
+      }
+
+      .desktop-1280 {
+        width: 960px;
+        height: 540px;
+      }
+
+      .desktop-1280 iframe {
+        width: 1280px;
+        height: 720px;
+        transform: scale(0.75);
+      }
+
+      .desktop-1920 {
+        width: 960px;
+        height: 540px;
+      }
+
+      .desktop-1920 iframe {
+        width: 1920px;
+        height: 1080px;
+        transform: scale(0.5);
+      }
+
+      .narrow-434 {
+        width: 434px;
+        height: 720px;
+      }
+
+      .narrow-434 iframe {
+        width: 434px;
+        height: 720px;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>QUANTUM BOX · ANTHOLOGY RESPONSIVE QA</h1>
+    <p>
+      Development fixture only. Each iframe performs layout at the exact named
+      viewport. The desktop frames are scaled only for comparison on this page.
+    </p>
+    <section>
+      <h2>1280 × 720 · DISPLAYED AT 75%</h2>
+      <div class="viewport desktop-1280">
+        <iframe title="Quantum Box at 1280 by 720"></iframe>
+      </div>
+    </section>
+    <section>
+      <h2>1920 × 1080 · DISPLAYED AT 50%</h2>
+      <div class="viewport desktop-1920">
+        <iframe title="Quantum Box at 1920 by 1080"></iframe>
+      </div>
+    </section>
+    <section>
+      <h2>434 × 720 · DISPLAYED AT 100%</h2>
+      <div class="viewport narrow-434">
+        <iframe title="Quantum Box at 434 by 720"></iframe>
+      </div>
+    </section>
+    <script>
+      const surface =
+        new URLSearchParams(location.search).get("surface") ?? "arcade";
+      document.querySelector("h1").textContent += ` · ${surface.toUpperCase()}`;
+
+      const targetUrl = "/?responsive-harness=1";
+
+      const click = (documentRoot, selector) => {
+        const target = documentRoot.querySelector(selector);
+        if (target?.tagName !== "BUTTON") {
+          throw new Error(`Responsive harness could not find ${selector}.`);
+        }
+        target.click();
+      };
+
+      const openSurface = async (frame) => {
+        await new Promise((resolve) => setTimeout(resolve, 650));
+        const documentRoot = frame.contentDocument;
+        if (!documentRoot)
+          throw new Error("Responsive harness cannot access its frame.");
+        if (surface === "title") return;
+        click(documentRoot, ".qb-title-hit");
+        await new Promise((resolve) => setTimeout(resolve, 250));
+        if (surface === "index") return;
+        if (surface === "workshop" || surface === "settings") {
+          click(documentRoot, `[data-page="${surface}"]`);
+          return;
+        }
+        click(documentRoot, '[data-page="arcade"]');
+        await new Promise((resolve) => setTimeout(resolve, 100));
+        if (surface === "arcade") return;
+        const launches = {
+          qong: '[data-action="launch-arcade"][data-game-id="qong"]',
+          skipixl: '[data-action="launch-arcade"][data-game-id="skipixl"]',
+          fluxball:
+            '[data-action="launch-arcade"][data-game-id="fluxball"][data-mode="2 PLAYER / GLOBAL"]',
+          quantman: '[data-action="launch-arcade"][data-game-id="quantman"]',
+        };
+        const selector = launches[surface];
+        if (!selector)
+          throw new Error(`Unknown responsive surface ${surface}.`);
+        click(documentRoot, selector);
+      };
+
+      for (const frame of document.querySelectorAll("iframe")) {
+        frame.src = targetUrl;
+        frame.addEventListener("load", () => void openSurface(frame), {
+          once: true,
+        });
+      }
+    </script>
+  </body>
+</html>

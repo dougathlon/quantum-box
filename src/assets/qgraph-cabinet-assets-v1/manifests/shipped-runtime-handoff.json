@@ -1,0 +1,1472 @@
+{
+  "alphaContract": "binary-only-0-or-255",
+  "lineage": "Production-only subset derived without modification from the historical runtime handoff; contains only currently reachable cabinet assets.",
+  "logicalResolution": {
+    "height": 180,
+    "width": 320
+  },
+  "palette": {
+    "darkTobacco": "#2B1C14",
+    "mutedTan": "#564330",
+    "warmCream": "#D6BD8B"
+  },
+  "runtimeFiles": [
+    {
+      "dimensions": {
+        "height": 20,
+        "width": 1406
+      },
+      "fileId": "quag-player-directional-strip",
+      "frames": [
+        {
+          "anchor": {
+            "convention": "frame-local-integer",
+            "x": 10,
+            "y": 19
+          },
+          "derivationMethod": "original-comic-duck-two-facing-eight-motion-v5",
+          "frameId": "a-right-idle",
+          "order": 0,
+          "parents": [],
+          "rect": {
+            "height": 20,
+            "width": 20,
+            "x": 0,
+            "y": 0
+          }
+        },
+        {
+          "anchor": {
+            "convention": "frame-local-integer",
+            "x": 10,
+            "y": 19
+          },
+          "derivationMethod": "original-comic-duck-two-facing-eight-motion-v5",
+          "frameId": "a-right-waddle-a",
+          "order": 1,
+          "parents": [],
+          "rect": {
+            "height": 20,
+            "width": 20,
+            "x": 22,
+            "y": 0
+          }
+        },
+        {
+          "anchor": {
+            "convention": "frame-local-integer",
+            "x": 10,
+            "y": 19
+          },
+          "derivationMethod": "original-comic-duck-two-facing-eight-motion-v5",
+          "frameId": "a-right-waddle-b",
+          "order": 2,
+          "parents": [],
+          "rect": {
+            "height": 20,
+            "width": 20,
+            "x": 44,
+            "y": 0
+          }
+        },
+        {
+          "anchor": {
+            "convention": "frame-local-integer",
+            "x": 10,
+            "y": 19
+          },
+          "derivationMethod": "original-comic-duck-two-facing-eight-motion-v5",
+          "frameId": "a-right-flap-up",
+          "order": 3,
+          "parents": [],
+          "rect": {
+            "height": 20,
+            "width": 20,
+            "x": 66,
+            "y": 0
+          }
+        },
+        {
+          "anchor": {
+            "convention": "frame-local-integer",
+            "x": 10,
+            "y": 19
+          },
+          "derivationMethod": "original-comic-duck-two-facing-eight-motion-v5",
+          "frameId": "a-right-flap-down",
+          "order": 4,
+          "parents": [],
+          "rect": {
+            "height": 20,
+            "width": 20,
+            "x": 88,
+            "y": 0
+          }
+        },
+        {
+          "anchor": {
+            "convention": "frame-local-integer",
+            "x": 10,
+            "y": 19
+          },
+          "derivationMethod": "original-comic-duck-two-facing-eight-motion-v5",
+          "frameId": "a-right-fall",
+          "order": 5,
+          "parents": [],
+          "rect": {
+            "height": 20,
+            "width": 20,
+            "x": 110,
+            "y": 0
+          }
+        },
+        {
+          "anchor": {
+            "convention": "frame-local-integer",
+            "x": 10,
+            "y": 19
+          },
+          "derivationMethod": "original-comic-duck-two-facing-eight-motion-v5",
+          "frameId": "a-right-catch",
+          "order": 6,
+          "parents": [],
+          "rect": {
+            "height": 20,
+            "width": 20,
+            "x": 132,
+            "y": 0
+          }
+        },
+        {
+          "anchor": {
+            "convention": "frame-local-integer",
+            "x": 10,
+            "y": 19
+          },
+          "derivationMethod": "original-comic-duck-two-facing-eight-motion-v5",
+          "frameId": "a-right-impact",
+          "order": 7,
+          "parents": [],
+          "rect": {
+            "height": 20,
+            "width": 20,
+            "x": 154,
+            "y": 0
+          }
+        },
+        {
+          "anchor": {
+            "convention": "frame-local-integer",
+            "x": 10,
+            "y": 19
+          },
+          "derivationMethod": "original-comic-duck-two-facing-eight-motion-v5",
+          "frameId": "a-left-idle",
+          "order": 8,
+          "parents": [],
+          "rect": {
+            "height": 20,
+            "width": 20,
+            "x": 176,
+            "y": 0
+          }
+        },
+        {
+          "anchor": {
+            "convention": "frame-local-integer",
+            "x": 10,
+            "y": 19
+          },
+          "derivationMethod": "original-comic-duck-two-facing-eight-motion-v5",
+          "frameId": "a-left-waddle-a",
+          "order": 9,
+          "parents": [],
+          "rect": {
+            "height": 20,
+            "width": 20,
+            "x": 198,
+            "y": 0
+          }
+        },
+        {
+          "anchor": {
+            "convention": "frame-local-integer",
+            "x": 10,
+            "y": 19
+          },
+          "derivationMethod": "original-comic-duck-two-facing-eight-motion-v5",
+          "frameId": "a-left-waddle-b",
+          "order": 10,
+          "parents": [],
+          "rect": {
+            "height": 20,
+            "width": 20,
+            "x": 220,
+            "y": 0
+          }
+        },
+        {
+          "anchor": {
+            "convention": "frame-local-integer",
+            "x": 10,
+            "y": 19
+          },
+          "derivationMethod": "original-comic-duck-two-facing-eight-motion-v5",
+          "frameId": "a-left-flap-up",
+          "order": 11,
+          "parents": [],
+          "rect": {
+            "height": 20,
+            "width": 20,
+            "x": 242,
+            "y": 0
+          }
+        },
+        {
+          "anchor": {
+            "convention": "frame-local-integer",
+            "x": 10,
+            "y": 19
+          },
+          "derivationMethod": "original-comic-duck-two-facing-eight-motion-v5",
+          "frameId": "a-left-flap-down",
+          "order": 12,
+          "parents": [],
+          "rect": {
+            "height": 20,
+            "width": 20,
+            "x": 264,
+            "y": 0
+          }
+        },
+        {
+          "anchor": {
+            "convention": "frame-local-integer",
+            "x": 10,
+            "y": 19
+          },
+          "derivationMethod": "original-comic-duck-two-facing-eight-motion-v5",
+          "frameId": "a-left-fall",
+          "order": 13,
+          "parents": [],
+          "rect": {
+            "height": 20,
+            "width": 20,
+            "x": 286,
+            "y": 0
+          }
+        },
+        {
+          "anchor": {
+            "convention": "frame-local-integer",
+            "x": 10,
+            "y": 19
+          },
+          "derivationMethod": "original-comic-duck-two-facing-eight-motion-v5",
+          "frameId": "a-left-catch",
+          "order": 14,
+          "parents": [],
+          "rect": {
+            "height": 20,
+            "width": 20,
+            "x": 308,
+            "y": 0
+          }
+        },
+        {
+          "anchor": {
+            "convention": "frame-local-integer",
+            "x": 10,
+            "y": 19
+          },
+          "derivationMethod": "original-comic-duck-two-facing-eight-motion-v5",
+          "frameId": "a-left-impact",
+          "order": 15,
+          "parents": [],
+          "rect": {
+            "height": 20,
+            "width": 20,
+            "x": 330,
+            "y": 0
+          }
+        },
+        {
+          "anchor": {
+            "convention": "frame-local-integer",
+            "x": 10,
+            "y": 19
+          },
+          "derivationMethod": "original-comic-duck-two-facing-eight-motion-v5",
+          "frameId": "b-right-idle",
+          "order": 16,
+          "parents": [],
+          "rect": {
+            "height": 20,
+            "width": 20,
+            "x": 352,
+            "y": 0
+          }
+        },
+        {
+          "anchor": {
+            "convention": "frame-local-integer",
+            "x": 10,
+            "y": 19
+          },
+          "derivationMethod": "original-comic-duck-two-facing-eight-motion-v5",
+          "frameId": "b-right-waddle-a",
+          "order": 17,
+          "parents": [],
+          "rect": {
+            "height": 20,
+            "width": 20,
+            "x": 374,
+            "y": 0
+          }
+        },
+        {
+          "anchor": {
+            "convention": "frame-local-integer",
+            "x": 10,
+            "y": 19
+          },
+          "derivationMethod": "original-comic-duck-two-facing-eight-motion-v5",
+          "frameId": "b-right-waddle-b",
+          "order": 18,
+          "parents": [],
+          "rect": {
+            "height": 20,
+            "width": 20,
+            "x": 396,
+            "y": 0
+          }
+        },
+        {
+          "anchor": {
+            "convention": "frame-local-integer",
+            "x": 10,
+            "y": 19
+          },
+          "derivationMethod": "original-comic-duck-two-facing-eight-motion-v5",
+          "frameId": "b-right-flap-up",
+          "order": 19,
+          "parents": [],
+          "rect": {
+            "height": 20,
+            "width": 20,
+            "x": 418,
+            "y": 0
+          }
+        },
+        {
+          "anchor": {
+            "convention": "frame-local-integer",
+            "x": 10,
+            "y": 19
+          },
+          "derivationMethod": "original-comic-duck-two-facing-eight-motion-v5",
+          "frameId": "b-right-flap-down",
+          "order": 20,
+          "parents": [],
+          "rect": {
+            "height": 20,
+            "width": 20,
+            "x": 440,
+            "y": 0
+          }
+        },
+        {
+          "anchor": {
+            "convention": "frame-local-integer",
+            "x": 10,
+            "y": 19
+          },
+          "derivationMethod": "original-comic-duck-two-facing-eight-motion-v5",
+          "frameId": "b-right-fall",
+          "order": 21,
+          "parents": [],
+          "rect": {
+            "height": 20,
+            "width": 20,
+            "x": 462,
+            "y": 0
+          }
+        },
+        {
+          "anchor": {
+            "convention": "frame-local-integer",
+            "x": 10,
+            "y": 19
+          },
+          "derivationMethod": "original-comic-duck-two-facing-eight-motion-v5",
+          "frameId": "b-right-catch",
+          "order": 22,
+          "parents": [],
+          "rect": {
+            "height": 20,
+            "width": 20,
+            "x": 484,
+            "y": 0
+          }
+        },
+        {
+          "anchor": {
+            "convention": "frame-local-integer",
+            "x": 10,
+            "y": 19
+          },
+          "derivationMethod": "original-comic-duck-two-facing-eight-motion-v5",
+          "frameId": "b-right-impact",
+          "order": 23,
+          "parents": [],
+          "rect": {
+            "height": 20,
+            "width": 20,
+            "x": 506,
+            "y": 0
+          }
+        },
+        {
+          "anchor": {
+            "convention": "frame-local-integer",
+            "x": 10,
+            "y": 19
+          },
+          "derivationMethod": "original-comic-duck-two-facing-eight-motion-v5",
+          "frameId": "b-left-idle",
+          "order": 24,
+          "parents": [],
+          "rect": {
+            "height": 20,
+            "width": 20,
+            "x": 528,
+            "y": 0
+          }
+        },
+        {
+          "anchor": {
+            "convention": "frame-local-integer",
+            "x": 10,
+            "y": 19
+          },
+          "derivationMethod": "original-comic-duck-two-facing-eight-motion-v5",
+          "frameId": "b-left-waddle-a",
+          "order": 25,
+          "parents": [],
+          "rect": {
+            "height": 20,
+            "width": 20,
+            "x": 550,
+            "y": 0
+          }
+        },
+        {
+          "anchor": {
+            "convention": "frame-local-integer",
+            "x": 10,
+            "y": 19
+          },
+          "derivationMethod": "original-comic-duck-two-facing-eight-motion-v5",
+          "frameId": "b-left-waddle-b",
+          "order": 26,
+          "parents": [],
+          "rect": {
+            "height": 20,
+            "width": 20,
+            "x": 572,
+            "y": 0
+          }
+        },
+        {
+          "anchor": {
+            "convention": "frame-local-integer",
+            "x": 10,
+            "y": 19
+          },
+          "derivationMethod": "original-comic-duck-two-facing-eight-motion-v5",
+          "frameId": "b-left-flap-up",
+          "order": 27,
+          "parents": [],
+          "rect": {
+            "height": 20,
+            "width": 20,
+            "x": 594,
+            "y": 0
+          }
+        },
+        {
+          "anchor": {
+            "convention": "frame-local-integer",
+            "x": 10,
+            "y": 19
+          },
+          "derivationMethod": "original-comic-duck-two-facing-eight-motion-v5",
+          "frameId": "b-left-flap-down",
+          "order": 28,
+          "parents": [],
+          "rect": {
+            "height": 20,
+            "width": 20,
+            "x": 616,
+            "y": 0
+          }
+        },
+        {
+          "anchor": {
+            "convention": "frame-local-integer",
+            "x": 10,
+            "y": 19
+          },
+          "derivationMethod": "original-comic-duck-two-facing-eight-motion-v5",
+          "frameId": "b-left-fall",
+          "order": 29,
+          "parents": [],
+          "rect": {
+            "height": 20,
+            "width": 20,
+            "x": 638,
+            "y": 0
+          }
+        },
+        {
+          "anchor": {
+            "convention": "frame-local-integer",
+            "x": 10,
+            "y": 19
+          },
+          "derivationMethod": "original-comic-duck-two-facing-eight-motion-v5",
+          "frameId": "b-left-catch",
+          "order": 30,
+          "parents": [],
+          "rect": {
+            "height": 20,
+            "width": 20,
+            "x": 660,
+            "y": 0
+          }
+        },
+        {
+          "anchor": {
+            "convention": "frame-local-integer",
+            "x": 10,
+            "y": 19
+          },
+          "derivationMethod": "original-comic-duck-two-facing-eight-motion-v5",
+          "frameId": "b-left-impact",
+          "order": 31,
+          "parents": [],
+          "rect": {
+            "height": 20,
+            "width": 20,
+            "x": 682,
+            "y": 0
+          }
+        },
+        {
+          "anchor": {
+            "convention": "frame-local-integer",
+            "x": 10,
+            "y": 19
+          },
+          "derivationMethod": "original-comic-duck-two-facing-eight-motion-v5",
+          "frameId": "c-right-idle",
+          "order": 32,
+          "parents": [],
+          "rect": {
+            "height": 20,
+            "width": 20,
+            "x": 704,
+            "y": 0
+          }
+        },
+        {
+          "anchor": {
+            "convention": "frame-local-integer",
+            "x": 10,
+            "y": 19
+          },
+          "derivationMethod": "original-comic-duck-two-facing-eight-motion-v5",
+          "frameId": "c-right-waddle-a",
+          "order": 33,
+          "parents": [],
+          "rect": {
+            "height": 20,
+            "width": 20,
+            "x": 726,
+            "y": 0
+          }
+        },
+        {
+          "anchor": {
+            "convention": "frame-local-integer",
+            "x": 10,
+            "y": 19
+          },
+          "derivationMethod": "original-comic-duck-two-facing-eight-motion-v5",
+          "frameId": "c-right-waddle-b",
+          "order": 34,
+          "parents": [],
+          "rect": {
+            "height": 20,
+            "width": 20,
+            "x": 748,
+            "y": 0
+          }
+        },
+        {
+          "anchor": {
+            "convention": "frame-local-integer",
+            "x": 10,
+            "y": 19
+          },
+          "derivationMethod": "original-comic-duck-two-facing-eight-motion-v5",
+          "frameId": "c-right-flap-up",
+          "order": 35,
+          "parents": [],
+          "rect": {
+            "height": 20,
+            "width": 20,
+            "x": 770,
+            "y": 0
+          }
+        },
+        {
+          "anchor": {
+            "convention": "frame-local-integer",
+            "x": 10,
+            "y": 19
+          },
+          "derivationMethod": "original-comic-duck-two-facing-eight-motion-v5",
+          "frameId": "c-right-flap-down",
+          "order": 36,
+          "parents": [],
+          "rect": {
+            "height": 20,
+            "width": 20,
+            "x": 792,
+            "y": 0
+          }
+        },
+        {
+          "anchor": {
+            "convention": "frame-local-integer",
+            "x": 10,
+            "y": 19
+          },
+          "derivationMethod": "original-comic-duck-two-facing-eight-motion-v5",
+          "frameId": "c-right-fall",
+          "order": 37,
+          "parents": [],
+          "rect": {
+            "height": 20,
+            "width": 20,
+            "x": 814,
+            "y": 0
+          }
+        },
+        {
+          "anchor": {
+            "convention": "frame-local-integer",
+            "x": 10,
+            "y": 19
+          },
+          "derivationMethod": "original-comic-duck-two-facing-eight-motion-v5",
+          "frameId": "c-right-catch",
+          "order": 38,
+          "parents": [],
+          "rect": {
+            "height": 20,
+            "width": 20,
+            "x": 836,
+            "y": 0
+          }
+        },
+        {
+          "anchor": {
+            "convention": "frame-local-integer",
+            "x": 10,
+            "y": 19
+          },
+          "derivationMethod": "original-comic-duck-two-facing-eight-motion-v5",
+          "frameId": "c-right-impact",
+          "order": 39,
+          "parents": [],
+          "rect": {
+            "height": 20,
+            "width": 20,
+            "x": 858,
+            "y": 0
+          }
+        },
+        {
+          "anchor": {
+            "convention": "frame-local-integer",
+            "x": 10,
+            "y": 19
+          },
+          "derivationMethod": "original-comic-duck-two-facing-eight-motion-v5",
+          "frameId": "c-left-idle",
+          "order": 40,
+          "parents": [],
+          "rect": {
+            "height": 20,
+            "width": 20,
+            "x": 880,
+            "y": 0
+          }
+        },
+        {
+          "anchor": {
+            "convention": "frame-local-integer",
+            "x": 10,
+            "y": 19
+          },
+          "derivationMethod": "original-comic-duck-two-facing-eight-motion-v5",
+          "frameId": "c-left-waddle-a",
+          "order": 41,
+          "parents": [],
+          "rect": {
+            "height": 20,
+            "width": 20,
+            "x": 902,
+            "y": 0
+          }
+        },
+        {
+          "anchor": {
+            "convention": "frame-local-integer",
+            "x": 10,
+            "y": 19
+          },
+          "derivationMethod": "original-comic-duck-two-facing-eight-motion-v5",
+          "frameId": "c-left-waddle-b",
+          "order": 42,
+          "parents": [],
+          "rect": {
+            "height": 20,
+            "width": 20,
+            "x": 924,
+            "y": 0
+          }
+        },
+        {
+          "anchor": {
+            "convention": "frame-local-integer",
+            "x": 10,
+            "y": 19
+          },
+          "derivationMethod": "original-comic-duck-two-facing-eight-motion-v5",
+          "frameId": "c-left-flap-up",
+          "order": 43,
+          "parents": [],
+          "rect": {
+            "height": 20,
+            "width": 20,
+            "x": 946,
+            "y": 0
+          }
+        },
+        {
+          "anchor": {
+            "convention": "frame-local-integer",
+            "x": 10,
+            "y": 19
+          },
+          "derivationMethod": "original-comic-duck-two-facing-eight-motion-v5",
+          "frameId": "c-left-flap-down",
+          "order": 44,
+          "parents": [],
+          "rect": {
+            "height": 20,
+            "width": 20,
+            "x": 968,
+            "y": 0
+          }
+        },
+        {
+          "anchor": {
+            "convention": "frame-local-integer",
+            "x": 10,
+            "y": 19
+          },
+          "derivationMethod": "original-comic-duck-two-facing-eight-motion-v5",
+          "frameId": "c-left-fall",
+          "order": 45,
+          "parents": [],
+          "rect": {
+            "height": 20,
+            "width": 20,
+            "x": 990,
+            "y": 0
+          }
+        },
+        {
+          "anchor": {
+            "convention": "frame-local-integer",
+            "x": 10,
+            "y": 19
+          },
+          "derivationMethod": "original-comic-duck-two-facing-eight-motion-v5",
+          "frameId": "c-left-catch",
+          "order": 46,
+          "parents": [],
+          "rect": {
+            "height": 20,
+            "width": 20,
+            "x": 1012,
+            "y": 0
+          }
+        },
+        {
+          "anchor": {
+            "convention": "frame-local-integer",
+            "x": 10,
+            "y": 19
+          },
+          "derivationMethod": "original-comic-duck-two-facing-eight-motion-v5",
+          "frameId": "c-left-impact",
+          "order": 47,
+          "parents": [],
+          "rect": {
+            "height": 20,
+            "width": 20,
+            "x": 1034,
+            "y": 0
+          }
+        },
+        {
+          "anchor": {
+            "convention": "frame-local-integer",
+            "x": 10,
+            "y": 19
+          },
+          "derivationMethod": "original-comic-duck-two-facing-eight-motion-v5",
+          "frameId": "d-right-idle",
+          "order": 48,
+          "parents": [],
+          "rect": {
+            "height": 20,
+            "width": 20,
+            "x": 1056,
+            "y": 0
+          }
+        },
+        {
+          "anchor": {
+            "convention": "frame-local-integer",
+            "x": 10,
+            "y": 19
+          },
+          "derivationMethod": "original-comic-duck-two-facing-eight-motion-v5",
+          "frameId": "d-right-waddle-a",
+          "order": 49,
+          "parents": [],
+          "rect": {
+            "height": 20,
+            "width": 20,
+            "x": 1078,
+            "y": 0
+          }
+        },
+        {
+          "anchor": {
+            "convention": "frame-local-integer",
+            "x": 10,
+            "y": 19
+          },
+          "derivationMethod": "original-comic-duck-two-facing-eight-motion-v5",
+          "frameId": "d-right-waddle-b",
+          "order": 50,
+          "parents": [],
+          "rect": {
+            "height": 20,
+            "width": 20,
+            "x": 1100,
+            "y": 0
+          }
+        },
+        {
+          "anchor": {
+            "convention": "frame-local-integer",
+            "x": 10,
+            "y": 19
+          },
+          "derivationMethod": "original-comic-duck-two-facing-eight-motion-v5",
+          "frameId": "d-right-flap-up",
+          "order": 51,
+          "parents": [],
+          "rect": {
+            "height": 20,
+            "width": 20,
+            "x": 1122,
+            "y": 0
+          }
+        },
+        {
+          "anchor": {
+            "convention": "frame-local-integer",
+            "x": 10,
+            "y": 19
+          },
+          "derivationMethod": "original-comic-duck-two-facing-eight-motion-v5",
+          "frameId": "d-right-flap-down",
+          "order": 52,
+          "parents": [],
+          "rect": {
+            "height": 20,
+            "width": 20,
+            "x": 1144,
+            "y": 0
+          }
+        },
+        {
+          "anchor": {
+            "convention": "frame-local-integer",
+            "x": 10,
+            "y": 19
+          },
+          "derivationMethod": "original-comic-duck-two-facing-eight-motion-v5",
+          "frameId": "d-right-fall",
+          "order": 53,
+          "parents": [],
+          "rect": {
+            "height": 20,
+            "width": 20,
+            "x": 1166,
+            "y": 0
+          }
+        },
+        {
+          "anchor": {
+            "convention": "frame-local-integer",
+            "x": 10,
+            "y": 19
+          },
+          "derivationMethod": "original-comic-duck-two-facing-eight-motion-v5",
+          "frameId": "d-right-catch",
+          "order": 54,
+          "parents": [],
+          "rect": {
+            "height": 20,
+            "width": 20,
+            "x": 1188,
+            "y": 0
+          }
+        },
+        {
+          "anchor": {
+            "convention": "frame-local-integer",
+            "x": 10,
+            "y": 19
+          },
+          "derivationMethod": "original-comic-duck-two-facing-eight-motion-v5",
+          "frameId": "d-right-impact",
+          "order": 55,
+          "parents": [],
+          "rect": {
+            "height": 20,
+            "width": 20,
+            "x": 1210,
+            "y": 0
+          }
+        },
+        {
+          "anchor": {
+            "convention": "frame-local-integer",
+            "x": 10,
+            "y": 19
+          },
+          "derivationMethod": "original-comic-duck-two-facing-eight-motion-v5",
+          "frameId": "d-left-idle",
+          "order": 56,
+          "parents": [],
+          "rect": {
+            "height": 20,
+            "width": 20,
+            "x": 1232,
+            "y": 0
+          }
+        },
+        {
+          "anchor": {
+            "convention": "frame-local-integer",
+            "x": 10,
+            "y": 19
+          },
+          "derivationMethod": "original-comic-duck-two-facing-eight-motion-v5",
+          "frameId": "d-left-waddle-a",
+          "order": 57,
+          "parents": [],
+          "rect": {
+            "height": 20,
+            "width": 20,
+            "x": 1254,
+            "y": 0
+          }
+        },
+        {
+          "anchor": {
+            "convention": "frame-local-integer",
+            "x": 10,
+            "y": 19
+          },
+          "derivationMethod": "original-comic-duck-two-facing-eight-motion-v5",
+          "frameId": "d-left-waddle-b",
+          "order": 58,
+          "parents": [],
+          "rect": {
+            "height": 20,
+            "width": 20,
+            "x": 1276,
+            "y": 0
+          }
+        },
+        {
+          "anchor": {
+            "convention": "frame-local-integer",
+            "x": 10,
+            "y": 19
+          },
+          "derivationMethod": "original-comic-duck-two-facing-eight-motion-v5",
+          "frameId": "d-left-flap-up",
+          "order": 59,
+          "parents": [],
+          "rect": {
+            "height": 20,
+            "width": 20,
+            "x": 1298,
+            "y": 0
+          }
+        },
+        {
+          "anchor": {
+            "convention": "frame-local-integer",
+            "x": 10,
+            "y": 19
+          },
+          "derivationMethod": "original-comic-duck-two-facing-eight-motion-v5",
+          "frameId": "d-left-flap-down",
+          "order": 60,
+          "parents": [],
+          "rect": {
+            "height": 20,
+            "width": 20,
+            "x": 1320,
+            "y": 0
+          }
+        },
+        {
+          "anchor": {
+            "convention": "frame-local-integer",
+            "x": 10,
+            "y": 19
+          },
+          "derivationMethod": "original-comic-duck-two-facing-eight-motion-v5",
+          "frameId": "d-left-fall",
+          "order": 61,
+          "parents": [],
+          "rect": {
+            "height": 20,
+            "width": 20,
+            "x": 1342,
+            "y": 0
+          }
+        },
+        {
+          "anchor": {
+            "convention": "frame-local-integer",
+            "x": 10,
+            "y": 19
+          },
+          "derivationMethod": "original-comic-duck-two-facing-eight-motion-v5",
+          "frameId": "d-left-catch",
+          "order": 62,
+          "parents": [],
+          "rect": {
+            "height": 20,
+            "width": 20,
+            "x": 1364,
+            "y": 0
+          }
+        },
+        {
+          "anchor": {
+            "convention": "frame-local-integer",
+            "x": 10,
+            "y": 19
+          },
+          "derivationMethod": "original-comic-duck-two-facing-eight-motion-v5",
+          "frameId": "d-left-impact",
+          "order": 63,
+          "parents": [],
+          "rect": {
+            "height": 20,
+            "width": 20,
+            "x": 1386,
+            "y": 0
+          }
+        }
+      ],
+      "kind": "runtime-sprite-strip-with-two-pixel-gutters",
+      "relativePath": "assets/quag/quag-players-directional-strip-10x10.png",
+      "sha256": "d669f807f63f540df5f46e1490d55e34ab7f505a2b83e688a912ae5127c01f26"
+    },
+    {
+      "dimensions": {
+        "height": 10,
+        "width": 46
+      },
+      "fileId": "qgraph-relationship-indicators",
+      "frames": [
+        {
+          "anchor": {
+            "convention": "frame-local-integer",
+            "x": 5,
+            "y": 9
+          },
+          "derivationMethod": "original-explicit-pixel-mask-v1",
+          "frameId": "lethal",
+          "order": 0,
+          "parents": [],
+          "rect": {
+            "height": 10,
+            "width": 10,
+            "x": 0,
+            "y": 0
+          }
+        },
+        {
+          "anchor": {
+            "convention": "frame-local-integer",
+            "x": 5,
+            "y": 9
+          },
+          "derivationMethod": "original-explicit-pixel-mask-v1",
+          "frameId": "permeable",
+          "order": 1,
+          "parents": [],
+          "rect": {
+            "height": 10,
+            "width": 10,
+            "x": 12,
+            "y": 0
+          }
+        },
+        {
+          "anchor": {
+            "convention": "frame-local-integer",
+            "x": 5,
+            "y": 9
+          },
+          "derivationMethod": "original-explicit-pixel-mask-v1",
+          "frameId": "transfer",
+          "order": 2,
+          "parents": [],
+          "rect": {
+            "height": 10,
+            "width": 10,
+            "x": 24,
+            "y": 0
+          }
+        },
+        {
+          "anchor": {
+            "convention": "frame-local-integer",
+            "x": 5,
+            "y": 9
+          },
+          "derivationMethod": "original-explicit-pixel-mask-v1",
+          "frameId": "erase",
+          "order": 3,
+          "parents": [],
+          "rect": {
+            "height": 10,
+            "width": 10,
+            "x": 36,
+            "y": 0
+          }
+        }
+      ],
+      "kind": "runtime-sprite-strip-with-two-pixel-gutters",
+      "relativePath": "assets/shared/qgraph-relationship-indicators-10x10.png",
+      "sha256": "62903627e48f8556864dd014a087b144fc70005dc2fed6b304412127577f61ef"
+    },
+    {
+      "dimensions": {
+        "height": 24,
+        "width": 40
+      },
+      "fileId": "quag-cabinet-thumbnail",
+      "frames": [
+        {
+          "anchor": {
+            "convention": "frame-local-integer",
+            "x": 20,
+            "y": 23
+          },
+          "derivationMethod": "original-platform-miniature-from-player-masks-v5",
+          "frameId": "thumbnail",
+          "order": 0,
+          "parents": [
+            "quag-player-directional-strip:a-right-idle",
+            "quag-player-directional-strip:b-left-waddle-a",
+            "quag-player-directional-strip:c-right-flap-up",
+            "quag-player-directional-strip:d-left-flap-down"
+          ],
+          "rect": {
+            "height": 24,
+            "width": 40,
+            "x": 0,
+            "y": 0
+          }
+        }
+      ],
+      "kind": "single-frame-runtime-sprite",
+      "relativePath": "assets/quag/quag-cabinet-thumbnail-40x24.png",
+      "sha256": "3ef7a64502aa7b133fe790f1ab048def8613c55b628d85a6946a573d754b9f43"
+    },
+    {
+      "dimensions": {
+        "height": 20,
+        "width": 262
+      },
+      "fileId": "fluxball-player-motion-strip",
+      "frames": [
+        {
+          "anchor": {
+            "convention": "frame-local-integer",
+            "x": 10,
+            "y": 20
+          },
+          "derivationMethod": "canonical-silhouette-with-two-explicit-lower-limb-poses-v1",
+          "frameId": "fluxball-player-a-idle",
+          "order": 0,
+          "parents": [
+            "canonical-runtime-assets-v2:fluxball-player-a"
+          ],
+          "rect": {
+            "height": 20,
+            "width": 20,
+            "x": 0,
+            "y": 0
+          }
+        },
+        {
+          "anchor": {
+            "convention": "frame-local-integer",
+            "x": 10,
+            "y": 20
+          },
+          "derivationMethod": "canonical-silhouette-with-two-explicit-lower-limb-poses-v1",
+          "frameId": "fluxball-player-a-stride-a",
+          "order": 1,
+          "parents": [
+            "canonical-runtime-assets-v2:fluxball-player-a"
+          ],
+          "rect": {
+            "height": 20,
+            "width": 20,
+            "x": 22,
+            "y": 0
+          }
+        },
+        {
+          "anchor": {
+            "convention": "frame-local-integer",
+            "x": 10,
+            "y": 20
+          },
+          "derivationMethod": "canonical-silhouette-with-two-explicit-lower-limb-poses-v1",
+          "frameId": "fluxball-player-a-stride-b",
+          "order": 2,
+          "parents": [
+            "canonical-runtime-assets-v2:fluxball-player-a"
+          ],
+          "rect": {
+            "height": 20,
+            "width": 20,
+            "x": 44,
+            "y": 0
+          }
+        },
+        {
+          "anchor": {
+            "convention": "frame-local-integer",
+            "x": 10,
+            "y": 20
+          },
+          "derivationMethod": "canonical-silhouette-with-two-explicit-lower-limb-poses-v1",
+          "frameId": "fluxball-player-b-idle",
+          "order": 3,
+          "parents": [
+            "canonical-runtime-assets-v2:fluxball-player-b"
+          ],
+          "rect": {
+            "height": 20,
+            "width": 20,
+            "x": 66,
+            "y": 0
+          }
+        },
+        {
+          "anchor": {
+            "convention": "frame-local-integer",
+            "x": 10,
+            "y": 20
+          },
+          "derivationMethod": "canonical-silhouette-with-two-explicit-lower-limb-poses-v1",
+          "frameId": "fluxball-player-b-stride-a",
+          "order": 4,
+          "parents": [
+            "canonical-runtime-assets-v2:fluxball-player-b"
+          ],
+          "rect": {
+            "height": 20,
+            "width": 20,
+            "x": 88,
+            "y": 0
+          }
+        },
+        {
+          "anchor": {
+            "convention": "frame-local-integer",
+            "x": 10,
+            "y": 20
+          },
+          "derivationMethod": "canonical-silhouette-with-two-explicit-lower-limb-poses-v1",
+          "frameId": "fluxball-player-b-stride-b",
+          "order": 5,
+          "parents": [
+            "canonical-runtime-assets-v2:fluxball-player-b"
+          ],
+          "rect": {
+            "height": 20,
+            "width": 20,
+            "x": 110,
+            "y": 0
+          }
+        },
+        {
+          "anchor": {
+            "convention": "frame-local-integer",
+            "x": 10,
+            "y": 20
+          },
+          "derivationMethod": "canonical-silhouette-with-two-explicit-lower-limb-poses-v1",
+          "frameId": "fluxball-player-c-idle",
+          "order": 6,
+          "parents": [
+            "canonical-runtime-assets-v2:fluxball-player-c"
+          ],
+          "rect": {
+            "height": 20,
+            "width": 20,
+            "x": 132,
+            "y": 0
+          }
+        },
+        {
+          "anchor": {
+            "convention": "frame-local-integer",
+            "x": 10,
+            "y": 20
+          },
+          "derivationMethod": "canonical-silhouette-with-two-explicit-lower-limb-poses-v1",
+          "frameId": "fluxball-player-c-stride-a",
+          "order": 7,
+          "parents": [
+            "canonical-runtime-assets-v2:fluxball-player-c"
+          ],
+          "rect": {
+            "height": 20,
+            "width": 20,
+            "x": 154,
+            "y": 0
+          }
+        },
+        {
+          "anchor": {
+            "convention": "frame-local-integer",
+            "x": 10,
+            "y": 20
+          },
+          "derivationMethod": "canonical-silhouette-with-two-explicit-lower-limb-poses-v1",
+          "frameId": "fluxball-player-c-stride-b",
+          "order": 8,
+          "parents": [
+            "canonical-runtime-assets-v2:fluxball-player-c"
+          ],
+          "rect": {
+            "height": 20,
+            "width": 20,
+            "x": 176,
+            "y": 0
+          }
+        },
+        {
+          "anchor": {
+            "convention": "frame-local-integer",
+            "x": 10,
+            "y": 20
+          },
+          "derivationMethod": "canonical-silhouette-with-two-explicit-lower-limb-poses-v1",
+          "frameId": "fluxball-player-d-idle",
+          "order": 9,
+          "parents": [
+            "canonical-runtime-assets-v2:fluxball-player-d"
+          ],
+          "rect": {
+            "height": 20,
+            "width": 20,
+            "x": 198,
+            "y": 0
+          }
+        },
+        {
+          "anchor": {
+            "convention": "frame-local-integer",
+            "x": 10,
+            "y": 20
+          },
+          "derivationMethod": "canonical-silhouette-with-two-explicit-lower-limb-poses-v1",
+          "frameId": "fluxball-player-d-stride-a",
+          "order": 10,
+          "parents": [
+            "canonical-runtime-assets-v2:fluxball-player-d"
+          ],
+          "rect": {
+            "height": 20,
+            "width": 20,
+            "x": 220,
+            "y": 0
+          }
+        },
+        {
+          "anchor": {
+            "convention": "frame-local-integer",
+            "x": 10,
+            "y": 20
+          },
+          "derivationMethod": "canonical-silhouette-with-two-explicit-lower-limb-poses-v1",
+          "frameId": "fluxball-player-d-stride-b",
+          "order": 11,
+          "parents": [
+            "canonical-runtime-assets-v2:fluxball-player-d"
+          ],
+          "rect": {
+            "height": 20,
+            "width": 20,
+            "x": 242,
+            "y": 0
+          }
+        }
+      ],
+      "kind": "runtime-sprite-strip-with-two-pixel-gutters",
+      "relativePath": "assets/fluxball/fluxball-player-motion-strip-20x20.png",
+      "sha256": "d1fe99ab0bace06ddc3957c72bc5e5de123a1c6e8659229ea6b6cf417b349cde"
+    }
+  ],
+  "scalingContract": "integer-nearest-neighbour-only",
+  "schemaVersion": "quantum-box-qgraph-cabinet-shipped-runtime-handoff-v1",
+  "status": "deterministic-local-shipped-runtime-handoff"
+}

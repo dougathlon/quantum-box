@@ -1,0 +1,49 @@
+{
+  "name": "quantum-box-browser",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite --host 127.0.0.1 --port 4390 --strictPort",
+    "build": "tsc -b && vite build",
+    "preview": "vite preview --host 127.0.0.1 --port 4390 --strictPort",
+    "typecheck": "tsc -b --pretty false",
+    "test": "vitest run",
+    "test:moth": "python3 -m unittest discover -s compiler/tests -p 'test_*.py'",
+    "fluxball:qgraph:submit-bank": "python3 -m compiler.quantum_box_moth.fluxball_qgraph_batch submit --execute-authorized-batch",
+    "fluxball:qgraph:collect-bank": "python3 -m compiler.quantum_box_moth.fluxball_qgraph_batch collect --collect-available --delay-seconds 0.25",
+    "fluxball:qgraph:compile-bank": "python3 -m compiler.quantum_box_moth.fluxball_qgraph_compile --promote-complete-bank",
+    "qpu:remaining:inspect": "python3 -m compiler.quantum_box_moth.remaining_qpu_batch inspect",
+    "test:watch": "vitest",
+    "test:e2e": "PLAYWRIGHT_BROWSERS_PATH=.playwright-browsers playwright test",
+    "test:e2e:collect": "PLAYWRIGHT_BROWSERS_PATH=.playwright-browsers playwright test --list",
+    "test:e2e:install": "PLAYWRIGHT_BROWSERS_PATH=.playwright-browsers playwright install chromium",
+    "audit:visual": "python3 scripts/audit_brown_box_frames.py",
+    "audit:assets": "python3 scripts/audit_canonical_runtime_assets.py",
+    "audit:qgraph-assets": "python3 scripts/audit_qgraph_cabinet_assets.py",
+    "check:pages": "node scripts/check-pages-artifact.mjs",
+    "scan:artifact": "node scripts/scan-release.mjs",
+    "scan:source": "node scripts/scan-public-source.mjs",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "check": "pnpm format:check && pnpm typecheck && pnpm test && pnpm test:moth && pnpm audit:visual && pnpm audit:assets && pnpm audit:qgraph-assets && pnpm test:e2e:collect && pnpm build && pnpm check:pages && pnpm scan:artifact"
+  },
+  "dependencies": {
+    "ajv": "8.18.0",
+    "ajv-formats": "3.0.1",
+    "phaser": "3.90.0"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.54.2",
+    "@types/node": "24.3.0",
+    "prettier": "3.6.2",
+    "typescript": "5.9.2",
+    "vite": "7.1.3",
+    "vitest": "3.2.4"
+  },
+  "engines": {
+    "node": ">=24",
+    "pnpm": ">=10"
+  },
+  "packageManager": "pnpm@10.14.0"
+}

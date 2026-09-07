@@ -1,0 +1,61 @@
+{
+  "record": {
+    "banner_image_tag": "ghcr.io/moth-quantum/blur-api:engines-blur-v1-v1.0.19",
+    "card_image_tag": "ghcr.io/moth-quantum/blur-api:engines-blur-v1-v1.0.19",
+    "code_sample_param_names": ["non_locality", "strength", "style"],
+    "credits_per_run": 1,
+    "description_md_sha256": "abfc1ac6d334eb4fdeb25c4e1e3841efddba97649fed3aaf001b8cc382c063c7",
+    "description_sha256": "632c44416e84feb0f56cdef5e5ab56ba93502d93e31df3d3a5ef4ca37d7cd3a3",
+    "enabled": true,
+    "engine_id": "blur-v1",
+    "error_codes": [
+      {"description_sha256": "0a64393cce587d1cb3e1b79fc1a205315ed6efb2a0048d089c634d56e6e2f7b7", "type": "image_too_large"},
+      {"description_sha256": "6b0eac2c522ce59daf1a89c301aa6eb89f66eec21a833096022f4718c2c7e810", "type": "too_many_tiles"},
+      {"description_sha256": "983c793c8a54a13097607177489aaff692de32bd39891ba7fd9a89780387db87", "type": "mask_size_mismatch"},
+      {"description_sha256": "d59cafc3ed3cbbabf321d0e8a1df2ffce7237c64588bf8167786cab6e17de1db", "type": "no_mask_region"},
+      {"description_sha256": "bdfaeaaaccd74744765ead300ad1e9a4e6fa52b988429f73bf60cdb1d0af30de", "type": "invalid_params"},
+      {"description_sha256": "85558c7ae98c4166fbb6c1585972fb50ac5674cfe9ebac3a1f1cb6b40242d5e3", "type": "invalid_image"},
+      {"description_sha256": "102292096f48ecf13cabdc4e453760f22c91fb0dd2de3590324ccf014be47081", "type": "blur_failed"},
+      {"description_sha256": "dcacc1844adaa93d02f586ede10911290286e4090fddd258d508c971c68a56d3", "type": "region_extraction_failed"},
+      {"description_sha256": "ad3f13f735728b69c919bd25a7a1094a67d6f439627cd4b505be5c18cc531e14", "type": "compose_failed"},
+      {"description_sha256": "39f6eb16190f6fcd2fe380cef65325acbdd759d71022d4f7e815bfd5b7fa6c26", "type": "encoding_failed"}
+    ],
+    "execution_mode": "handler",
+    "has_estimate": true,
+    "has_estimate_fn": true,
+    "has_validate_fn": true,
+    "input_files": [
+      {
+        "description_sha256": "560c0ab7df3cb6cf10b2e82f451c23208670d83bfc2fad72d5b9686ac8a6e361",
+        "mime_types": ["image/png", "image/jpeg", "image/webp", "image/tiff", "image/bmp"],
+        "name": "image",
+        "required": true
+      },
+      {
+        "description_sha256": "409be08fad69f97b3e863dd8ac13e33a55f3ff17a04c125d09df373398766f39",
+        "mime_types": ["image/png", "image/jpeg", "image/webp", "image/tiff", "image/bmp"],
+        "name": "mask",
+        "required": false
+      }
+    ],
+    "input_type": "application/json",
+    "is_async": false,
+    "is_multipart": true,
+    "name": "Quantum Blur",
+    "output_type": "application/octet-stream",
+    "owner": "moth",
+    "params": {
+      "downscale": {"default": true, "description_sha256": "c7a1b508bd4519976ab6be8006a826f152d12582d662987cff6b6b8155136fed", "title": "Downscale", "type": "boolean"},
+      "reach": {"default": 0, "description_sha256": "e6fdcc60e77a3aff18ec70302ac5d610df8ea76e0b6cfcd23cc5dce514c6d8c5", "maximum": 1, "minimum": 0, "title": "Reach", "type": "number"},
+      "size": {"default": 1024, "description_sha256": "88809f4533a944feb02957dba7eebebdd2fc3f5371acb2c054798801f96ed407", "maximum": 1024, "minimum": 8, "title": "Size", "type": "integer"},
+      "strength": {"default": 0.5, "description_sha256": "617bede52c34d24fb34fb51a3ebf53f16284f624e0e4cd10cbfc1946b29dc608", "maximum": 1, "minimum": 0, "title": "Strength", "type": "number"},
+      "style": {"default": "rx", "description_sha256": "9c5f4b68993e9d4196a94244af09ef0dcfe8c65f1952433c8d93458c4a581e21", "enum": ["rx", "ry"], "title": "Style", "type": "string"}
+    },
+    "queue": "engine/blur-v1",
+    "run_policy": {"heartbeat": 600, "max_retries": 1, "timeout": 600},
+    "sidecar_endpoint": null,
+    "updated_at": "2026-08-04T12:08:45Z",
+    "visibility": "public"
+  },
+  "source_canonical_sha256": "bb0719963cd5927ade8d75bfbe66b6b906495697352fe3832437d71091cbf082"
+}

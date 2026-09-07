@@ -1,0 +1,61 @@
+{
+  "alphaContract": "binary-only-0-or-255",
+  "date": "2026-09-05",
+  "descriptors": [
+    {
+      "endEndpointMethod": "exact-professor-pipe-idle-endpoint",
+      "frameCount": 7,
+      "frameDurationMs": 100,
+      "method": "manhattan-signed-distance-threshold-morph-v1",
+      "morphId": "qong-paddle-to-professor",
+      "outputFileId": "qong-paddle-to-professor",
+      "parents": [
+        "qong-paddle",
+        "designer-professor-source"
+      ],
+      "startEndpointMethod": "exact-qong-paddle-endpoint"
+    },
+    {
+      "endEndpointMethod": "source-locked-16x20-center-bottom-embed:x=2:y=0",
+      "frameCount": 7,
+      "frameDurationMs": 100,
+      "method": "manhattan-signed-distance-threshold-morph-v1",
+      "morphId": "qong-paddle-to-player-c",
+      "outputFileId": "qong-paddle-to-player-c",
+      "parents": [
+        "qong-paddle",
+        "player-c-source"
+      ],
+      "startEndpointMethod": "exact-qong-paddle-endpoint"
+    },
+    {
+      "endEndpointMethod": "exact-professor-pipe-idle-endpoint",
+      "frameCount": 7,
+      "frameDurationMs": 100,
+      "method": "manhattan-signed-distance-threshold-morph-v1",
+      "morphId": "quantman-ghost-c-to-professor",
+      "outputFileId": "quantman-ghost-c-to-professor",
+      "parents": [
+        "quantman-ghost-c",
+        "designer-professor-source"
+      ],
+      "startEndpointMethod": "source-locked-16x16-center-bottom-embed:x=2:y=4"
+    },
+    {
+      "endEndpointMethod": "exact-professor-pipe-idle-endpoint",
+      "frameCount": 7,
+      "frameDurationMs": 100,
+      "method": "manhattan-signed-distance-threshold-morph-v1",
+      "morphId": "quarry-duck-d-to-professor",
+      "outputFileId": "quarry-duck-d-to-professor",
+      "parents": [
+        "quarry-duck-d-right-idle",
+        "designer-professor-source"
+      ],
+      "startEndpointMethod": "exact-manifested-d-right-idle-frame"
+    }
+  ],
+  "endpointContract": "exact-source-and-target-frame-lock",
+  "scalingContract": "integer-nearest-neighbour-only",
+  "schemaVersion": "quantum-box-designer-professor-morph-descriptors-v1"
+}

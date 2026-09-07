@@ -1,0 +1,43 @@
+{
+  "schemaVersion": "quantum-box-qrt-four-state-programme-v1",
+  "programmeId": "original-hybrid-programme-fixed-two-color",
+  "width": 320,
+  "height": 180,
+  "palette": ["#2B1C14", "#564330"],
+  "frameDurationMs": 100,
+  "holdFrameCount": 8,
+  "sweepStepCount": 48,
+  "sweepFrameCount": 49,
+  "phaseFrameCount": 57,
+  "loopFrameCount": 228,
+  "loopDurationMs": 22800,
+  "transition": {
+    "direction": "left-to-right",
+    "rule": "x below the discrete boundary uses the following endpoint; all other pixels use the current endpoint",
+    "boundaryLine": "none",
+    "interpolation": "none"
+  },
+  "sourceManifest": "drafts/visual-development/quantum-box/qpixl-visual-redesign-v1/hardware/brown-box-background-and-assets-v1/review/qrt-two-color-original-programme-v1/provenance.json",
+  "states": [
+    {
+      "stateId": "state-1",
+      "fileName": "qrt-state-1-background-320x180.png",
+      "sha256": "42b8e24696a46d41695712d97bb49b1ad74befce1d4d6a07c54dc2f2c98be3f1"
+    },
+    {
+      "stateId": "state-2",
+      "fileName": "qrt-state-2-background-320x180.png",
+      "sha256": "91d9812d112acfccb0d1a67cc555f5bfa1ed806d346bcf33826d1db6f0b1923f"
+    },
+    {
+      "stateId": "state-3",
+      "fileName": "qrt-state-3-background-320x180.png",
+      "sha256": "56ed4dac2452e16257ca4c651a6215b54270663a1420ec89f931d748365d288b"
+    },
+    {
+      "stateId": "state-4",
+      "fileName": "qrt-state-4-background-320x180.png",
+      "sha256": "f7bfc20072e604e6a67737fbcf7d9579d4f973fc984e99a122bcd4cd714bfb33"
+    }
+  ]
+}

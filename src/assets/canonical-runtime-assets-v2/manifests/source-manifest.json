@@ -1,0 +1,319 @@
+{
+  "schemaVersion": "quantum-box-canonical-source-manifest-v2",
+  "date": "2026-08-31",
+  "sourceMutation": "prohibited",
+  "sources": [
+    {
+      "sourceId": "fluxball-player-a",
+      "role": "Fluxball Classic Player A",
+      "authority": "user-approved-source",
+      "sourceLocator": "drafts/visual-development/quantum-box/qpixl-visual-redesign-v1/hardware/brown-box-background-and-assets-v1/inputs/asset-roles-v1/sources/fluxball-classic/fluxball-classic-player-a-source-20x20.png",
+      "sha256": "e7757399a6462e3a71768f93d87084e56c16678ff69c3e86b6169d475d81b225",
+      "dimensions": {
+        "width": 20,
+        "height": 20
+      },
+      "mode": "L"
+    },
+    {
+      "sourceId": "fluxball-player-b",
+      "role": "Fluxball Classic Player B",
+      "authority": "user-approved-source",
+      "sourceLocator": "drafts/visual-development/quantum-box/qpixl-visual-redesign-v1/hardware/brown-box-background-and-assets-v1/inputs/asset-roles-v1/sources/fluxball-classic/fluxball-classic-player-b-source-20x20.png",
+      "sha256": "993226b4840faaefa41cfac8b0b2b33831c33a47479034da28b5ee393a854f97",
+      "dimensions": {
+        "width": 20,
+        "height": 20
+      },
+      "mode": "L"
+    },
+    {
+      "sourceId": "fluxball-player-c",
+      "role": "Fluxball Classic Player C",
+      "authority": "user-approved-source",
+      "sourceLocator": "drafts/visual-development/quantum-box/qpixl-visual-redesign-v1/hardware/brown-box-background-and-assets-v1/inputs/asset-roles-v1/sources/fluxball-classic/fluxball-classic-player-c-source-20x20.png",
+      "sha256": "a297d0369c98d69635736d3132e11f604b8b515c07e292430b1107135d748544",
+      "dimensions": {
+        "width": 20,
+        "height": 20
+      },
+      "mode": "L"
+    },
+    {
+      "sourceId": "fluxball-player-d",
+      "role": "Fluxball Classic Player D",
+      "authority": "user-approved-source",
+      "sourceLocator": "drafts/visual-development/quantum-box/qpixl-visual-redesign-v1/hardware/brown-box-background-and-assets-v1/inputs/asset-roles-v1/sources/fluxball-classic/fluxball-classic-player-d-source-20x20.png",
+      "sha256": "587bd41e2f148f77dc5e5992b2dc01edfc7e3bcd97dbedd5a8197c50e50c2a5b",
+      "dimensions": {
+        "width": 20,
+        "height": 20
+      },
+      "mode": "L"
+    },
+    {
+      "sourceId": "fluxball-ball",
+      "role": "Fluxball Classic ring ball",
+      "authority": "user-approved-source",
+      "sourceLocator": "drafts/visual-development/quantum-box/qpixl-visual-redesign-v1/hardware/brown-box-background-and-assets-v1/inputs/asset-roles-v1/sources/fluxball-classic/fluxball-classic-ball-source-20x20.png",
+      "sha256": "569009bcdf8c5eeb9e7b427f7695df47df95910b05b4400b5167adf548f75db0",
+      "dimensions": {
+        "width": 20,
+        "height": 20
+      },
+      "mode": "L"
+    },
+    {
+      "sourceId": "fluxball-review",
+      "role": "Fluxball Classic approved review sheet",
+      "authority": "visual-reference",
+      "sourceLocator": "drafts/visual-development/quantum-box/core-asset-language-v1/sheets/fluxball-classic-language-enlarged.png",
+      "sha256": "c6b43a2ccd7439778a90a31a478595160ac8c0d52de857968c8c23d098e0411b",
+      "dimensions": {
+        "width": 800,
+        "height": 360
+      },
+      "mode": "RGBA"
+    },
+    {
+      "sourceId": "skipixl-b-strip",
+      "role": "SkiPixl Candidate B five-state strip",
+      "authority": "user-approved-source",
+      "sourceLocator": "drafts/visual-development/quantum-box/core-asset-language-v1/assets/skipixl-candidate-b-strip-20px.png",
+      "sha256": "16cfb9962f48282e4b747f702eb820ae6fd0fafb947b2c074618c41e898f4fdd",
+      "dimensions": {
+        "width": 108,
+        "height": 20
+      },
+      "mode": "RGBA"
+    },
+    {
+      "sourceId": "skipixl-neutral",
+      "role": "SkiPixl B neutral",
+      "authority": "user-approved-source",
+      "sourceLocator": "drafts/visual-development/quantum-box/core-asset-language-v1/assets/skipixl-selected-neutral-20x20.png",
+      "sha256": "b7cf7750a0055f9df454d1f724eba8176418546c36fda646f20574d2e2a48ced",
+      "dimensions": {
+        "width": 20,
+        "height": 20
+      },
+      "mode": "RGBA"
+    },
+    {
+      "sourceId": "skipixl-left",
+      "role": "SkiPixl B hard left",
+      "authority": "user-approved-source",
+      "sourceLocator": "drafts/visual-development/quantum-box/core-asset-language-v1/assets/skipixl-selected-left-20x20.png",
+      "sha256": "0a1f27a86cb0f55ca1f3ead2c3eadde10b7cdf412f0096d34c3d33ea8b7cab50",
+      "dimensions": {
+        "width": 20,
+        "height": 20
+      },
+      "mode": "RGBA"
+    },
+    {
+      "sourceId": "skipixl-right",
+      "role": "SkiPixl B hard right",
+      "authority": "user-approved-source",
+      "sourceLocator": "drafts/visual-development/quantum-box/core-asset-language-v1/assets/skipixl-selected-right-20x20.png",
+      "sha256": "95f84652414c8dbb22b59035c1dbb6ed99b4c2b1e6328fb60d52d6e3520e135c",
+      "dimensions": {
+        "width": 20,
+        "height": 20
+      },
+      "mode": "RGBA"
+    },
+    {
+      "sourceId": "skipixl-fall",
+      "role": "SkiPixl B fall",
+      "authority": "user-approved-source",
+      "sourceLocator": "drafts/visual-development/quantum-box/core-asset-language-v1/assets/skipixl-selected-fall-20x20.png",
+      "sha256": "ac7aef290e7f4a424cbd77f874462b687efc1b68ce89ce16d0eb6d8bfe9c43ae",
+      "dimensions": {
+        "width": 20,
+        "height": 20
+      },
+      "mode": "RGBA"
+    },
+    {
+      "sourceId": "skipixl-recovery",
+      "role": "SkiPixl B recovery",
+      "authority": "user-approved-source",
+      "sourceLocator": "drafts/visual-development/quantum-box/core-asset-language-v1/assets/skipixl-selected-recovery-20x20.png",
+      "sha256": "e7b9517799fbcc023e4a2c1abc574be473750b831a73029b6d731ebac1832c2a",
+      "dimensions": {
+        "width": 20,
+        "height": 20
+      },
+      "mode": "RGBA"
+    },
+    {
+      "sourceId": "skipixl-review",
+      "role": "SkiPixl approved comparison sheet",
+      "authority": "visual-reference",
+      "sourceLocator": "drafts/visual-development/quantum-box/core-asset-language-v1/sheets/skipixl-candidates-enlarged.png",
+      "sha256": "01989c021b5f994e7c591aed00a40b522b45a17c7c7ef6d335867f291932465e",
+      "dimensions": {
+        "width": 960,
+        "height": 540
+      },
+      "mode": "RGBA"
+    },
+    {
+      "sourceId": "quantman-player-c",
+      "role": "Quantman Candidate C player facing right",
+      "authority": "user-approved-source",
+      "sourceLocator": "drafts/visual-development/quantum-box/core-asset-language-v1/assets/quantman-player-candidate-c-16x16.png",
+      "sha256": "092e15d8e3282417d1ef06cc56de895229f1fec7fe7c63a00409e06d01203e22",
+      "dimensions": {
+        "width": 16,
+        "height": 16
+      },
+      "mode": "RGBA"
+    },
+    {
+      "sourceId": "quantman-ghost-c",
+      "role": "Quantman Candidate C ghost",
+      "authority": "user-approved-source",
+      "sourceLocator": "drafts/visual-development/quantum-box/core-asset-language-v1/assets/quantman-ghost-candidate-c-16x16.png",
+      "sha256": "d9fa2bc427ec2dccbed20fba5a4e3cbcf9ceef9446bd09a0f22bb19397423fea",
+      "dimensions": {
+        "width": 16,
+        "height": 16
+      },
+      "mode": "RGBA"
+    },
+    {
+      "sourceId": "quantman-collectible",
+      "role": "Quantman collectible",
+      "authority": "user-approved-source",
+      "sourceLocator": "drafts/visual-development/quantum-box/core-asset-language-v1/assets/quantman-collectible-8x8.png",
+      "sha256": "50a588d591c6da87d90340f6081276f7338249e73013ca2411c23e503d601c15",
+      "dimensions": {
+        "width": 8,
+        "height": 8
+      },
+      "mode": "RGBA"
+    },
+    {
+      "sourceId": "quantman-observation",
+      "role": "Quantman observation indicator",
+      "authority": "user-approved-source",
+      "sourceLocator": "drafts/visual-development/quantum-box/core-asset-language-v1/assets/quantman-observation-indicator-16x8.png",
+      "sha256": "d5d7e4288c1650a8eab2d3f2f17efa0c9f8ca2d820dce2c613fed96861d369f7",
+      "dimensions": {
+        "width": 16,
+        "height": 8
+      },
+      "mode": "RGBA"
+    },
+    {
+      "sourceId": "quantman-review",
+      "role": "Quantman approved comparison sheet",
+      "authority": "visual-reference",
+      "sourceLocator": "drafts/visual-development/quantum-box/core-asset-language-v1/sheets/quantman-candidates-enlarged.png",
+      "sha256": "4852a797bb9cb46b063aec68b45b852c6f499179f11d4ac5d91be36bed0a987f",
+      "dimensions": {
+        "width": 960,
+        "height": 460
+      },
+      "mode": "RGBA"
+    },
+    {
+      "sourceId": "player-c",
+      "role": "Player Candidate C archive walker",
+      "authority": "user-approved-source",
+      "sourceLocator": "drafts/visual-development/quantum-box/core-asset-language-v1/assets/player-avatar-candidate-c-16x20.png",
+      "sha256": "4a45c8f61fce46b073d4b8036bcc4a90b2697ec1fd61d2b9287bcb8013674dbd",
+      "dimensions": {
+        "width": 16,
+        "height": 20
+      },
+      "mode": "RGBA"
+    },
+    {
+      "sourceId": "player-c-strip",
+      "role": "Player C four-direction walking strip",
+      "authority": "user-approved-source",
+      "sourceLocator": "drafts/visual-development/quantum-box/core-asset-language-v1/assets/player-avatar-selected-four-direction-strip.png",
+      "sha256": "976872ddcd1e4d737594199bd2467448b67d7685de466c519a28ad64d462a7fc",
+      "dimensions": {
+        "width": 142,
+        "height": 20
+      },
+      "mode": "RGBA"
+    },
+    {
+      "sourceId": "player-review",
+      "role": "Player approved comparison sheet",
+      "authority": "visual-reference",
+      "sourceLocator": "drafts/visual-development/quantum-box/core-asset-language-v1/sheets/player-avatar-candidates-and-selected-strip.png",
+      "sha256": "26f3ef5c99917d62a5632d81a7fd80d0b3d0acb0a5514890c7ef1bf13859929f",
+      "dimensions": {
+        "width": 960,
+        "height": 430
+      },
+      "mode": "RGBA"
+    },
+    {
+      "sourceId": "designer-wizard",
+      "role": "Designer Wizard approved source frame",
+      "authority": "user-approved-source",
+      "sourceLocator": "drafts/visual-development/quantum-box/core-asset-language-v1/assets/designer-candidate-wizard-20x20.png",
+      "sha256": "91ac339d8a010a514586390d58d0e583da81386f98b8733af843e830b262dfd1",
+      "dimensions": {
+        "width": 20,
+        "height": 20
+      },
+      "mode": "RGBA"
+    },
+    {
+      "sourceId": "designer-review",
+      "role": "Designer candidate comparison sheet",
+      "authority": "visual-reference-stale-actions",
+      "sourceLocator": "drafts/visual-development/quantum-box/core-asset-language-v1/sheets/designer-candidates-actions-and-morph.png",
+      "sha256": "152be6b0c44c910b5149dcf58aabf81896c6e75d2ace97bc8490793448fabfb1",
+      "dimensions": {
+        "width": 1120,
+        "height": 560
+      },
+      "mode": "RGBA"
+    },
+    {
+      "sourceId": "brown-box-background",
+      "role": "Binding two-brown background",
+      "authority": "display-reference",
+      "sourceLocator": "prototypes/quantum-box-browser/src/assets/brown-box/qrt-state-1-background-320x180.png",
+      "sha256": "42b8e24696a46d41695712d97bb49b1ad74befce1d4d6a07c54dc2f2c98be3f1",
+      "dimensions": {
+        "width": 320,
+        "height": 180
+      },
+      "mode": "RGB"
+    },
+    {
+      "sourceId": "qong-human-paddle",
+      "role": "Qong human paddle morph source",
+      "authority": "morph-source",
+      "sourceLocator": "drafts/visual-development/quantum-box/qpixl-visual-redesign-v1/hardware/brown-box-background-and-assets-v1/inputs/asset-roles-v1/sources/qong/qong-human-paddle-source-20x20.png",
+      "sha256": "6578efc370562eecd68aab0186abcd72b1288883c0a9097eb8d059d9f44e19bc",
+      "dimensions": {
+        "width": 20,
+        "height": 20
+      },
+      "mode": "L"
+    },
+    {
+      "sourceId": "qong-cpu-paddle",
+      "role": "Qong CPU paddle equivalent source",
+      "authority": "morph-equivalence-check",
+      "sourceLocator": "drafts/visual-development/quantum-box/qpixl-visual-redesign-v1/hardware/brown-box-background-and-assets-v1/inputs/asset-roles-v1/sources/qong/qong-cpu-paddle-source-20x20.png",
+      "sha256": "6578efc370562eecd68aab0186abcd72b1288883c0a9097eb8d059d9f44e19bc",
+      "dimensions": {
+        "width": 20,
+        "height": 20
+      },
+      "mode": "L"
+    }
+  ]
+}

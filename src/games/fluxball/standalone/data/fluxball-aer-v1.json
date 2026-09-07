@@ -1,0 +1,322 @@
+{
+  "schemaVersion": "fluxball-fixture-bank-v1",
+  "fixtureBankId": "fluxball-aer-two-qubit-v1",
+  "defaultFixtureId": "fluxball-preparation-v1",
+  "compiledAt": "2026-08-18T19:02:53+00:00",
+  "deliveryMode": "committed-fixture",
+  "acquisitionSource": "finite-shot-aer",
+  "derivationMethod": "lstsq-psd",
+  "model": {
+    "modelId": "fluxball-two-qubit-rulefield-v1",
+    "numQubits": 2,
+    "qubitMap": [
+      {
+        "qubit": 0,
+        "playerId": "A",
+        "displayName": "Player A"
+      },
+      {
+        "qubit": 1,
+        "playerId": "B",
+        "displayName": "Player B"
+      }
+    ],
+    "configuredEdges": [[0, 1]],
+    "topologyKind": "single-two-qubit-rule-relation",
+    "initialCircuit": {
+      "format": "OPENQASM 2",
+      "sha256": "4990bb470ab4995d2d144f399212984b2c01bef2d42b6289ef0a75fd3cdfe4cc",
+      "depth": 4,
+      "twoQubitDepth": 1,
+      "operationCounts": {
+        "cx": 1,
+        "ry": 3,
+        "rz": 2
+      },
+      "serialization": "OPENQASM 2.0;\ninclude \"qelib1.inc\";\nqreg q[2];\nry(-pi/2) q[0];\ncx q[0],q[1];\nrz(pi/3) q[0];\nry(11*pi/12) q[0];\nrz(pi/12) q[1];\nry(-7*pi/12) q[1];"
+    }
+  },
+  "provenance": {
+    "python": "3.9.6",
+    "platform": "macOS-26.5.2-arm64-arm-64bit",
+    "packageVersions": {
+      "quantumgraph": "0.0.1",
+      "pairwise-tomography": "0.1.0",
+      "qiskit": "2.2.3",
+      "qiskit-aer": "0.17.2",
+      "numpy": "2.0.2",
+      "scipy": "1.13.1"
+    },
+    "quantumGraphCommit": "6917364b9496bd324225e87e6dd986bce52ecefd",
+    "pairwiseTomographyCommit": "dbab12513281bd8ca7828252cf2e98a1a5749761",
+    "verifiedSources": {
+      "quantumgraph": {
+        "url": "https://github.com/moth-quantum/QuantumGraph.git",
+        "vcs": "git",
+        "commit": "6917364b9496bd324225e87e6dd986bce52ecefd",
+        "requestedRevision": "6917364b9496bd324225e87e6dd986bce52ecefd",
+        "directUrlSha256": "ab9452661e66536c150ee2ec10c16a1934f0622d2b1434a77ff4b021bc4b428f"
+      },
+      "pairwise-tomography": {
+        "url": "https://github.com/moth-quantum/pairwise-tomography.git",
+        "vcs": "git",
+        "commit": "dbab12513281bd8ca7828252cf2e98a1a5749761",
+        "requestedRevision": "dbab12513281bd8ca7828252cf2e98a1a5749761",
+        "directUrlSha256": "ae42a6633e7cdb1a326d4d332b542cfec2653f3087f3210c3c64e6d33d0553ae"
+      }
+    },
+    "sourceRelationship": "Installed distributions record the pinned public Git revisions in direct_url.json; installed file contents were not independently hashed.",
+    "qpu": false,
+    "remoteService": false,
+    "mothApi": false
+  },
+  "costEstimate": {
+    "fixtureCount": 1,
+    "tomographyCircuitsPerFixture": 9,
+    "totalCircuitExecutions": 9,
+    "shotsPerCircuit": 4096,
+    "totalShots": 36864
+  },
+  "fixtures": {
+    "fluxball-preparation-v1": {
+      "fixtureId": "fluxball-preparation-v1",
+      "circuit": {
+        "format": "OPENQASM 2",
+        "sha256": "4990bb470ab4995d2d144f399212984b2c01bef2d42b6289ef0a75fd3cdfe4cc",
+        "depth": 4,
+        "twoQubitDepth": 1,
+        "operationCounts": {
+          "cx": 1,
+          "ry": 3,
+          "rz": 2
+        },
+        "serialization": "OPENQASM 2.0;\ninclude \"qelib1.inc\";\nqreg q[2];\nry(-pi/2) q[0];\ncx q[0],q[1];\nrz(pi/3) q[0];\nry(11*pi/12) q[0];\nrz(pi/12) q[1];\nry(-7*pi/12) q[1];"
+      },
+      "acquisition": {
+        "backendClass": "AerSimulator",
+        "backendName": "aer_simulator",
+        "providerMode": "local-aer",
+        "providerName": "qiskit-aer",
+        "mothApi": false,
+        "jobId": "081bf246-df9c-45c8-99bf-39d7a1335df3",
+        "shotsPerCircuit": 4096,
+        "simulatorSeed": 260818,
+        "transpilerSeed": 260818,
+        "tomographyCircuitCount": 9,
+        "tomographyMeasurementSettings": [
+          "XX",
+          "XY",
+          "XZ",
+          "YX",
+          "YY",
+          "YZ",
+          "ZX",
+          "ZY",
+          "ZZ"
+        ],
+        "totalShots": 36864,
+        "logicalMeasurementCircuitQasm": [
+          "OPENQASM 2.0;\ninclude \"qelib1.inc\";\nqreg q[2];\ncreg c0[2];\nry(-pi/2) q[0];\ncx q[0],q[1];\nrz(pi/3) q[0];\nry(11*pi/12) q[0];\nrz(pi/12) q[1];\nry(-7*pi/12) q[1];\nh q[0];\nmeasure q[0] -> c0[0];\nh q[1];\nmeasure q[1] -> c0[1];",
+          "OPENQASM 2.0;\ninclude \"qelib1.inc\";\nqreg q[2];\ncreg c0[2];\nry(-pi/2) q[0];\ncx q[0],q[1];\nrz(pi/3) q[0];\nry(11*pi/12) q[0];\nrz(pi/12) q[1];\nry(-7*pi/12) q[1];\nh q[0];\nmeasure q[0] -> c0[0];\nsdg q[1];\nh q[1];\nmeasure q[1] -> c0[1];",
+          "OPENQASM 2.0;\ninclude \"qelib1.inc\";\nqreg q[2];\ncreg c0[2];\nry(-pi/2) q[0];\ncx q[0],q[1];\nrz(pi/3) q[0];\nry(11*pi/12) q[0];\nrz(pi/12) q[1];\nry(-7*pi/12) q[1];\nh q[0];\nmeasure q[0] -> c0[0];\nmeasure q[1] -> c0[1];",
+          "OPENQASM 2.0;\ninclude \"qelib1.inc\";\nqreg q[2];\ncreg c0[2];\nry(-pi/2) q[0];\ncx q[0],q[1];\nrz(pi/3) q[0];\nry(11*pi/12) q[0];\nrz(pi/12) q[1];\nry(-7*pi/12) q[1];\nsdg q[0];\nh q[0];\nmeasure q[0] -> c0[0];\nh q[1];\nmeasure q[1] -> c0[1];",
+          "OPENQASM 2.0;\ninclude \"qelib1.inc\";\nqreg q[2];\ncreg c0[2];\nry(-pi/2) q[0];\ncx q[0],q[1];\nrz(pi/3) q[0];\nry(11*pi/12) q[0];\nrz(pi/12) q[1];\nry(-7*pi/12) q[1];\nsdg q[0];\nh q[0];\nmeasure q[0] -> c0[0];\nsdg q[1];\nh q[1];\nmeasure q[1] -> c0[1];",
+          "OPENQASM 2.0;\ninclude \"qelib1.inc\";\nqreg q[2];\ncreg c0[2];\nry(-pi/2) q[0];\ncx q[0],q[1];\nrz(pi/3) q[0];\nry(11*pi/12) q[0];\nrz(pi/12) q[1];\nry(-7*pi/12) q[1];\nsdg q[0];\nh q[0];\nmeasure q[0] -> c0[0];\nmeasure q[1] -> c0[1];",
+          "OPENQASM 2.0;\ninclude \"qelib1.inc\";\nqreg q[2];\ncreg c0[2];\nry(-pi/2) q[0];\ncx q[0],q[1];\nrz(pi/3) q[0];\nry(11*pi/12) q[0];\nrz(pi/12) q[1];\nry(-7*pi/12) q[1];\nmeasure q[0] -> c0[0];\nh q[1];\nmeasure q[1] -> c0[1];",
+          "OPENQASM 2.0;\ninclude \"qelib1.inc\";\nqreg q[2];\ncreg c0[2];\nry(-pi/2) q[0];\ncx q[0],q[1];\nrz(pi/3) q[0];\nry(11*pi/12) q[0];\nrz(pi/12) q[1];\nry(-7*pi/12) q[1];\nmeasure q[0] -> c0[0];\nsdg q[1];\nh q[1];\nmeasure q[1] -> c0[1];",
+          "OPENQASM 2.0;\ninclude \"qelib1.inc\";\nqreg q[2];\ncreg c0[2];\nry(-pi/2) q[0];\ncx q[0],q[1];\nrz(pi/3) q[0];\nry(11*pi/12) q[0];\nrz(pi/12) q[1];\nry(-7*pi/12) q[1];\nmeasure q[0] -> c0[0];\nmeasure q[1] -> c0[1];"
+        ],
+        "logicalMeasurementCircuitSha256": [
+          "88ad76253c482650de360b337bc300cd37f95352aded022baab96e4a9626dc7e",
+          "47f4d16d9ec41d119580a5ac84c65b8e3afdf7ea4d98c3e7d7c4bc380f3c9008",
+          "277b3986a8705140e513754fd1bcff3d64909769b957268d444b6df0b30ed0a6",
+          "db880f124532e13e64fabacf2faa7689a512eeb786a7a741b5fc8114187f0ffd",
+          "9402a1cc94d293e97e92d2bcd20b87d7731ca00de9190f3b72caaa416a1a5721",
+          "126523bebf72409b72ba446ec2f50202e110937980d5ecaf9eade78f09648dca",
+          "2bb109696d7d6948594e9a6be7c691ce19403058cf079bee82293f2c46787983",
+          "626981abacff8ef6cc4ea9ffc2dacabe3baa9963863d9f5d45bbab862a466991",
+          "d5bfda4c67b946fc29deb87830984ea0163d1146819c7a862e273f5193d441f6"
+        ],
+        "transpiledAerCircuitQasm": [
+          "OPENQASM 2.0;\ninclude \"qelib1.inc\";\nqreg q[2];\ncreg c0[2];\nry(-pi/2) q[0];\ncx q[0],q[1];\nu3(5*pi/12,-pi,pi/3) q[0];\nu3(11*pi/12,-pi,pi/12) q[1];\nmeasure q[0] -> c0[0];\nmeasure q[1] -> c0[1];",
+          "OPENQASM 2.0;\ninclude \"qelib1.inc\";\nqreg q[2];\ncreg c0[2];\nry(-pi/2) q[0];\ncx q[0],q[1];\nu3(5*pi/12,-pi,pi/3) q[0];\nu2(-7*pi/12,7*pi/12) q[1];\nmeasure q[0] -> c0[0];\nmeasure q[1] -> c0[1];",
+          "OPENQASM 2.0;\ninclude \"qelib1.inc\";\nqreg q[2];\ncreg c0[2];\nry(-pi/2) q[0];\ncx q[0],q[1];\nu3(5*pi/12,-pi,pi/3) q[0];\nu3(7*pi/12,-pi,-11*pi/12) q[1];\nmeasure q[0] -> c0[0];\nmeasure q[1] -> c0[1];",
+          "OPENQASM 2.0;\ninclude \"qelib1.inc\";\nqreg q[2];\ncreg c0[2];\nry(-pi/2) q[0];\ncx q[0],q[1];\nu2(11*pi/12,5*pi/6) q[0];\nu3(11*pi/12,-pi,pi/12) q[1];\nmeasure q[0] -> c0[0];\nmeasure q[1] -> c0[1];",
+          "OPENQASM 2.0;\ninclude \"qelib1.inc\";\nqreg q[2];\ncreg c0[2];\nry(-pi/2) q[0];\ncx q[0],q[1];\nu2(11*pi/12,5*pi/6) q[0];\nu2(-7*pi/12,7*pi/12) q[1];\nmeasure q[0] -> c0[0];\nmeasure q[1] -> c0[1];",
+          "OPENQASM 2.0;\ninclude \"qelib1.inc\";\nqreg q[2];\ncreg c0[2];\nry(-pi/2) q[0];\ncx q[0],q[1];\nu2(11*pi/12,5*pi/6) q[0];\nu3(7*pi/12,-pi,-11*pi/12) q[1];\nmeasure q[0] -> c0[0];\nmeasure q[1] -> c0[1];",
+          "OPENQASM 2.0;\ninclude \"qelib1.inc\";\nqreg q[2];\ncreg c0[2];\nry(-pi/2) q[0];\ncx q[0],q[1];\nu3(11*pi/12,0,pi/3) q[0];\nu3(11*pi/12,-pi,pi/12) q[1];\nmeasure q[0] -> c0[0];\nmeasure q[1] -> c0[1];",
+          "OPENQASM 2.0;\ninclude \"qelib1.inc\";\nqreg q[2];\ncreg c0[2];\nry(-pi/2) q[0];\ncx q[0],q[1];\nu3(11*pi/12,0,pi/3) q[0];\nu2(-7*pi/12,7*pi/12) q[1];\nmeasure q[0] -> c0[0];\nmeasure q[1] -> c0[1];",
+          "OPENQASM 2.0;\ninclude \"qelib1.inc\";\nqreg q[2];\ncreg c0[2];\nry(-pi/2) q[0];\ncx q[0],q[1];\nu3(11*pi/12,0,pi/3) q[0];\nu3(7*pi/12,-pi,-11*pi/12) q[1];\nmeasure q[0] -> c0[0];\nmeasure q[1] -> c0[1];"
+        ],
+        "transpiledAerCircuitSha256": [
+          "cd5da79602ee532e32d5e529aefa200ad4f9d1b6c831e308d56b5506b4c8d1a2",
+          "110e8dd0587e65944c310b99fc0bb23e1c253cc75ef7e545f168d9f09c2a5997",
+          "985a0cff3cdf60d94a588b912545d43cb185d7fee7e8f33d157d786907e0cfa5",
+          "2322fbf78da51a55b1c7ddd419d0c4c2243f99b5e04f40651b47981f7ec6dd10",
+          "4cbbd41bb7d98edcb4512d3084610c53c3a5eb23bba29677b3f4c7573948277a",
+          "403d6ed9fa22855ea30a0f2b8de5cee01059179e4ca323821fe87689b2a48488",
+          "e27749c43ce2751a019466e5cf89895a718ee94a6673398e1966abd20cc1e722",
+          "169ec4a04c950b65b13f16f8ed1f436911251818fa227ae22473a6366949d16e",
+          "e45b41fe38c7eae53b6f31c1667a96814444d40ef4a4412f5e9b25ef9f750625"
+        ],
+        "rawCountsSha256": "ee37d71dd972e3e4d771fd966cb112aba4ea97f9ac6497ed15585e167f5059b6",
+        "durableProviderResult": false,
+        "hardwareLayout": null,
+        "backendCalibration": null,
+        "fallbackFrom": null
+      },
+      "derivation": {
+        "method": "lstsq-psd",
+        "matrixOrder": "hi-tensor-lo",
+        "probabilityProjectors": "Pi_hi tensor Pi_lo",
+        "maxFiniteVsExactTotalVariation": 0.007328762520393051
+      },
+      "pair": {
+        "canonicalEdge": [0, 1],
+        "matrixOrder": "hi-tensor-lo",
+        "densityMatrix": [
+          [
+            [0.33001576333381877, 0.0],
+            [0.04134620993978445, 0.22978931317436677],
+            [0.22952436383587774, -0.060190225312311045],
+            [-0.13943579665269204, -0.29579670476200604]
+          ],
+          [
+            [0.04134620993978445, -0.22978931317436674],
+            [0.171902336194304, 0.0],
+            [-0.010604477514731002, -0.16336092516358897],
+            [-0.22339189025652625, 0.06079209545364793]
+          ],
+          [
+            [0.2295243638358777, 0.06019022531231105],
+            [-0.010604477514731005, 0.16336092516358897],
+            [0.17395603317853328, 6.938893903907228e-18],
+            [-0.042559154930826945, -0.2308909071749698]
+          ],
+          [
+            [-0.139435796652692, 0.29579670476200604],
+            [-0.22339189025652625, -0.06079209545364793],
+            [-0.04255915493082693, 0.2308909071749698],
+            [0.32412586729334325, 0.0]
+          ]
+        ],
+        "pauliExpectations": {
+          "IX": 0.012264947158702938,
+          "IY": -0.0012037402826737612,
+          "IZ": 0.0038361990562462145,
+          "XI": -0.0024258899820849694,
+          "XX": -0.3000805483348461,
+          "XY": 0.91831525985119,
+          "XZ": 0.1678107297412228,
+          "YI": 0.0022031880012061134,
+          "YX": 0.26487155919683414,
+          "YY": 0.25766263827592206,
+          "YZ": -0.9213604406986731,
+          "ZI": 0.007943593024704793,
+          "ZX": 0.905832508184808,
+          "ZY": 0.24196464153191793,
+          "ZZ": 0.3082832612543247
+        },
+        "distributions": {
+          "X": {
+            "pp": 0.17743962721044293,
+            "pm": 0.3213474277985146,
+            "mp": 0.32869284636890855,
+            "mm": 0.172520098622134
+          },
+          "Y": {
+            "pp": 0.31466552149861365,
+            "pm": 0.1864360725019894,
+            "mp": 0.18473260836004946,
+            "mm": 0.31416579763934743
+          },
+          "Z": {
+            "pp": 0.33001576333381905,
+            "pm": 0.17395603317853342,
+            "mp": 0.17190233619430415,
+            "mm": 0.32412586729334353
+          }
+        },
+        "productMarginalsControl": {
+          "X": {
+            "pp": 0.2524523259410438,
+            "pm": 0.24633472906791376,
+            "mp": 0.2536801476383078,
+            "mm": 0.24753279735273473
+          },
+          "Y": {
+            "pp": 0.25024919891309627,
+            "pm": 0.2508523950875068,
+            "mp": 0.24914893094556687,
+            "mm": 0.24974947505383005
+          },
+          "Z": {
+            "pp": 0.25295256632125396,
+            "pm": 0.2510192301910985,
+            "mp": 0.2489655332068692,
+            "mm": 0.24706267028077833
+          }
+        }
+      },
+      "exactStateDiagnostic": {
+        "acquisitionSource": "exact-statevector",
+        "pair": {
+          "distributions": {
+            "X": {
+              "pp": 0.17132380968109243,
+              "pm": 0.3286761903189077,
+              "mp": 0.3286761903189076,
+              "mm": 0.17132380968109245
+            },
+            "Y": {
+              "pp": 0.31470476127563024,
+              "pm": 0.18529523872436976,
+              "mp": 0.1852952387243698,
+              "mm": 0.31470476127563024
+            },
+            "Z": {
+              "pp": 0.3286761903189076,
+              "pm": 0.1713238096810924,
+              "mp": 0.17132380968109248,
+              "mm": 0.32867619031890766
+            }
+          },
+          "pauliExpectations": {
+            "IX": -1.6653345369377348e-16,
+            "IY": 0.0,
+            "IZ": 0.0,
+            "XI": 8.326672684688674e-17,
+            "XX": -0.3147047612756304,
+            "XY": 0.9330127018922192,
+            "XZ": 0.1744941584644865,
+            "YI": -5.551115123125783e-17,
+            "YX": 0.25,
+            "YY": 0.25881904510252096,
+            "YZ": -0.9330127018922192,
+            "ZI": -1.3877787807814457e-16,
+            "ZX": 0.9156751133619656,
+            "ZY": 0.25000000000000017,
+            "ZZ": 0.3147047612756303
+          }
+        }
+      }
+    }
+  },
+  "calibration": {
+    "status": "accepted-for-local-prototype",
+    "selectionMethod": "authored-rule-legibility-calibration",
+    "finiteMinimumOutcomeProbability": 0.17190233619430415,
+    "finiteMaximumOutcomeProbability": 0.33001576333381905,
+    "finiteSameParityProbability": {
+      "X": 0.34995972583257695,
+      "Y": 0.6288313191379611,
+      "Z": 0.6541416306271626
+    },
+    "finiteProductMarginalsTotalVariation": {
+      "X": 0.15002539746120158,
+      "Y": 0.12883264517103477,
+      "Z": 0.15412639402513023
+    },
+    "claimBoundary": "The rational-angle preparation was authored so both parity classes and all ordered outcomes remain legible in Fluxball. This is game-design calibration, not entanglement certification, quantum advantage, a hardware-feasibility result, or a scientific optimum."
+  }
+}

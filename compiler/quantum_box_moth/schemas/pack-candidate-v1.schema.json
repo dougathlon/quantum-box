@@ -1,0 +1,47 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "quantum-box-pack-v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "packId",
+    "gameId",
+    "engineId",
+    "source",
+    "contentSha256",
+    "rulesVersion",
+    "warnings",
+    "mothEvidence",
+    "payload"
+  ],
+  "properties": {
+    "schemaVersion": { "const": "quantum-box-pack-v1" },
+    "packId": { "type": "string", "minLength": 1 },
+    "gameId": {
+      "enum": ["qong", "skipixl", "fluxball", "quantman"]
+    },
+    "engineId": { "type": "string", "minLength": 1 },
+    "source": {
+      "enum": [
+        "synthetic-control",
+        "local-aer-control",
+        "contract-mock",
+        "moth-api-simulator",
+        "moth-api-emulator",
+        "moth-api-qpu",
+        "moth-platform-qpu-capture"
+      ]
+    },
+    "contentSha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "rulesVersion": { "type": "string", "minLength": 1 },
+    "warnings": { "type": "array", "items": { "type": "string" } },
+    "mothEvidence": {
+      "anyOf": [{ "type": "object" }, { "type": "null" }]
+    },
+    "payload": { "type": "object" }
+  }
+}

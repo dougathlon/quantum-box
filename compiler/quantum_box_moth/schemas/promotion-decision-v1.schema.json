@@ -1,0 +1,41 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "quantum-box-promotion-decision-v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "engineId",
+    "engineCanonicalSha256",
+    "engineUpdatedAt",
+    "status",
+    "blockers",
+    "rawEvidenceSha256",
+    "candidate",
+    "decisionSha256"
+  ],
+  "properties": {
+    "schemaVersion": { "const": "quantum-box-promotion-decision-v1" },
+    "engineId": { "type": "string", "minLength": 1 },
+    "engineCanonicalSha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "engineUpdatedAt": { "type": "string", "minLength": 1 },
+    "status": {
+      "enum": ["contract-mock-generated", "promotion-blocked", "promoted"]
+    },
+    "blockers": { "type": "array", "items": { "type": "string" } },
+    "rawEvidenceSha256": {
+      "type": "array",
+      "items": { "type": "string", "pattern": "^[0-9a-f]{64}$" }
+    },
+    "candidate": {
+      "anyOf": [{ "$ref": "pack-candidate-v1.schema.json" }, { "type": "null" }]
+    },
+    "decisionSha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    }
+  }
+}

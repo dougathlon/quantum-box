@@ -1,0 +1,80 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "quantum-box-moth-job-ledger-v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "payload", "payloadSha256"],
+  "properties": {
+    "schemaVersion": { "const": "quantum-box-moth-job-ledger-v1" },
+    "payload": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["attempts"],
+      "properties": {
+        "attempts": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/attempt" }
+        }
+      }
+    },
+    "payloadSha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    }
+  },
+  "$defs": {
+    "attempt": {
+      "type": "object",
+      "required": [
+        "engineId",
+        "engineCanonicalSha256",
+        "requestSha256",
+        "approvalNoteSha256",
+        "listedCreditsReserved",
+        "state",
+        "reservedAtUtc",
+        "outcome"
+      ],
+      "properties": {
+        "engineId": { "type": "string" },
+        "engineCanonicalSha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "requestSha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "approvalNoteSha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "listedCreditsReserved": { "type": "integer", "minimum": 0 },
+        "state": {
+          "enum": [
+            "reserved-before-post",
+            "accepted",
+            "ambiguous-no-retry",
+            "http-failure-no-retry",
+            "polling-ended-locally",
+            "observed-terminal"
+          ]
+        },
+        "reservedAtUtc": { "type": "string" },
+        "outcome": { "type": ["string", "null"] },
+        "jobId": { "type": "string" },
+        "submittedAt": { "type": "string" },
+        "initialStatus": { "type": "string" },
+        "httpStatus": { "type": ["integer", "null"] },
+        "safeDetail": { "type": "string" },
+        "statusSnapshots": { "type": "array", "items": { "type": "object" } },
+        "terminalObservedAtUtc": { "type": ["string", "null"] },
+        "rawResultSha256": {
+          "type": ["string", "null"],
+          "pattern": "^[0-9a-f]{64}$"
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}

@@ -1,0 +1,82 @@
+{
+  "authoringMethod": "Deterministic local pixel operations over exact approved sources; no image generation, QPixl, QPU, QuantumBlur, or network operation.",
+  "date": "2026-09-05",
+  "schemaVersion": "quantum-box-designer-professor-source-manifest-v1",
+  "selectionAuthority": {
+    "fileId": "quag-player-directional-strip",
+    "frameId": "d-right-idle",
+    "path": "src/assets/qgraph-cabinet-assets-v1/manifests/shipped-runtime-handoff.json",
+    "sha256": "01ea293ab0fda90d61a92f283d7472878fbd58e40dde6d68246fd3381a202719"
+  },
+  "sourceMutation": "prohibited",
+  "sources": [
+    {
+      "authority": "user-selected-source",
+      "dimensions": {
+        "height": 20,
+        "width": 20
+      },
+      "mode": "RGBA",
+      "originalProjectLocator": "drafts/visual-development/quantum-box/core-asset-language-v1/assets/designer-candidate-professor-20x20.png",
+      "path": "src/assets/designer-professor/assets/professor-source-locked-20x20.png",
+      "role": "User-selected Designer Professor base frame",
+      "sha256": "68329f1f921110b76151f5d3fe8eaf02c234518c9c6ac11e64bcbb48d3ecf745",
+      "sourceId": "designer-professor-source"
+    },
+    {
+      "authority": "existing-runtime-source",
+      "dimensions": {
+        "height": 20,
+        "width": 20
+      },
+      "mode": "RGBA",
+      "path": "src/assets/canonical-runtime-assets-v2/assets/qong/qong-paddle-canonical-20x20.png",
+      "role": "Canonical Qong paddle morph endpoint",
+      "sha256": "e77cd26e555dd8e13e9d30ea308a8328a1e53497ec054ff28f4d99067a82b48e",
+      "sourceId": "qong-paddle"
+    },
+    {
+      "authority": "existing-runtime-source",
+      "dimensions": {
+        "height": 20,
+        "width": 16
+      },
+      "mode": "RGBA",
+      "path": "src/assets/canonical-runtime-assets-v2/assets/player/player-c-source-locked-16x20.png",
+      "role": "Canonical walking-player morph endpoint",
+      "sha256": "4a45c8f61fce46b073d4b8036bcc4a90b2697ec1fd61d2b9287bcb8013674dbd",
+      "sourceId": "player-c-source"
+    },
+    {
+      "authority": "existing-runtime-source",
+      "dimensions": {
+        "height": 16,
+        "width": 16
+      },
+      "mode": "RGBA",
+      "path": "src/assets/canonical-runtime-assets-v2/assets/quantman/quantman-ghost-c-neutral-16x16.png",
+      "role": "Canonical Quantman Ghost C morph endpoint",
+      "sha256": "d9fa2bc427ec2dccbed20fba5a4e3cbcf9ceef9446bd09a0f22bb19397423fea",
+      "sourceId": "quantman-ghost-c"
+    },
+    {
+      "authority": "existing-runtime-source",
+      "dimensions": {
+        "height": 20,
+        "width": 1406
+      },
+      "mode": "RGBA",
+      "path": "src/assets/qgraph-cabinet-assets-v1/assets/quag/quag-players-directional-strip-10x10.png",
+      "role": "Current crested Quarry Duck D right-idle morph endpoint",
+      "selectedFrame": {
+        "frameId": "d-right-idle",
+        "height": 20,
+        "width": 20,
+        "x": 1056,
+        "y": 0
+      },
+      "sha256": "d669f807f63f540df5f46e1490d55e34ab7f505a2b83e688a912ae5127c01f26",
+      "sourceId": "quarry-duck-d-right-idle"
+    }
+  ]
+}

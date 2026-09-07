@@ -1,0 +1,197 @@
+{
+  "mazeId": "quantman-archive-maze-v2",
+  "mazeLabel": "TURNING LABYRINTH",
+  "width": 21,
+  "height": 15,
+  "tileSize": 20,
+  "originX": 110,
+  "originY": 42,
+  "rows": [
+    "#####################",
+    "#.........#.........#",
+    "#.###.###.#.###.###.#",
+    "#...................#",
+    "#.###.#.#####.#.###.#",
+    "#.....#...#...#.....#",
+    "#####.###.#.###.#####",
+    ".....................",
+    "#####.#.#####.#.#####",
+    "#.....#...#...#.....#",
+    "#.###.###.#.###.###.#",
+    "#...#...........#...#",
+    "###.#.#.#####.#.#.###",
+    "#.....#...#...#.....#",
+    "#####################"
+  ],
+  "playerStart": { "row": 11, "col": 10 },
+  "exit": { "row": 7, "col": 10 },
+  "requiredFragments": 1,
+  "startingLives": 3,
+  "timeLimitSeconds": 180,
+  "playerSpeed": 86,
+  "fragments": [],
+  "powerPellets": [
+    { "row": 1, "col": 1 },
+    { "row": 1, "col": 19 },
+    { "row": 13, "col": 1 },
+    { "row": 13, "col": 19 }
+  ],
+  "tunnelRows": [7],
+  "topologyDoors": [
+    {
+      "doorId": "door-00",
+      "row": 1,
+      "col": 10,
+      "orientation": "horizontal",
+      "sourceRooms": [0, 1]
+    },
+    {
+      "doorId": "door-01",
+      "row": 2,
+      "col": 4,
+      "orientation": "vertical",
+      "sourceRooms": [0, 5]
+    },
+    {
+      "doorId": "door-02",
+      "row": 2,
+      "col": 16,
+      "orientation": "vertical",
+      "sourceRooms": [1, 2]
+    },
+    {
+      "doorId": "door-03",
+      "row": 4,
+      "col": 6,
+      "orientation": "horizontal",
+      "sourceRooms": [2, 7]
+    },
+    {
+      "doorId": "door-04",
+      "row": 4,
+      "col": 14,
+      "orientation": "horizontal",
+      "sourceRooms": [5, 6]
+    },
+    {
+      "doorId": "door-05",
+      "row": 5,
+      "col": 10,
+      "orientation": "horizontal",
+      "sourceRooms": [5, 10]
+    },
+    {
+      "doorId": "door-06",
+      "row": 8,
+      "col": 6,
+      "orientation": "horizontal",
+      "sourceRooms": [7, 12]
+    },
+    {
+      "doorId": "door-07",
+      "row": 8,
+      "col": 14,
+      "orientation": "horizontal",
+      "sourceRooms": [9, 14]
+    },
+    {
+      "doorId": "door-08",
+      "row": 9,
+      "col": 10,
+      "orientation": "horizontal",
+      "sourceRooms": [10, 11]
+    },
+    {
+      "doorId": "door-09",
+      "row": 11,
+      "col": 4,
+      "orientation": "horizontal",
+      "sourceRooms": [10, 15]
+    },
+    {
+      "doorId": "door-10",
+      "row": 11,
+      "col": 16,
+      "orientation": "horizontal",
+      "sourceRooms": [11, 12]
+    },
+    {
+      "doorId": "door-11",
+      "row": 13,
+      "col": 10,
+      "orientation": "horizontal",
+      "sourceRooms": [12, 13]
+    }
+  ],
+  "pursuers": [
+    {
+      "pursuerId": "SEEKER",
+      "role": "direct",
+      "row": 7,
+      "col": 8,
+      "speed": 52,
+      "basePerceptionTiles": 40,
+      "decisionIntervalTicks": 5,
+      "hesitationTicks": 0,
+      "tone": "orange",
+      "patrol": [
+        { "row": 1, "col": 1 },
+        { "row": 1, "col": 9 },
+        { "row": 3, "col": 10 },
+        { "row": 7, "col": 8 }
+      ]
+    },
+    {
+      "pursuerId": "VEIL",
+      "role": "ambush",
+      "row": 7,
+      "col": 9,
+      "speed": 50,
+      "basePerceptionTiles": 40,
+      "decisionIntervalTicks": 6,
+      "hesitationTicks": 0,
+      "tone": "avocado",
+      "patrol": [
+        { "row": 1, "col": 19 },
+        { "row": 3, "col": 15 },
+        { "row": 7, "col": 12 },
+        { "row": 5, "col": 13 }
+      ]
+    },
+    {
+      "pursuerId": "MIRROR",
+      "role": "flank",
+      "row": 7,
+      "col": 11,
+      "speed": 48,
+      "basePerceptionTiles": 40,
+      "decisionIntervalTicks": 7,
+      "hesitationTicks": 0,
+      "tone": "blue",
+      "patrol": [
+        { "row": 13, "col": 19 },
+        { "row": 11, "col": 13 },
+        { "row": 9, "col": 11 },
+        { "row": 7, "col": 11 }
+      ]
+    },
+    {
+      "pursuerId": "DRIFTER",
+      "role": "wander",
+      "row": 7,
+      "col": 12,
+      "speed": 46,
+      "basePerceptionTiles": 40,
+      "decisionIntervalTicks": 8,
+      "hesitationTicks": 18,
+      "tone": "cream",
+      "patrol": [
+        { "row": 13, "col": 1 },
+        { "row": 11, "col": 7 },
+        { "row": 9, "col": 5 },
+        { "row": 7, "col": 12 }
+      ]
+    }
+  ],
+  "visualSeed": 464367619
+}

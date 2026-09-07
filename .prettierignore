@@ -1,0 +1,23 @@
+# Hash-bound acquisition evidence and generated QPixl study inputs.
+compiler/quantum_box_moth/evidence/blur-v1-operational-2026-08-04.json
+compiler/quantum_box_moth/evidence/fluxball-graph-v1-qpu-ea99a27a-result.json
+compiler/quantum_box_moth/acquisitions/fluxball-qgraph-qpu-bank-v2/
+compiler/quantum_box_moth/evidence/fluxball-qgraph-qpu-bank-v2/
+compiler/quantum_box_moth/studies/qpixl-signal-field-v1/manifest.json
+compiler/quantum_box_moth/studies/qpixl-signal-field-v1/request-aer-review.json
+compiler/quantum_box_moth/studies/qpixl-signal-field-v1/request-qpu-ibm-fez-blocked.json
+compiler/quantum_box_moth/studies/qpixl-signal-field-v1/values-row-major.json
+src/games/quantman/packs/moth-labyrinth-emu-4x5-preview-v1.json
+src/games/fluxball/data/fluxball-qgraph-rule-bank-v1.json
+
+# Immutable canonical visual manifests are verified by SHA-256.
+src/assets/canonical-runtime-assets-v2/manifests/*.json
+
+# Deterministic QGraph sprite manifests are hash-bound generator output.
+src/assets/qgraph-cabinet-assets-v1/manifests/*.json
+
+# Deterministic Designer Professor manifests are hash-bound generator output.
+src/assets/designer-professor/manifests/*.json
+
+# Deterministic audit output; formatting is owned by its generator.
+docs/qa/screenshots/2026-09-02-quag-enclose/regression/report.json

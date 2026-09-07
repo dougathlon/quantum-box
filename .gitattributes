@@ -1,0 +1,25 @@
+# The public source snapshot is produced with `git archive`. These paths are
+# retained in the private development history but are not part of the shipped
+# Quantum Box source release.
+docs/qa export-ignore
+docs/moth-acquisition.md export-ignore
+docs/parallel-worktrees.md export-ignore
+
+# Retired Enclose implementation and its historical-only validation material.
+src/games/enclose export-ignore
+src/display/views/EncloseView.ts export-ignore
+src/assets/qgraph-cabinet-assets-v1/assets/enclose export-ignore
+src/assets/qgraph-cabinet-assets-v1/manifests/runtime-handoff.json export-ignore
+src/assets/qgraph-cabinet-assets-v1/manifests/source-manifest.json export-ignore
+src/games/qgraph/syntheticCabinetPacks.ts export-ignore
+tests/helpers/qgraphCabinetSimulationHarness.ts export-ignore
+tests/unit/qgraphCabinets.test.ts export-ignore
+tests/unit/qgraphSaveIsolation.test.ts export-ignore
+tests/unit/qgraphEncloseSimulationA.test.ts export-ignore
+tests/unit/qgraphEncloseSimulationB.test.ts export-ignore
+tests/unit/qgraphQuagSimulationA.test.ts export-ignore
+tests/unit/qgraphQuagSimulationB.test.ts export-ignore
+scripts/build_qgraph_cabinet_assets.py export-ignore
+scripts/build_qgraph_screenshot_matrix.py export-ignore
+scripts/build_qgraph_sprite_comparison.py export-ignore
+scripts/compare_qgraph_visual_regression.py export-ignore
