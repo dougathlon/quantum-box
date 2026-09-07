@@ -21,12 +21,13 @@
     "audit:visual": "python3 scripts/audit_brown_box_frames.py",
     "audit:assets": "python3 scripts/audit_canonical_runtime_assets.py",
     "audit:qgraph-assets": "python3 scripts/audit_qgraph_cabinet_assets.py",
+    "audit:runtime-pixels": "python3 scripts/build_runtime_pixel_frames.py --check",
     "check:pages": "node scripts/check-pages-artifact.mjs",
     "scan:artifact": "node scripts/scan-release.mjs",
     "scan:source": "node scripts/scan-public-source.mjs",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "check": "pnpm format:check && pnpm typecheck && pnpm test && pnpm test:moth && pnpm audit:visual && pnpm audit:assets && pnpm audit:qgraph-assets && pnpm test:e2e:collect && pnpm build && pnpm check:pages && pnpm scan:artifact"
+    "check": "pnpm format:check && pnpm typecheck && pnpm test && pnpm test:moth && pnpm audit:visual && pnpm audit:assets && pnpm audit:qgraph-assets && pnpm audit:runtime-pixels && pnpm test:e2e:collect && pnpm build && pnpm check:pages && pnpm scan:artifact"
   },
   "dependencies": {
     "ajv": "8.18.0",
