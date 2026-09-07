@@ -1971,7 +1971,11 @@
 .qb-arcade-preview--quarry img {
   width: 100%;
   max-width: none;
-  height: 100%;
+  height: auto;
+}
+
+.qb-arcade-preview--quarry {
+  height: auto;
 }
 
 .qb-story-select {

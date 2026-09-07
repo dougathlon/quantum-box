@@ -676,7 +676,7 @@ test("Settings use concise field, initials, and reserved-key layouts", async ({
     page.getByRole("group", { name: "Background field options" }),
   ).toBeVisible();
   const fieldSummary = page.locator(".qb-background-summary");
-  await expect(fieldSummary.locator("strong")).toHaveText("CURRENT");
+  await expect(fieldSummary.locator("strong")).toHaveText("STANDARD");
   await expect(fieldSummary.locator("span")).toHaveText(
     "4 QPIXL-MAPPED STATES · 22.8S OFFLINE LOOP",
   );
