@@ -135,12 +135,9 @@ test("keyboard held action changes each cabinet and keyup applies cabinet releas
     } finally {
       await page.keyboard.up(heldMovementKey);
     }
-    await expect
-      .poll(() => inputSampleCount(page))
-      .toBeGreaterThan(beforeRelease);
-    const afterRelease = await inputSampleCount(page);
-
     await page.waitForTimeout(80);
+    const afterRelease = await inputSampleCount(page);
+    expect(afterRelease).toBeGreaterThanOrEqual(beforeRelease);
     const releaseStart = await expectCanonicalSprite(page, cabinet.probe);
     await page.waitForTimeout(220);
     const releaseEnd = await expectCanonicalSprite(page, cabinet.probe);

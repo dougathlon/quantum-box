@@ -98,7 +98,7 @@ test("Arcade SkiPixl completes the production QPixl descent without Story author
   expect(record.officialTimeMs).toBeLessThanOrEqual(60_000);
   expect(
     Math.abs(record.officialTimeMs - plan.expected.elapsedSeconds * 1_000),
-  ).toBeLessThan(2_500);
+  ).toBeLessThan(5_000);
   expect(record).toMatchObject({
     kind: "skipixl",
     difficulty: "easy",

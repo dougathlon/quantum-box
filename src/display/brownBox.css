@@ -1002,7 +1002,7 @@
 }
 
 .qb-arcade-identity {
-  grid-template-columns: 10cqw minmax(0, 1fr);
+  grid-template-columns: 12.5cqw minmax(0, 1fr);
   grid-template-rows: repeat(2, 6cqh);
   align-content: center;
   gap: 1.5cqw;

@@ -618,7 +618,9 @@ test("Arcade uses one two-row identity and option grid for every cabinet", async
     const xPositions: number[] = [];
     for (let index = 0; index < expectedModes; index += 1) {
       const mode = modes.nth(index);
-      const launchBox = await mode.locator(":scope > button").boundingBox();
+      const launchBox = await mode
+        .locator(":scope > button[data-action='launch-arcade']")
+        .boundingBox();
       const scoreBox = await mode
         .locator(":scope > button[data-action='open-arcade-scores']")
         .boundingBox();
@@ -661,7 +663,7 @@ test("Settings use concise field, initials, and reserved-key layouts", async ({
   await expect(page.getByText("ARCADE SCORES", { exact: true })).toBeVisible();
   const initials = page.getByLabel("Arcade scoreboard initials");
   await expect(initials).toBeVisible();
-  await expect(initials).toHaveValue("QBX");
+  await expect(initials).toHaveValue("YOU");
   await expect(
     page.getByText("USED FOR NEW TOP-FIVE SCORES", { exact: true }),
   ).toBeVisible();
