@@ -149,7 +149,7 @@ test("Quarry introduces Player A and freezes its 60-second clock during orientat
     { timeout: 1_000 },
   );
   await expect(region.locator("[data-quag='targets']")).toHaveText(
-    /HUNT [B-D](?:\+[B-D]){0,2}|SURVIVE/,
+    /[B-D](?:\+[B-D]){0,2}|NONE/,
   );
   await expect(region.locator("[data-quag='notice']")).toContainText(
     "YOU ARE A",
