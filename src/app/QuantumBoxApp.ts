@@ -115,11 +115,16 @@ import {
 } from "../games/qgraph/quarryQpuBank";
 import { InputController, type InputSignal } from "../input/InputController";
 import { SAVE_EXPORT_FILENAME, SaveRepository } from "../save/SaveRepository";
+import { quantmanArcadeOverallBoard } from "../save/ArcadeRecords";
 import type {
   PendingStoryNarrativeBeat,
   QuantumBoxSettings,
 } from "../save/types";
-import { QuantumBoxShell, type ShellPage } from "../ui/QuantumBoxShell";
+import {
+  QuantumBoxShell,
+  type ArcadeScoreboardRequest,
+  type ShellPage,
+} from "../ui/QuantumBoxShell";
 import type { CommittedPack } from "../packs/types";
 import type { QongPackPayload } from "../games/qong/types";
 import { sha256CanonicalJsonSync } from "../tutorials/recovery";
@@ -202,6 +207,7 @@ export class QuantumBoxApp {
     gameId: "qong" | "fluxball";
     stage: StoryStageId;
   }> | null = null;
+  private pendingArcadeScoreboard: ArcadeScoreboardRequest | null = null;
   private fluxballLobby: {
     readonly mode: string;
     readonly runSeed: number;
@@ -248,6 +254,8 @@ export class QuantumBoxApp {
         onLaunchArcade: (gameId, mode, options) =>
           void this.launchArcade(gameId, mode, options),
         onSettingChanged: (change) => this.updateSettings(change),
+        onArcadeScoreInitialsSubmitted: (recordedSequence, initials) =>
+          this.submitArcadeScoreInitials(recordedSequence, initials),
         onExportSave: () => this.exportSave(),
         onResetSave: () => this.resetSave(),
         onCabinetAction: (action) => this.handleCabinetAction(action),
@@ -310,7 +318,10 @@ export class QuantumBoxApp {
           : `${event.label} disconnected. Held controls released.`,
       );
     });
+    root.addEventListener("pointerdown", this.onAudioGesture, true);
     window.addEventListener("blur", this.onWindowBlur);
+    window.addEventListener("focus", this.onAudioRecovery);
+    document.addEventListener("visibilitychange", this.onVisibilityChange);
     this.monitorFrameId = requestAnimationFrame(this.monitorFrame);
     if (import.meta.env.DEV) {
       const qaParams = new URLSearchParams(window.location.search);
@@ -386,7 +397,10 @@ export class QuantumBoxApp {
     this.stopCanvasPaletteAudit?.();
     this.stopCanvasPaletteAudit = null;
     this.input.dispose();
+    this.root.removeEventListener("pointerdown", this.onAudioGesture, true);
     window.removeEventListener("blur", this.onWindowBlur);
+    window.removeEventListener("focus", this.onAudioRecovery);
+    document.removeEventListener("visibilitychange", this.onVisibilityChange);
     cancelAnimationFrame(this.monitorFrameId);
     this.monitorFrameId = 0;
     for (const frameId of this.inputPresentationFrameIds) {
@@ -401,6 +415,7 @@ export class QuantumBoxApp {
   }
 
   private readonly onInput = (signal: InputSignal): void => {
+    if (signal.pressed) void this.audio.unlock();
     if (signal.pressed && isTransitionAction(signal.action)) {
       this.input.latchUntilRelease(signal.action);
     }
@@ -434,8 +449,10 @@ export class QuantumBoxApp {
       return;
     }
     if (this.skipixlRuntime) {
-      if (signal.pressed && signal.action === "back") this.exitCabinet();
-      else this.skipixlRuntime.handleInput(legacyCabinetSignal(signal));
+      if (signal.pressed && signal.action === "back") {
+        if (this.pendingArcadeScoreboard) this.continueSkiPixl();
+        else this.exitCabinet();
+      } else this.skipixlRuntime.handleInput(legacyCabinetSignal(signal));
       return;
     }
     if (this.fluxballRuntime) {
@@ -444,8 +461,10 @@ export class QuantumBoxApp {
       return;
     }
     if (this.quantmanRuntime) {
-      if (signal.pressed && signal.action === "back") this.exitCabinet();
-      else this.quantmanRuntime.handleInput(legacyCabinetSignal(signal));
+      if (signal.pressed && signal.action === "back") {
+        if (this.pendingArcadeScoreboard) this.continueQuantman();
+        else this.exitCabinet();
+      } else this.quantmanRuntime.handleInput(legacyCabinetSignal(signal));
       return;
     }
     if (this.quagRuntime) {
@@ -1122,6 +1141,7 @@ export class QuantumBoxApp {
     this.activeArcadeRunOrigin = playMode === "arcade" ? arcadeRunOrigin : null;
     this.completedReplay = null;
     this.activeSkiPixlPack = pack;
+    this.pendingArcadeScoreboard = null;
     this.pendingStorySkiPixlPack = null;
     this.skipixlRecording = null;
     this.skipixlIsReplay = false;
@@ -1188,6 +1208,7 @@ export class QuantumBoxApp {
       return;
     }
     if (this.finishStoryReplay("skipixl", snapshot.storyQualified)) return;
+    let recordedSequence: number | null = null;
     if (
       this.activeRun &&
       isArcadeScoreEligible(
@@ -1197,6 +1218,8 @@ export class QuantumBoxApp {
       snapshot.storyQualified &&
       this.activeSkiPixlPack?.payload.difficulty
     ) {
+      const recordSequence =
+        this.saveRepository.snapshot().arcadeRecords.nextSequence;
       const save = this.saveRepository.recordSkiPixlArcadeScore(
         {
           kind: "skipixl",
@@ -1215,6 +1238,13 @@ export class QuantumBoxApp {
         this.saveRepository.snapshot().settings.arcadeInitials,
       );
       this.shell.updateSave(save);
+      if (
+        save.arcadeRecords.skipixl[
+          this.activeSkiPixlPack.payload.difficulty
+        ].some((entry) => entry.recordedSequence === recordSequence)
+      ) {
+        recordedSequence = recordSequence;
+      }
     }
     if (this.activeRun?.playMode === "story") {
       if (!this.activeSkiPixlPack) {
@@ -1249,6 +1279,22 @@ export class QuantumBoxApp {
         },
       );
     } else {
+      if (
+        this.activeRun?.playMode === "arcade" &&
+        this.activeSkiPixlPack?.payload.difficulty
+      ) {
+        this.pendingArcadeScoreboard = Object.freeze({
+          gameId: "skipixl",
+          mode: this.activeSkiPixlPack.payload.difficulty.toUpperCase(),
+          highlightRecordSequence: recordedSequence,
+          resultLabel: recordedSequence
+            ? "NEW TOP FIVE SCORE"
+            : this.activeArcadeRunOrigin === "developer-qa"
+              ? "TEST RUN · SCORES NOT RECORDED"
+              : "RUN COMPLETE · TOP FIVE UNCHANGED",
+          initialsEditable: recordedSequence !== null,
+        });
+      }
       this.shell.announce(
         `Arcade descent completed on ${this.activeSkiPixlPack?.payload.courseLabel ?? "unknown course"} in ${snapshot.elapsedSeconds.toFixed(2)} seconds with no Story authority.`,
       );
@@ -1305,7 +1351,9 @@ export class QuantumBoxApp {
   }
 
   private continueSkiPixl(): void {
+    const scoreboard = this.pendingArcadeScoreboard;
     this.exitCabinet();
+    if (scoreboard) this.shell.showArcadeScoreboard(scoreboard);
   }
 
   private startFluxball(
@@ -1618,6 +1666,7 @@ export class QuantumBoxApp {
     this.activeArcadeRunOrigin = playMode === "arcade" ? arcadeRunOrigin : null;
     this.completedReplay = null;
     this.activeQuantmanMechanic = mechanic;
+    this.pendingArcadeScoreboard = null;
     this.activeQuantmanFixture = selection;
     this.quantmanRecording = null;
     if (playMode === "story" && !storyReplay) {
@@ -1693,6 +1742,7 @@ export class QuantumBoxApp {
       `${terminal.outcome} · score ${terminal.score}`,
     );
     this.playCompletionCue(terminal.cleared);
+    let recordedSequence: number | null = null;
     if (
       isArcadeScoreEligible(
         this.activeRun.playMode,
@@ -1700,6 +1750,8 @@ export class QuantumBoxApp {
       ) &&
       this.activeQuantmanFixture
     ) {
+      const recordSequence =
+        this.saveRepository.snapshot().arcadeRecords.nextSequence;
       const save = this.saveRepository.recordQuantmanArcadeScore(
         {
           kind: "quantman",
@@ -1719,10 +1771,29 @@ export class QuantumBoxApp {
         this.saveRepository.snapshot().settings.arcadeInitials,
       );
       this.shell.updateSave(save);
+      if (
+        quantmanArcadeOverallBoard(save.arcadeRecords, terminal.mechanic).some(
+          (entry) => entry.recordedSequence === recordSequence,
+        )
+      ) {
+        recordedSequence = recordSequence;
+      }
+      this.pendingArcadeScoreboard = Object.freeze({
+        gameId: "quantman",
+        mode:
+          terminal.mechanic === "stabilize-gaze"
+            ? "STABILIZE GAZE"
+            : "INVERSE GAZE",
+        highlightRecordSequence: recordedSequence,
+        resultLabel: recordedSequence
+          ? "NEW TOP FIVE SCORE"
+          : "RUN COMPLETE · TOP FIVE UNCHANGED",
+        initialsEditable: recordedSequence !== null,
+      });
       this.shell.announce(
         `${terminal.cleared ? "Screen cleared" : "Run lost"}. Quantman ${terminal.mechanic} score recorded locally.`,
       );
-    } else if (terminal.cleared) {
+    } else if (terminal.cleared && this.activeRun.playMode === "story") {
       const selection = this.activeQuantmanFixture;
       if (!selection) {
         throw new Error("Quantman completed without its frozen QPU fixture.");
@@ -1736,6 +1807,21 @@ export class QuantumBoxApp {
       this.shell.announce(
         "Quantman Story requires complete screen clearance. Retry starts a fresh run from the installed QPU bank.",
       );
+    }
+    if (this.activeRun.playMode === "arcade" && !this.pendingArcadeScoreboard) {
+      this.pendingArcadeScoreboard = Object.freeze({
+        gameId: "quantman",
+        mode:
+          terminal.mechanic === "stabilize-gaze"
+            ? "STABILIZE GAZE"
+            : "INVERSE GAZE",
+        highlightRecordSequence: null,
+        resultLabel:
+          this.activeArcadeRunOrigin === "developer-qa"
+            ? "TEST RUN · SCORES NOT RECORDED"
+            : "RUN COMPLETE · TOP FIVE UNCHANGED",
+        initialsEditable: false,
+      });
     }
   }
 
@@ -1794,7 +1880,9 @@ export class QuantumBoxApp {
   }
 
   private continueQuantman(): void {
+    const scoreboard = this.pendingArcadeScoreboard;
     this.exitCabinet();
+    if (scoreboard) this.shell.showArcadeScoreboard(scoreboard);
   }
 
   private startQuag(
@@ -2099,8 +2187,10 @@ export class QuantumBoxApp {
       return;
     }
     if (this.skipixlRuntime) {
-      if (action === "back") this.exitCabinet();
-      else if (action === "continue") this.continueSkiPixl();
+      if (action === "back") {
+        if (this.pendingArcadeScoreboard) this.continueSkiPixl();
+        else this.exitCabinet();
+      } else if (action === "continue") this.continueSkiPixl();
       else if (action === "replay") this.skipixlRuntime.requestReplay();
       return;
     }
@@ -2111,8 +2201,10 @@ export class QuantumBoxApp {
       return;
     }
     if (this.quantmanRuntime) {
-      if (action === "back") this.exitCabinet();
-      else if (action === "continue") this.continueQuantman();
+      if (action === "back") {
+        if (this.pendingArcadeScoreboard) this.continueQuantman();
+        else this.exitCabinet();
+      } else if (action === "continue") this.continueQuantman();
       else if (action === "replay") this.quantmanRuntime.requestRetry();
       return;
     }
@@ -2426,6 +2518,7 @@ export class QuantumBoxApp {
     this.quagIsReplay = false;
     this.activeQuarryHumanPlayerIds = ["A"];
     this.activeQuarrySelection = null;
+    this.pendingArcadeScoreboard = null;
     this.audio.setSkiCarve(0);
     this.audio.setPaused(false);
     this.audio.setMenuMusic(true);
@@ -2470,6 +2563,19 @@ export class QuantumBoxApp {
     );
   }
 
+  private submitArcadeScoreInitials(
+    recordedSequence: number,
+    initials: string,
+  ): void {
+    const save = this.saveRepository.updateArcadeScoreInitials(
+      recordedSequence,
+      initials,
+    );
+    this.audio.setSettings(save.settings);
+    this.audio.play("select");
+    this.shell.confirmArcadeScoreInitials(save);
+  }
+
   private resetSave(): void {
     const save = this.saveRepository.reset();
     void this.shell.activateBackgroundProgramme(
@@ -2486,6 +2592,7 @@ export class QuantumBoxApp {
     this.fluxballLobby = null;
     this.pendingStorySkiPixlPack = null;
     this.pendingFirstLossRetry = null;
+    this.pendingArcadeScoreboard = null;
     this.shell.resetPlayerState(save);
     this.shell.announce("Local Quantum Box save reset.");
   }
@@ -2537,6 +2644,18 @@ export class QuantumBoxApp {
     this.audio.play("pause");
     this.audio.setPaused(true);
     this.shell.announce("Paused after focus left the Quantum Box.");
+  };
+
+  private readonly onAudioGesture = (): void => {
+    void this.audio.unlock();
+  };
+
+  private readonly onAudioRecovery = (): void => {
+    this.audio.recoverFromBrowserInterruption();
+  };
+
+  private readonly onVisibilityChange = (): void => {
+    if (document.visibilityState === "visible") this.onAudioRecovery();
   };
 
   private playCompletionCue(success: boolean): void {

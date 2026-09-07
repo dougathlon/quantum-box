@@ -7,6 +7,7 @@ import {
   quantmanArcadeOverallBoard,
   recordQuantmanArcadeResult,
   recordSkiPixlArcadeResult,
+  updateArcadeRecordInitials,
   validateArcadeRecords,
   wouldPlaceQuantmanRecord,
   wouldPlaceSkiPixlRecord,
@@ -192,6 +193,59 @@ describe("ArcadeRecords", () => {
     );
     expect(normalizeInitials(" qbx ")).toBe("QBX");
     expect(() => normalizeInitials("TOO-LONG")).toThrow(/exactly three/);
+  });
+
+  test("updates one retained run's initials without changing its result or provenance", () => {
+    let recorded = recordSkiPixlArcadeResult(
+      createEmptyArcadeRecords(),
+      {
+        kind: "skipixl",
+        difficulty: "easy",
+        runId: "ski-initials",
+        rulesVersion: "ski-v1",
+        pack: PACK,
+        officialTimeMs: 42_000,
+        missedGates: 1,
+        collisions: 2,
+      },
+      "YOU",
+    );
+    recorded = recordSkiPixlArcadeResult(
+      recorded,
+      {
+        kind: "skipixl",
+        difficulty: "easy",
+        runId: "ski-initials",
+        rulesVersion: "ski-v1",
+        pack: PACK,
+        officialTimeMs: 41_000,
+        missedGates: 0,
+        collisions: 1,
+      },
+      "YOU",
+    );
+    const newestSequence = recorded.nextSequence - 1;
+    const updated = updateArcadeRecordInitials(recorded, newestSequence, "qbx");
+
+    expect(
+      updated.skipixl.easy.find(
+        (entry) => entry.recordedSequence === newestSequence,
+      ),
+    ).toEqual({
+      ...recorded.skipixl.easy.find(
+        (entry) => entry.recordedSequence === newestSequence,
+      ),
+      initials: "QBX",
+    });
+    expect(
+      updated.skipixl.easy.find(
+        (entry) => entry.recordedSequence !== newestSequence,
+      )?.initials,
+    ).toBe("YOU");
+    expect(updated.nextSequence).toBe(recorded.nextSequence);
+    expect(() => updateArcadeRecordInitials(recorded, 999, "QBX")).toThrow(
+      /no longer in the top five/,
+    );
   });
 
   test("migrates legacy Quantman boards under the original topology", () => {

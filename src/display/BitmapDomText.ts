@@ -33,6 +33,57 @@ export interface BitmapCanvasAudit {
   readonly opaquePixelCount: number;
 }
 
+export interface BitmapFocusCursorPlacement {
+  readonly x: number;
+  readonly side: "left" | "right";
+}
+
+export interface BitmapTextLayout {
+  readonly pixel: 1 | 2;
+  readonly spacing: 0 | 1 | 2;
+}
+
+/** Prefers larger glyphs, then tighter tracking, before allowing a label to wrap. */
+export function bitmapTextLayout(
+  source: string,
+  maxWidth: number,
+  maxHeight: number,
+): BitmapTextLayout {
+  const normalized = normalizePixelText(source);
+  const candidates: readonly BitmapTextLayout[] =
+    maxHeight >= 10
+      ? [
+          { pixel: 2, spacing: 2 },
+          { pixel: 2, spacing: 1 },
+          { pixel: 1, spacing: 1 },
+          { pixel: 1, spacing: 0 },
+        ]
+      : [
+          { pixel: 1, spacing: 1 },
+          { pixel: 1, spacing: 0 },
+        ];
+  return (
+    candidates.find(
+      ({ pixel, spacing }) =>
+        pixelTextWidth(normalized, pixel, spacing) <= maxWidth,
+    ) ?? candidates[candidates.length - 1]!
+  );
+}
+
+/** Keeps the controller-ready focus marker outside the focused control. */
+export function bitmapFocusCursorPlacement(
+  controlLeft: number,
+  controlRight: number,
+): BitmapFocusCursorPlacement | null {
+  const left = Math.floor(controlLeft) - 3;
+  if (left >= 0) return Object.freeze({ x: left, side: "left" });
+  const right = Math.ceil(controlRight) + 1;
+  if (right + 1 < LOGICAL_WIDTH) {
+    return Object.freeze({ x: right, side: "right" });
+  }
+  return null;
+}
+
 /**
  * Draws the visible text of the semantic HTML layer into one native 320x180
  * bitmap plane. The HTML remains in normal layout and retains focus, pointer,
@@ -46,6 +97,7 @@ export class BitmapDomTextRenderer {
   private readonly resizeObserver: ResizeObserver;
   private animationFrame = 0;
   private focusedControlDrawn: HTMLElement | null = null;
+  private explicitTextOverflowCount = 0;
 
   public constructor(
     private readonly frame: HTMLElement,
@@ -107,6 +159,7 @@ export class BitmapDomTextRenderer {
     const frameRect = this.frame.getBoundingClientRect();
     this.context.clearRect(0, 0, LOGICAL_WIDTH, LOGICAL_HEIGHT);
     this.focusedControlDrawn = null;
+    this.explicitTextOverflowCount = 0;
     this.context.imageSmoothingEnabled = false;
     if (frameRect.width <= 0 || frameRect.height <= 0) return;
 
@@ -135,6 +188,8 @@ export class BitmapDomTextRenderer {
     this.canvas.dataset["imageSmoothing"] = String(
       this.context.imageSmoothingEnabled,
     );
+    this.canvas.dataset["explicitTextFitAudit"] =
+      this.explicitTextOverflowCount === 0 ? "pass" : "fail";
   }
 
   private readonly requestRender = (): void => {
@@ -193,7 +248,7 @@ export class BitmapDomTextRenderer {
   private drawFormValues(root: HTMLElement, frameRect: DOMRect): void {
     for (const control of root.querySelectorAll<
       HTMLInputElement | HTMLSelectElement
-    >("input[type='number'], select")) {
+    >("input[type='number'], input[type='text'], select")) {
       if (!isElementPainted(control, this.frame)) continue;
       const value =
         control instanceof HTMLSelectElement
@@ -213,10 +268,11 @@ export class BitmapDomTextRenderer {
     const normalized = normalizePixelText(source);
     if (normalized.length === 0 || rect.width < 2 || rect.height < 2) return;
     const roundedWidth = Math.max(1, Math.floor(rect.width));
-    const canUseLarge =
-      rect.height >= 10 && pixelTextWidth(normalized, 2) <= roundedWidth;
-    const pixel = canUseLarge ? 2 : 1;
-    const spacing = pixel;
+    const { pixel, spacing } = bitmapTextLayout(
+      normalized,
+      roundedWidth,
+      rect.height,
+    );
     const maxLines = Math.max(1, Math.floor(rect.height / (pixel * 6)));
     const lines = wrapBitmapText(
       normalized,
@@ -225,6 +281,12 @@ export class BitmapDomTextRenderer {
       spacing,
       maxLines,
     );
+    if (
+      owner.dataset["bitmapText"] !== undefined &&
+      lines.join(" ") !== normalized
+    ) {
+      this.explicitTextOverflowCount += 1;
+    }
     const lineHeight = pixel * 6;
     const totalHeight = lines.length * lineHeight - pixel;
     const top = Math.max(
@@ -248,7 +310,7 @@ export class BitmapDomTextRenderer {
           ? Math.round(rect.right)
           : Math.round(rect.left);
 
-    this.drawFocusCursor(owner, rect);
+    this.drawFocusCursor(owner);
 
     this.context.save();
     this.context.beginPath();
@@ -272,7 +334,7 @@ export class BitmapDomTextRenderer {
     this.context.restore();
   }
 
-  private drawFocusCursor(owner: HTMLElement, rect: LogicalRect): void {
+  private drawFocusCursor(owner: HTMLElement): void {
     const control = owner.closest<HTMLElement>(
       "button, summary, label, [role='button']",
     );
@@ -284,11 +346,23 @@ export class BitmapDomTextRenderer {
       return;
     }
     this.focusedControlDrawn = control;
-    const left = Math.max(0, Math.floor(rect.left) + 1);
-    const middle = Math.max(2, Math.round(rect.top + rect.height / 2));
+    const frameRect = this.frame.getBoundingClientRect();
+    const controlRect = toLogicalRect(
+      control.getBoundingClientRect(),
+      frameRect,
+    );
+    const placement = bitmapFocusCursorPlacement(
+      controlRect.left,
+      controlRect.right,
+    );
+    if (!placement) return;
+    const middle = Math.max(
+      2,
+      Math.round(controlRect.top + controlRect.height / 2),
+    );
     this.context.fillStyle = CREAM;
-    this.context.fillRect(left, middle - 2, 1, 5);
-    this.context.fillRect(left + 1, middle - 1, 1, 3);
+    this.context.fillRect(placement.x, middle - 2, 1, 5);
+    this.context.fillRect(placement.x + 1, middle - 1, 1, 3);
   }
 
   private isInsideVisibleClip(

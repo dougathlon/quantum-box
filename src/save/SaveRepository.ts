@@ -36,8 +36,10 @@ import {
   type TutorialRecoveryRecord,
 } from "../tutorials/recovery";
 import {
+  normalizeInitials,
   recordQuantmanArcadeResult,
   recordSkiPixlArcadeResult,
+  updateArcadeRecordInitials,
   type PendingQuantmanArcadeRecord,
   type PendingSkiPixlArcadeRecord,
 } from "./ArcadeRecords";
@@ -215,6 +217,22 @@ export class SaveRepository {
         this.value.arcadeRecords,
         result,
         initials,
+      ),
+    });
+  }
+
+  public updateArcadeScoreInitials(
+    recordedSequence: number,
+    initials: string,
+  ): QuantumBoxSave {
+    const normalized = normalizeInitials(initials);
+    return this.commit({
+      ...this.value,
+      settings: { ...this.value.settings, arcadeInitials: normalized },
+      arcadeRecords: updateArcadeRecordInitials(
+        this.value.arcadeRecords,
+        recordedSequence,
+        normalized,
       ),
     });
   }

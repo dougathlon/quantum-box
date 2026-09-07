@@ -40,7 +40,10 @@ changes game state.
 
 Arcade exposes the shipped cabinets independently of Story. SkiPixl and both
 Quantman modes maintain local top-five scoreboards; Story, QA, abandoned runs,
-and internal replay never write entries. Quantman exposes seven distinct
+and internal replay never write entries. Each Arcade `SCORE` control opens a
+complete five-place board, and an eligible completed run routes there for
+three-character initials entry while retaining its immutable run and pack
+provenance. Quantman exposes seven distinct
 10×10 authored maze courses backed by eight validated 100-bit Moth Labyrinth
 returns from IBM Fez. The original course has two independent hardware
 captures; Maps 01–06 have one each. Arcade scores are separated by course,

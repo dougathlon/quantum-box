@@ -320,6 +320,35 @@ describe("Quantum Box save v5", () => {
     });
   });
 
+  it("saves scoreboard initials and the retained record in one validated commit", () => {
+    const repository = testRepository(new MemoryStorage());
+    const recorded = repository.recordSkiPixlArcadeScore(
+      {
+        kind: "skipixl",
+        difficulty: "easy",
+        runId: "run-repeatable",
+        rulesVersion: "skipixl-rules-test",
+        pack: {
+          packId: "skipixl-pack-test",
+          contentSha256: "a".repeat(64),
+          schemaVersion: "skipixl-pack-test-v1",
+          source: "moth-platform-qpu-capture",
+        },
+        officialTimeMs: 42_000,
+        missedGates: 1,
+        collisions: 2,
+      },
+      "YOU",
+    );
+    const sequence = recorded.arcadeRecords.skipixl.easy[0]?.recordedSequence;
+    if (!sequence) throw new Error("Test score did not persist.");
+
+    const updated = repository.updateArcadeScoreInitials(sequence, "qbx");
+    expect(updated.settings.arcadeInitials).toBe("QBX");
+    expect(updated.arcadeRecords.skipixl.easy[0]?.initials).toBe("QBX");
+    expect(validateSave(JSON.parse(repository.exportJson()))).toEqual(updated);
+  });
+
   it("discards corrupt state across every supported storage key", () => {
     const storage = new MemoryStorage();
     for (const key of [

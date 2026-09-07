@@ -165,6 +165,59 @@ export function recordQuantmanArcadeResult(
   });
 }
 
+export function updateArcadeRecordInitials(
+  records: ArcadeRecords,
+  recordedSequence: number,
+  initials: string,
+): ArcadeRecords {
+  if (!positiveInteger(recordedSequence)) {
+    throw new Error("Arcade record sequence is invalid.");
+  }
+  const validated = validateArcadeRecords(records);
+  const normalized = normalizeInitials(initials);
+  let matches = 0;
+  const updateBoard = <T extends ArcadeRecordIdentity>(
+    board: readonly T[],
+  ): readonly T[] =>
+    Object.freeze(
+      board.map((entry) => {
+        if (entry.recordedSequence !== recordedSequence) return entry;
+        matches += 1;
+        return Object.freeze({ ...entry, initials: normalized });
+      }),
+    );
+  const skipixl = Object.freeze(
+    Object.fromEntries(
+      SKIPIXL_ARCADE_DIFFICULTIES.map((difficulty) => [
+        difficulty,
+        updateBoard(validated.skipixl[difficulty]),
+      ]),
+    ),
+  ) as ArcadeRecords["skipixl"];
+  const quantman = Object.freeze(
+    Object.fromEntries(
+      QUANTMAN_ARCADE_MECHANICS.map((mechanic) => [
+        mechanic,
+        Object.freeze(
+          Object.fromEntries(
+            Object.entries(validated.quantman[mechanic]).map(
+              ([topologyId, board]) => [topologyId, updateBoard(board)],
+            ),
+          ),
+        ),
+      ]),
+    ),
+  ) as ArcadeRecords["quantman"];
+  if (matches !== 1) {
+    throw new Error(
+      matches === 0
+        ? `Arcade record ${recordedSequence} is no longer in the top five.`
+        : `Arcade record sequence ${recordedSequence} appears in more than one board.`,
+    );
+  }
+  return deepFreeze({ ...validated, skipixl, quantman });
+}
+
 export function validateArcadeRecords(value: unknown): ArcadeRecords {
   if (value === undefined) return createEmptyArcadeRecords();
   if (

@@ -142,6 +142,12 @@ attempt appends an immutable receipt containing the success/limit outcome,
 elapsed time, collisions, gate outcomes, selected triplet and cut, pack and
 bank hashes, and the three ordered Moth/IBM source-job identities. Arcade
 leaderboards remain stricter and accept successful finishes only.
+The score screen always renders five ranked places, using empty placeholders
+rather than an ambiguous no-score state. A retained player-Arcade result is
+written before the transition, then its unique record sequence—not its
+repeatable deterministic run ID—keys the optional three-character initials
+edit. The same validated save commit updates that entry and the default
+initials for later runs.
 
 V5 migration preserves exact legacy SkiPixl receipts and maps proven P84/P78
 progress to the Medium/Hard Story boundary. It does not infer a descent finish

@@ -321,7 +321,7 @@ test("Arcade Qong and Fluxball explanations remain optional", async ({
   await page.getByRole("button", { name: /ARCADE/ }).click();
 
   const qong = page.locator("section[aria-labelledby='arcade-qong']");
-  await qong.getByRole("button", { name: "HOW TO PLAY" }).click();
+  await qong.getByRole("button", { name: "TUTORIAL" }).click();
   await expect(
     page.getByRole("heading", { name: "QONG · UNRESOLVED RULE" }),
   ).toBeVisible();
@@ -329,34 +329,27 @@ test("Arcade Qong and Fluxball explanations remain optional", async ({
   await page.getByRole("button", { name: "BACK TO ARCADE · SPACE" }).click();
 
   const fluxball = page.locator("section[aria-labelledby='arcade-fluxball']");
-  await fluxball.getByRole("button", { name: "HOW TO PLAY" }).click();
+  await fluxball.getByRole("button", { name: "TUTORIAL" }).click();
   await expect(
     page.getByRole("heading", { name: "FLUXBALL · HIDDEN RULES" }),
   ).toBeVisible();
   await expect(page.getByText(/PHYSICAL GOAL/)).toBeVisible();
 });
 
-test("Workshop stays visible but locked across pointer, keyboard, and direct navigation", async ({
+test("Workshop is selectable and presents five Story records without a floating MOTH link", async ({
   page,
 }) => {
   await page.goto("/");
   await page.getByRole("button", { name: "PRESS START" }).click();
   const workshop = page.getByRole("button", { name: /WORKSHOP/ });
-  await expect(workshop).toBeDisabled();
-  await expect(workshop).toContainText("STORY LOCKED");
-  await workshop.focus();
-  await expect(workshop).not.toBeFocused();
-  await expect(
-    page.getByRole("heading", { name: "ARCHIVE INDEX" }),
-  ).toBeVisible();
-
-  await page.evaluate(() => window.__QUANTUM_BOX_TEST__?.navigate("workshop"));
-  await expect(
-    page.getByRole("heading", { name: "ARCHIVE INDEX" }),
-  ).toBeVisible();
-  await expect(page.locator(".qb-status")).toContainText(
-    "Workshop remains locked",
-  );
+  await expect(workshop).toBeEnabled();
+  await workshop.click();
+  await expect(page.getByRole("heading", { name: "WORKSHOP" })).toBeVisible();
+  await expect(page.locator(".qb-bay")).toHaveCount(5);
+  await expect(page.locator(".qb-bay").nth(4)).toContainText("QUARRY");
+  await expect(page.locator(".qb-bay").nth(4)).toContainText("UNRECOVERED");
+  await expect(page.locator(".qb-workshop-access")).toHaveCount(0);
+  await expect(page.getByText(/MOTH LINK/)).toHaveCount(0);
 });
 
 test.skip("the legacy Qong QA lesson remains an explicit non-authoritative replay", async ({
@@ -587,6 +580,141 @@ test("SkiPixl Arcade exposes the QPixl descent without Story authority", async (
     window.__QUANTUM_BOX_TEST__?.getSave(),
   );
   expect(saveAfter).toEqual(saveBefore);
+});
+
+test("Arcade uses one two-row identity and option grid for every cabinet", async ({
+  page,
+}) => {
+  await page.goto("/");
+  await page.getByRole("button", { name: "PRESS START" }).click();
+  await page.getByRole("button", { name: /ARCADE/ }).click();
+
+  await expect(page.locator("canvas[data-ui='bitmap-text']")).toHaveAttribute(
+    "data-explicit-text-fit-audit",
+    "pass",
+  );
+
+  const tutorials = page.locator(".qb-arcade-help");
+  await expect(tutorials).toHaveCount(5);
+  await expect(page.getByText("HOW TO PLAY", { exact: true })).toHaveCount(0);
+  await expect(
+    page.locator(".qb-arcade-game--qong .qb-arcade-help"),
+  ).toBeEnabled();
+  await expect(
+    page.locator(".qb-arcade-game--fluxball .qb-arcade-help"),
+  ).toBeEnabled();
+  for (const cabinet of ["skipixl", "quantman", "quarry"]) {
+    await expect(
+      page.locator(`.qb-arcade-game--${cabinet} .qb-arcade-help`),
+    ).toHaveAttribute("aria-disabled", "true");
+  }
+
+  for (const [cabinet, expectedModes] of [
+    ["skipixl", 3],
+    ["quantman", 2],
+  ] as const) {
+    const modes = page.locator(`.qb-arcade-game--${cabinet} .qb-arcade-mode`);
+    await expect(modes).toHaveCount(expectedModes);
+    const xPositions: number[] = [];
+    for (let index = 0; index < expectedModes; index += 1) {
+      const mode = modes.nth(index);
+      const launchBox = await mode.locator(":scope > button").boundingBox();
+      const scoreBox = await mode
+        .locator(":scope > button[data-action='open-arcade-scores']")
+        .boundingBox();
+      expect(launchBox).not.toBeNull();
+      expect(scoreBox).not.toBeNull();
+      expect(scoreBox!.y).toBeGreaterThanOrEqual(
+        launchBox!.y + launchBox!.height,
+      );
+      expect(Math.abs(scoreBox!.x - launchBox!.x)).toBeLessThan(4);
+      xPositions.push(launchBox!.x);
+    }
+    expect(xPositions).toEqual([...xPositions].sort((a, b) => a - b));
+    expect(new Set(xPositions.map(Math.round)).size).toBe(expectedModes);
+  }
+
+  for (const cabinet of ["fluxball", "quarry"]) {
+    const modes = page.locator(`.qb-arcade-game--${cabinet} .qb-arcade-mode`);
+    await expect(modes).toHaveCount(4);
+    for (const [upper, lower] of [
+      [0, 2],
+      [1, 3],
+    ] as const) {
+      const upperBox = await modes.nth(upper).boundingBox();
+      const lowerBox = await modes.nth(lower).boundingBox();
+      expect(upperBox).not.toBeNull();
+      expect(lowerBox).not.toBeNull();
+      expect(Math.abs(upperBox!.x - lowerBox!.x)).toBeLessThan(4);
+      expect(lowerBox!.y).toBeGreaterThan(upperBox!.y);
+    }
+  }
+});
+
+test("Settings use concise field, initials, and reserved-key layouts", async ({
+  page,
+}) => {
+  await page.goto("/");
+  await page.getByRole("button", { name: "PRESS START" }).click();
+  await page.getByRole("button", { name: /SETTINGS/ }).click();
+
+  await expect(page.getByText("ARCADE SCORES", { exact: true })).toBeVisible();
+  const initials = page.getByLabel("Arcade scoreboard initials");
+  await expect(initials).toBeVisible();
+  await expect(initials).toHaveValue("QBX");
+  await expect(
+    page.getByText("USED FOR NEW TOP-FIVE SCORES", { exact: true }),
+  ).toBeVisible();
+
+  await page.getByRole("button", { name: /FIELD/ }).click();
+  await expect(page.getByText("BACKGROUND FIELD", { exact: true })).toHaveCount(
+    1,
+  );
+  await expect(
+    page.getByRole("group", { name: "Background field options" }),
+  ).toBeVisible();
+  const fieldSummary = page.locator(".qb-background-summary");
+  await expect(fieldSummary.locator("strong")).toHaveText("CURRENT");
+  await expect(fieldSummary.locator("span")).toHaveText(
+    "4 QPIXL-MAPPED STATES · 22.8S OFFLINE LOOP",
+  );
+  await expect(
+    page.getByText(/Recorded endpoints and local derivations/),
+  ).toHaveCount(0);
+
+  await page.getByRole("button", { name: /CONTROLS/ }).click();
+  await expect(
+    page.getByText("ESC / P / M / X RESERVED · ONE CONTROL PER KEY", {
+      exact: true,
+    }),
+  ).toBeVisible();
+});
+
+test("Arcade score controls open complete five-place boards", async ({
+  page,
+}) => {
+  await page.goto("/");
+  await page.getByRole("button", { name: "PRESS START" }).click();
+  await page.getByRole("button", { name: /ARCADE/ }).click();
+
+  const skipixl = page.locator("section[aria-labelledby='arcade-skipixl']");
+  const easyMode = skipixl.locator(".qb-arcade-mode").first();
+  await easyMode.getByRole("button", { name: "SCORE", exact: true }).click();
+
+  await expect(
+    page.getByRole("heading", { name: "SKIPIXL · EASY" }),
+  ).toBeVisible();
+  await expect(page.getByText("TOP FIVE", { exact: true })).toBeVisible();
+  const scoreRows = page.locator(".qb-scoreboard-table ol > li");
+  await expect(scoreRows).toHaveCount(5);
+  await expect(scoreRows.first()).toContainText("1---");
+  await expect(page.getByText("NO SCORES", { exact: true })).toHaveCount(0);
+  await expect(page.locator("[data-arcade-score-initials]")).toHaveCount(0);
+
+  await page
+    .getByRole("button", { name: "ARCADE · SPACE", exact: true })
+    .click();
+  await expect(skipixl).toBeVisible();
 });
 
 test("Fluxball Arcade exposes both formats and keeps hidden authority out of active DOM", async ({

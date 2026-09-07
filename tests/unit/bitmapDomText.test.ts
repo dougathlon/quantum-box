@@ -4,6 +4,8 @@ import { describe, expect, it } from "vitest";
 import {
   auditBitmapCanvasPixels,
   BITMAP_DOM_TEXT_CONTRACT,
+  bitmapFocusCursorPlacement,
+  bitmapTextLayout,
   wrapBitmapText,
 } from "../../src/display/BitmapDomText";
 
@@ -42,6 +44,9 @@ describe("semantic DOM bitmap mirror", () => {
     );
     expect(readFileSync("src/display/BitmapDomText.ts", "utf8")).toContain(
       "drawFocusCursor",
+    );
+    expect(readFileSync("src/display/BitmapDomText.ts", "utf8")).toContain(
+      `input[type='text']`,
     );
     expect(cssSource).toContain("outline: 0 !important");
     expect(readFileSync("src/display/BitmapDomText.ts", "utf8")).not.toContain(
@@ -84,8 +89,41 @@ describe("semantic DOM bitmap mirror", () => {
     ]);
   });
 
+  it("tightens bitmap tracking before truncating explicit single-line labels", () => {
+    expect(bitmapTextLayout("SCORE", 18, 8)).toEqual({
+      pixel: 1,
+      spacing: 0,
+    });
+    expect(bitmapTextLayout("TUTORIAL", 30, 8)).toEqual({
+      pixel: 1,
+      spacing: 0,
+    });
+    const scoreLayout = bitmapTextLayout("SCORE", 18, 8);
+    expect(
+      wrapBitmapText("SCORE", 18, scoreLayout.pixel, scoreLayout.spacing, 1),
+    ).toEqual(["SCORE"]);
+  });
+
+  it("publishes an explicit-label fit audit on the bitmap plane", () => {
+    expect(readFileSync("src/display/BitmapDomText.ts", "utf8")).toContain(
+      'dataset["explicitTextFitAudit"]',
+    );
+  });
+
   it("removes the clipped Home status column from semantic and bitmap layout", () => {
     expect(shellSource).not.toContain("<small>${status}</small>");
     expect(cssSource).toContain("grid-template-columns: 6cqw minmax(0, 1fr)");
+  });
+
+  it("places the focus marker outside the focused control bounds", () => {
+    expect(bitmapFocusCursorPlacement(18, 78)).toEqual({
+      x: 15,
+      side: "left",
+    });
+    expect(bitmapFocusCursorPlacement(0, 42)).toEqual({
+      x: 43,
+      side: "right",
+    });
+    expect(bitmapFocusCursorPlacement(0, 320)).toBeNull();
   });
 });

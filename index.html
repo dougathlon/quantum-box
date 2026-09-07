@@ -10,11 +10,34 @@
       content="Quantum Box is a Brown Box-inspired anthology of quantum-derived browser games."
     />
     <meta name="referrer" content="no-referrer" />
+    <link
+      rel="preload"
+      as="image"
+      href="/src/assets/brown-box/background-programs/current-four-state-v1/state-01.png"
+      fetchpriority="high"
+    />
+    <link
+      rel="preload"
+      as="image"
+      href="/src/assets/brown-box/title-b3-s3-screen-layer.png"
+      fetchpriority="high"
+    />
+    <link
+      rel="preload"
+      as="image"
+      href="/src/assets/brown-box/title-formica-device.png"
+      fetchpriority="high"
+    />
     <style>
       html,
       body,
       #app {
-        background: #2b1c14;
+        background-color: #2b1c14;
+        background-image: url("/src/assets/brown-box/background-programs/current-four-state-v1/state-01.png");
+        background-position: center;
+        background-repeat: no-repeat;
+        background-size: 100% 100%;
+        image-rendering: pixelated;
       }
     </style>
     <title>Quantum Box</title>

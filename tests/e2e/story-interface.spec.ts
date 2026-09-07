@@ -54,7 +54,7 @@ test("Qong preserves its final court, enacts both morphs, and leads into a walka
   expect(externalRequests).toEqual([]);
 });
 
-test("Locked Workshop and Settings retain the Brown Box hierarchy without stacked utility clutter", async ({
+test("Workshop and Settings retain the Brown Box hierarchy without stacked utility clutter", async ({
   page,
 }, testInfo) => {
   test.skip(
@@ -63,7 +63,18 @@ test("Locked Workshop and Settings retain the Brown Box hierarchy without stacke
   );
   await page.goto("/");
   await page.getByRole("button", { name: "PRESS START" }).click();
-  await expect(page.getByRole("button", { name: /WORKSHOP/ })).toBeDisabled();
+  await page.getByRole("button", { name: "WORKSHOP", exact: true }).click();
+  await expect(page.getByRole("heading", { name: "WORKSHOP" })).toBeVisible();
+  await expect(page.locator(".qb-bay")).toHaveCount(5);
+  await expect(page.locator(".qb-bay")).toContainText([
+    "QONG",
+    "SKIPIXL",
+    "FLUXBALL",
+    "QUANTMAN",
+    "QUARRY",
+  ]);
+  await expect(page.locator(".qb-workshop-access")).toHaveCount(0);
+  await page.getByRole("button", { name: "RETURN · ESC" }).click();
   await page.getByRole("button", { name: /SETTINGS/ }).click();
   await expect(
     page.getByRole("navigation", { name: "Settings sections" }),

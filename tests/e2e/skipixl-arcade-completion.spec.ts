@@ -115,6 +115,34 @@ test("Arcade SkiPixl completes the production QPixl descent without Story author
   expect(Number.isInteger(record.collisions)).toBe(true);
   expect(record.collisions).toBeGreaterThanOrEqual(0);
   expect(record.runId).toMatch(/^run-[0-9a-f]{8}$/);
+
+  await cabinet
+    .getByRole("button", { name: "CONTINUE · SPACE", exact: true })
+    .click();
+  await expect(
+    page.getByRole("heading", { name: "SKIPIXL · EASY" }),
+  ).toBeVisible();
+  const scoreRows = page.locator(".qb-scoreboard-table ol > li");
+  await expect(scoreRows).toHaveCount(5);
+  await expect(scoreRows.filter({ hasText: "YOU" })).toHaveAttribute(
+    "data-current",
+    "true",
+  );
+  const initials = page.locator("[data-arcade-score-initials]");
+  await expect(initials).toHaveValue("YOU");
+  await initials.fill("SKI");
+  await page.getByRole("button", { name: "SAVE · ENTER" }).click();
+  await expect(page.getByText("SCORE RECORDED", { exact: true })).toBeVisible();
+  await expect(initials).toHaveCount(0);
+  await expect(scoreRows.filter({ hasText: "SKI" })).toHaveAttribute(
+    "data-current",
+    "true",
+  );
+  const savedInitials = await readSaveState(page);
+  expect(savedInitials.snapshot?.settings.arcadeInitials).toBe("SKI");
+  expect(savedInitials.snapshot?.arcadeRecords.skipixl.easy[0]?.initials).toBe(
+    "SKI",
+  );
   expect(externalRequests).toEqual([]);
 });
 

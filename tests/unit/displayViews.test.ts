@@ -35,6 +35,7 @@ describe("Brown Box display models", () => {
       "SKIPIXL",
       "FLUXBALL",
       "QUANTMAN",
+      "QUARRY",
     ]);
     expect(empty.every(({ recovered }) => !recovered)).toBe(true);
 
@@ -66,14 +67,33 @@ describe("Brown Box display models", () => {
       "RESIDUAL DESCENT",
       "FLUXBALL",
       "QUANTMAN",
+      "QUARRY",
     ]);
     expect(recovered.map(({ recovered: isRecovered }) => isRecovered)).toEqual([
       true,
       true,
       false,
       false,
+      false,
     ]);
     expect(Object.isFrozen(recovered)).toBe(true);
+
+    const completedStory = createDefaultSave();
+    const quarry = workshopBayViews({
+      ...completedStory,
+      story: {
+        ...completedStory.story,
+        currentStage: "complete",
+        completedStages: ["quarry"],
+      },
+    });
+    expect(quarry.at(-1)).toMatchObject({
+      gameId: "quarry",
+      number: "05",
+      title: "PURSUIT ECOLOGY",
+      engineId: "graph-v1",
+      recovered: true,
+    });
   });
 
   it("maps Qong's unresolved public rule state without exposing its internal rule", () => {

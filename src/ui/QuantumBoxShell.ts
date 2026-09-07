@@ -16,7 +16,14 @@ import {
   isArcadeCabinetId,
 } from "../games/registry";
 import type { QuantumBoxSave, QuantumBoxSettings } from "../save/types";
-import { quantmanArcadeOverallBoard } from "../save/ArcadeRecords";
+import {
+  ARCADE_RECORD_LIMIT,
+  quantmanArcadeOverallBoard,
+  type QuantmanArcadeMechanic,
+  type QuantmanArcadeRecord,
+  type SkiPixlArcadeDifficulty,
+  type SkiPixlArcadeRecord,
+} from "../save/ArcadeRecords";
 import { type QongOpponent, type QongSnapshot } from "../games/qong/types";
 import { qongHudModel } from "../games/qong/presentation";
 import type { SkiPixlSnapshot } from "../games/skipixl/types";
@@ -49,6 +56,7 @@ import { DESIGNER_FRAGMENTS } from "../story/storyContent";
 import type { QuantumBoxTitleAssets } from "../display/BrownBoxAssetManifest";
 import {
   workshopBayViews,
+  type WorkshopFormulaId,
   type WorkshopBayView,
 } from "../display/views/WorkshopView";
 import { BitmapDomTextRenderer } from "../display/BitmapDomText";
@@ -104,6 +112,7 @@ export type ShellPage =
   | "story-brief"
   | "help"
   | "arcade"
+  | "scores"
   | "workshop"
   | "formula"
   | "interlude"
@@ -122,6 +131,10 @@ export interface QuantumBoxShellActions {
     options: ArcadeLaunchOptions,
   ) => void;
   readonly onSettingChanged: (change: Partial<QuantumBoxSettings>) => void;
+  readonly onArcadeScoreInitialsSubmitted: (
+    recordedSequence: number,
+    initials: string,
+  ) => void;
   readonly onExportSave: () => void;
   readonly onResetSave: () => void;
   readonly onCabinetAction: (
@@ -154,8 +167,9 @@ const PAGE_TITLES: Readonly<Record<ShellPage, string>> = {
   main: "HOME",
   story: "STORY",
   "story-brief": "STORY",
-  help: "HOW TO PLAY",
+  help: "TUTORIAL",
   arcade: "ARCADE",
+  scores: "SCORES",
   workshop: "WORKSHOP",
   formula: "FORMULA",
   interlude: "STORY",
@@ -165,6 +179,14 @@ const PAGE_TITLES: Readonly<Record<ShellPage, string>> = {
 };
 
 type SettingsSection = "display" | "background" | "controls" | "data";
+
+export interface ArcadeScoreboardRequest {
+  readonly gameId: "skipixl" | "quantman";
+  readonly mode: string;
+  readonly highlightRecordSequence: number | null;
+  readonly resultLabel: string | null;
+  readonly initialsEditable: boolean;
+}
 
 export class QuantumBoxShell {
   private readonly shell: HTMLElement;
@@ -189,7 +211,7 @@ export class QuantumBoxShell {
   private page: ShellPage = "main";
   private entered = false;
   private cabinetActive = false;
-  private selectedFormula: GameId | null = null;
+  private selectedFormula: WorkshopFormulaId | null = null;
   private storyPresentation: StoryV2PresentationSnapshot | null = null;
   private storyWalkMachine: StoryV2WalkMachine | null = null;
   private settingsSection: SettingsSection = "display";
@@ -204,6 +226,7 @@ export class QuantumBoxShell {
     gameId: "qong" | "fluxball";
     context: "arcade" | "story-loss";
   }> | null = null;
+  private arcadeScoreboard: ArcadeScoreboardRequest | null = null;
   private fluxballLobbyOpen = false;
   private backgroundActivationGeneration = 0;
   private pendingBinding: {
@@ -273,6 +296,7 @@ export class QuantumBoxShell {
     this.shell.dataset["page"] = this.page;
     root.addEventListener("click", this.onClick);
     root.addEventListener("change", this.onChange);
+    root.addEventListener("submit", this.onSubmit);
     root.addEventListener("scroll", this.onScroll, true);
     root.addEventListener("focusin", this.onFocusIn);
     root.addEventListener("keydown", this.onKeyDown);
@@ -345,14 +369,8 @@ export class QuantumBoxShell {
     this.status.textContent = "";
     this.storyUnavailableMessage = null;
     if (page !== "help") this.gameHelp = null;
-    if (page === "workshop") {
-      this.page = "main";
-      this.renderPage();
-      this.focusPageTarget();
-      this.announce("Workshop remains locked during this demo.");
-      return;
-    }
     if (page !== "interlude") this.storyWalkMachine = null;
+    if (page !== "scores") this.arcadeScoreboard = null;
     this.page = page;
     this.renderPage();
     this.focusPageTarget();
@@ -400,6 +418,28 @@ export class QuantumBoxShell {
   public closeFluxballLobby(): void {
     if (!this.fluxballLobbyOpen) return;
     this.fluxballLobbyOpen = false;
+    this.renderPage();
+    this.focusPageTarget();
+  }
+
+  public showArcadeScoreboard(request: ArcadeScoreboardRequest): void {
+    if (!this.entered || this.cabinetActive) return;
+    requireArcadeScoreboardMode(request.gameId, request.mode);
+    this.arcadeScoreboard = Object.freeze({ ...request });
+    this.page = "scores";
+    this.renderPage();
+    this.focusPageTarget();
+  }
+
+  public confirmArcadeScoreInitials(save: QuantumBoxSave): void {
+    const scoreboard = this.arcadeScoreboard;
+    if (!scoreboard || scoreboard.highlightRecordSequence === null) return;
+    this.save = save;
+    this.arcadeScoreboard = Object.freeze({
+      ...scoreboard,
+      resultLabel: "SCORE RECORDED",
+      initialsEditable: false,
+    });
     this.renderPage();
     this.focusPageTarget();
   }
@@ -484,7 +524,8 @@ export class QuantumBoxShell {
       const destination =
         this.gameHelp?.context === "arcade" ? "arcade" : "story";
       this.showPage(destination);
-    } else if (this.page === "formula") this.showPage("main");
+    } else if (this.page === "formula") this.showPage("workshop");
+    else if (this.page === "scores") this.showPage("arcade");
     else if (this.page === "developer" || this.page === "credits") {
       this.showPage("settings");
     } else if (this.page === "interlude") {
@@ -519,6 +560,7 @@ export class QuantumBoxShell {
         : "player-arcade";
     this.storyUnavailableMessage = null;
     this.gameHelp = null;
+    this.arcadeScoreboard = null;
     this.fluxballLobbyOpen = false;
     this.pendingBinding = null;
     this.page = "main";
@@ -999,6 +1041,7 @@ export class QuantumBoxShell {
     this.scrollPositionObserver.disconnect();
     this.root.removeEventListener("click", this.onClick);
     this.root.removeEventListener("change", this.onChange);
+    this.root.removeEventListener("submit", this.onSubmit);
     this.root.removeEventListener("scroll", this.onScroll, true);
     this.root.removeEventListener("focusin", this.onFocusIn);
     this.root.removeEventListener("keydown", this.onKeyDown);
@@ -1018,6 +1061,7 @@ export class QuantumBoxShell {
       this.arcadeRunSeed,
       this.storyUnavailableMessage,
       this.gameHelp,
+      this.arcadeScoreboard,
       this.settingsSection,
       this.settingsPlayerId,
     );
@@ -1038,15 +1082,19 @@ export class QuantumBoxShell {
           ? "button[data-page='arcade']"
           : this.page === "arcade"
             ? "button[data-action='launch-arcade']"
-            : this.page === "story"
-              ? "button[data-action='launch-story']"
-              : this.page === "help"
-                ? "button[data-action='help-continue']"
-                : this.page === "interlude" && this.storyWalkMachine
-                  ? "[data-story-walk-room]"
-                  : this.storyUnavailableMessage
-                    ? "button[data-page='arcade']"
-                    : "h1";
+            : this.page === "scores"
+              ? this.arcadeScoreboard?.initialsEditable
+                ? "[data-arcade-score-initials]"
+                : "button[data-action='close-arcade-scores']"
+              : this.page === "story"
+                ? "button[data-action='launch-story']"
+                : this.page === "help"
+                  ? "button[data-action='help-continue']"
+                  : this.page === "interlude" && this.storyWalkMachine
+                    ? "[data-story-walk-room]"
+                    : this.storyUnavailableMessage
+                      ? "button[data-page='arcade']"
+                      : "h1";
       const target = this.pageRoot.querySelector<HTMLElement>(selector);
       target?.focus();
       target?.scrollIntoView({ block: "nearest" });
@@ -1152,8 +1200,8 @@ export class QuantumBoxShell {
     else if (action === "inspect-formula") {
       const gameId = button.dataset["gameId"];
       if (
-        isGameId(gameId) &&
-        this.save.story.recoveredFormulae.includes(gameId)
+        isWorkshopFormulaId(gameId) &&
+        isWorkshopFormulaRecovered(gameId, this.save)
       ) {
         this.selectedFormula = gameId;
         this.showPage("formula");
@@ -1174,6 +1222,23 @@ export class QuantumBoxShell {
           );
         }
       }
+    } else if (action === "open-arcade-scores") {
+      const gameId = button.dataset["gameId"];
+      const mode = button.dataset["mode"];
+      if (
+        (gameId === "skipixl" || gameId === "quantman") &&
+        typeof mode === "string"
+      ) {
+        this.showArcadeScoreboard({
+          gameId,
+          mode,
+          highlightRecordSequence: null,
+          resultLabel: null,
+          initialsEditable: false,
+        });
+      }
+    } else if (action === "close-arcade-scores") {
+      this.showPage("arcade");
     } else if (action === "how-to-play") {
       const gameId = button.dataset["gameId"];
       if (gameId === "qong" || gameId === "fluxball") {
@@ -1244,6 +1309,33 @@ export class QuantumBoxShell {
     else if (action === "cabinet-back") this.actions.onCabinetAction("back");
   };
 
+  private readonly onSubmit = (event: SubmitEvent): void => {
+    const form = event.target;
+    if (!(form instanceof HTMLFormElement)) return;
+    if (!form.matches("[data-arcade-score-form]")) return;
+    event.preventDefault();
+    const input = required<HTMLInputElement>(
+      form,
+      "[data-arcade-score-initials]",
+    );
+    const recordedSequence = Number(form.dataset["recordSequence"]);
+    if (!Number.isSafeInteger(recordedSequence) || recordedSequence <= 0) {
+      return;
+    }
+    try {
+      this.actions.onArcadeScoreInitialsSubmitted(
+        recordedSequence,
+        input.value,
+      );
+    } catch (error) {
+      this.announce(
+        error instanceof Error ? error.message : "Initials were not saved.",
+      );
+      input.focus();
+      input.select();
+    }
+  };
+
   private readonly onChange = (event: Event): void => {
     const input = event.target;
     if (!(input instanceof HTMLInputElement)) return;
@@ -1300,6 +1392,17 @@ export class QuantumBoxShell {
   };
 
   private readonly onKeyDown = (event: KeyboardEvent): void => {
+    if (
+      event.target instanceof HTMLInputElement &&
+      event.target.matches("[data-arcade-score-initials]")
+    ) {
+      event.stopPropagation();
+      if (event.code === "Escape") {
+        event.preventDefault();
+        this.showPage("arcade");
+      }
+      return;
+    }
     if (this.page === "interlude" && this.storyWalkMachine) {
       const direction = storyWalkDirectionForCode(
         event.code,
@@ -1598,7 +1701,7 @@ function isQongStoryDirection(
 function pageMarkup(
   page: ShellPage,
   save: QuantumBoxSave,
-  selectedFormula: GameId | null,
+  selectedFormula: WorkshopFormulaId | null,
   storyPresentation: StoryV2PresentationSnapshot | null,
   storyWalk: StoryV2WalkSnapshot | null,
   arcadeRunSeed: number,
@@ -1607,6 +1710,7 @@ function pageMarkup(
     gameId: "qong" | "fluxball";
     context: "arcade" | "story-loss";
   }> | null,
+  arcadeScoreboard: ArcadeScoreboardRequest | null,
   settingsSection: SettingsSection,
   settingsPlayerId: PlayerId,
 ): string {
@@ -1615,7 +1719,7 @@ function pageMarkup(
       return `<div class="qb-page-panel qb-index"><h1 class="qb-visually-hidden" tabindex="-1">ARCHIVE INDEX</h1><nav aria-label="Quantum Box channels">
         ${primaryMenuButton("story", "01", "STORY")}
         ${primaryMenuButton("arcade", "02", "ARCADE")}
-        ${lockedPrimaryMenuButton("03", "WORKSHOP")}
+        ${primaryMenuButton("workshop", "03", "WORKSHOP")}
         ${primaryMenuButton("settings", "04", "SETTINGS")}
       </nav></div>`;
     case "story":
@@ -1631,6 +1735,10 @@ function pageMarkup(
         : storySelectionMarkup(save);
     case "arcade":
       return `<div class="qb-page-panel qb-arcade-library"><h1 class="qb-visually-hidden" tabindex="-1">ARCADE</h1><p class="qb-visually-hidden">All channels open. Arcade runs do not grant Story authority.</p><div class="qb-arcade-list" data-scroll-list>${ARCADE_CABINET_IDS.map((id) => arcadeGameMarkup(id, save)).join("")}</div>${scrollPositionMarkup()}</div>`;
+    case "scores":
+      return arcadeScoreboard
+        ? arcadeScoreboardPageMarkup(arcadeScoreboard, save)
+        : `<div class="qb-page-panel qb-scoreboard-page"><h1 tabindex="-1">SCORES</h1><p>CHOOSE A SCORE BOARD FROM ARCADE.</p><button type="button" data-action="close-arcade-scores">ARCADE · SPACE</button></div>`;
     case "workshop":
       return workshopMarkup(save);
     case "formula":
@@ -1647,15 +1755,11 @@ function pageMarkup(
 }
 
 function primaryMenuButton(
-  page: "story" | "arcade" | "settings",
+  page: "story" | "arcade" | "workshop" | "settings",
   number: string,
   label: string,
 ): string {
   return `<button class="qb-primary-menu-row" type="button" data-action="navigate" data-page="${page}" aria-label="${label}"><span>${number}</span><strong>${label}</strong></button>`;
-}
-
-function lockedPrimaryMenuButton(number: string, label: string): string {
-  return `<button class="qb-primary-menu-row is-locked" type="button" disabled aria-disabled="true" aria-label="${label} · LOCKED"><span>${number}</span><strong>${label}</strong><small>STORY LOCKED</small></button>`;
 }
 
 function storyUnavailableMarkup(message: string): string {
@@ -1681,7 +1785,7 @@ function howToPlayMarkup(
       ];
   const action =
     context === "story-loss" ? "RETRY · SPACE" : "BACK TO ARCADE · SPACE";
-  return `<div class="qb-page-panel qb-game-help"><p class="qb-kicker">HOW TO PLAY</p><h1 tabindex="-1">${title}</h1>${lines.map((line) => `<p>${line}</p>`).join("")}<button class="qb-action" type="button" data-action="help-continue">${action}</button></div>`;
+  return `<div class="qb-page-panel qb-game-help"><p class="qb-kicker">TUTORIAL</p><h1 tabindex="-1">${title}</h1>${lines.map((line) => `<p>${line}</p>`).join("")}<button class="qb-action" type="button" data-action="help-continue">${action}</button></div>`;
 }
 
 function storySelectionMarkup(save: QuantumBoxSave): string {
@@ -1976,9 +2080,10 @@ function storySelectionRow(
   ).length;
   const progress =
     chapter.storyStages.length > 1
-      ? `<small class="qb-story-select-progress">${completed}/${chapter.storyStages.length}</small>`
+      ? `${completed}/${chapter.storyStages.length} `
       : "";
-  const content = `${arcadePreview(chapterId)}<span class="qb-story-select-number">${chapter.model.slice(-2)}</span><strong>${chapter.title}</strong>${progress}<span class="qb-story-select-status" role="img" aria-label="${status}" data-bitmap-text="${icon}">${icon}</span>`;
+  const statusText = `${progress}${icon}`;
+  const content = `${arcadePreview(chapterId)}<span class="qb-story-select-number">${chapter.model.slice(-2)}</span><strong>${chapter.title}</strong><span class="qb-story-select-status" role="img" aria-label="${status}" data-bitmap-text="${statusText}">${statusText}</span>`;
   return selection.stage
     ? `<button class="qb-story-select-row" type="button" data-status="unlocked" data-action="launch-story" data-story-stage="${selection.stage}" data-story-replay="${selection.replay}" aria-label="${chapter.title} · UNLOCKED">${content}</button>`
     : `<div class="qb-story-select-row" data-status="locked" aria-label="${chapter.title} · LOCKED">${content}</div>`;
@@ -2024,47 +2129,138 @@ function arcadeGameMarkup(
   save: QuantumBoxSave,
 ): string {
   const game = ARCADE_CABINET_DEFINITIONS[gameId];
-  const help =
-    gameId === "qong" || gameId === "fluxball"
-      ? `<button class="qb-arcade-help" type="button" data-action="how-to-play" data-game-id="${gameId}">HOW TO PLAY</button>`
-      : "";
+  const hasTutorial = gameId === "qong" || gameId === "fluxball";
+  const help = hasTutorial
+    ? `<button class="qb-arcade-help" type="button" data-action="how-to-play" data-game-id="${gameId}" data-bitmap-text="TUTORIAL">TUTORIAL</button>`
+    : `<span class="qb-arcade-help qb-arcade-help--unavailable" aria-disabled="true" data-bitmap-text="TUTORIAL">TUTORIAL</span>`;
   return `<section class="qb-arcade-game qb-arcade-game--${gameId}" aria-labelledby="arcade-${gameId}" aria-describedby="arcade-${gameId}-source"><div class="qb-arcade-identity">${arcadePreview(gameId)}<h2 id="arcade-${gameId}">${game.title}</h2><span class="qb-visually-hidden" id="arcade-${gameId}-source">${game.model} · ${game.sourceLabel}</span>${help}</div><div class="qb-arcade-play"><div class="qb-arcade-launches">${game.arcadeModes
-    .map((mode) => {
+    .map((mode, index) => {
       const label = arcadeModeLabel(mode);
-      return `<span class="qb-arcade-mode"><button type="button" data-action="launch-arcade" data-game-id="${game.id}" data-mode="${escapeHtml(mode)}" data-bitmap-text="${label}">${label}</button>${arcadeScoreboardMarkup(gameId, mode, save)}</span>`;
+      const placement = arcadeModePlacement(gameId, index);
+      const scoreboard = arcadeScoreboardMarkup(gameId, mode);
+      const classes = [
+        "qb-arcade-mode",
+        `qb-arcade-mode--column-${placement.column}`,
+        `qb-arcade-mode--row-${placement.row}`,
+        placement.span === 2 ? "qb-arcade-mode--span-2" : "",
+        scoreboard ? "qb-arcade-mode--scored" : "",
+      ]
+        .filter(Boolean)
+        .join(" ");
+      return `<span class="${classes}"><button type="button" data-action="launch-arcade" data-game-id="${game.id}" data-mode="${escapeHtml(mode)}" data-bitmap-text="${label}">${label}</button>${scoreboard}</span>`;
     })
     .join("")}</div></div></section>`;
+}
+
+function arcadeModePlacement(
+  gameId: ShippedArcadeCabinetId,
+  index: number,
+): Readonly<{ column: 1 | 2 | 3; row: 1 | 2; span: 1 | 2 }> {
+  if (gameId === "fluxball" || gameId === "quarry") {
+    return Object.freeze({
+      column: ((index % 2) + 1) as 1 | 2,
+      row: (Math.floor(index / 2) + 1) as 1 | 2,
+      span: 1,
+    });
+  }
+  return Object.freeze({
+    column: (index + 1) as 1 | 2 | 3,
+    row: 1,
+    span: gameId === "qong" && index === 1 ? 2 : 1,
+  });
 }
 
 function arcadeScoreboardMarkup(
   gameId: ShippedArcadeCabinetId,
   mode: string,
+): string {
+  if (gameId !== "skipixl" && gameId !== "quantman") return "";
+  requireArcadeScoreboardMode(gameId, mode);
+  return `<button class="qb-arcade-scores" type="button" data-action="open-arcade-scores" data-game-id="${gameId}" data-mode="${escapeHtml(mode)}" data-bitmap-text="SCORE">SCORE</button>`;
+}
+
+function arcadeScoreboardPageMarkup(
+  request: ArcadeScoreboardRequest,
   save: QuantumBoxSave,
 ): string {
-  const entries =
-    gameId === "skipixl"
-      ? save.arcadeRecords.skipixl[
-          mode.toLowerCase() as "easy" | "medium" | "hard"
-        ]
-      : gameId === "quantman"
-        ? quantmanArcadeOverallBoard(
-            save.arcadeRecords,
-            mode === "STABILIZE GAZE" ? "stabilize-gaze" : "inverse-gaze",
-          )
-        : null;
-  if (!entries) return "";
-  const rows = entries.length
-    ? entries
-        .map((entry, index) => {
-          const result =
-            entry.kind === "skipixl"
-              ? `${(entry.officialTimeMs / 1_000).toFixed(2)} · G${entry.missedGates} · C${entry.collisions}`
-              : `${escapeHtml(entry.topologyLabel)} · ${String(entry.score).padStart(5, "0")} · ${entry.outcome === "won" ? "CLEAR" : "LOST"}`;
-          return `<li title="${escapeHtml(`${entry.runId} · ${entry.rulesVersion} · ${entry.pack.packId} · ${entry.pack.contentSha256}`)}"><span>${index + 1}</span><strong>${escapeHtml(entry.initials)}</strong><small>${result}</small></li>`;
-        })
-        .join("")
-    : `<li class="qb-arcade-scores-empty">NO SCORES</li>`;
-  return `<details class="qb-arcade-scores"><summary>SCORE</summary><ol>${rows}</ol></details>`;
+  const board = arcadeScoreboardEntries(request, save);
+  const rows: string[] = [];
+  for (let index = 0; index < ARCADE_RECORD_LIMIT; index += 1) {
+    const entry = board[index];
+    if (!entry) {
+      rows.push(
+        `<li class="qb-scoreboard-empty" role="row"><span role="cell">${index + 1}</span><strong role="cell">---</strong><small role="cell">---</small></li>`,
+      );
+      continue;
+    }
+    const current = entry.recordedSequence === request.highlightRecordSequence;
+    rows.push(
+      `<li role="row"${current ? ' data-current="true"' : ""} title="${escapeHtml(`${entry.runId} · ${entry.rulesVersion} · ${entry.pack.packId} · ${entry.pack.contentSha256}`)}"><span role="cell">${index + 1}</span><strong role="cell">${escapeHtml(entry.initials)}</strong><small role="cell">${arcadeScoreResult(entry)}</small></li>`,
+    );
+  }
+  const title =
+    request.gameId === "skipixl"
+      ? `SKIPIXL · ${request.mode}`
+      : `QUANTMAN · ${arcadeModeLabel(request.mode)}`;
+  const resultHeading =
+    request.gameId === "skipixl"
+      ? "TIME · MISSED · HITS"
+      : "SCORE · RESULT · MAZE";
+  const result = request.resultLabel
+    ? `<p class="qb-scoreboard-result">${escapeHtml(request.resultLabel)}</p>`
+    : "";
+  const initials =
+    request.initialsEditable && request.highlightRecordSequence !== null
+      ? `<form class="qb-scoreboard-initials" data-arcade-score-form data-record-sequence="${request.highlightRecordSequence}"><label><span>INITIALS</span><input type="text" minlength="3" maxlength="3" inputmode="text" autocomplete="off" spellcheck="false" pattern="[A-Za-z0-9-]{3}" value="${escapeHtml(save.settings.arcadeInitials)}" data-arcade-score-initials aria-label="Three character score initials"/></label><button type="submit">SAVE · ENTER</button></form>`
+      : "";
+  return `<div class="qb-page-panel qb-scoreboard-page"><header><p class="qb-kicker">TOP FIVE</p><h1 tabindex="-1">${escapeHtml(title)}</h1></header><div class="qb-scoreboard-table" role="table" aria-label="${escapeHtml(title)} top five scores"><div class="qb-scoreboard-columns" role="row"><span role="columnheader">RANK</span><span role="columnheader">INITIALS</span><span role="columnheader">${resultHeading}</span></div><ol role="rowgroup">${rows.join("")}</ol></div>${result}${initials}<button class="qb-scoreboard-close" type="button" data-action="close-arcade-scores">ARCADE · SPACE</button></div>`;
+}
+
+function arcadeScoreboardEntries(
+  request: ArcadeScoreboardRequest,
+  save: QuantumBoxSave,
+): readonly (SkiPixlArcadeRecord | QuantmanArcadeRecord)[] {
+  if (request.gameId === "skipixl") {
+    return save.arcadeRecords.skipixl[skiPixlScoreDifficulty(request.mode)];
+  }
+  return quantmanArcadeOverallBoard(
+    save.arcadeRecords,
+    quantmanScoreMechanic(request.mode),
+  );
+}
+
+function arcadeScoreResult(
+  entry: SkiPixlArcadeRecord | QuantmanArcadeRecord,
+): string {
+  return entry.kind === "skipixl"
+    ? `${(entry.officialTimeMs / 1_000).toFixed(2)} · ${entry.missedGates} · ${entry.collisions}`
+    : `${String(entry.score).padStart(5, "0")} · ${entry.outcome === "won" ? "CLEAR" : "LOST"} · ${escapeHtml(entry.topologyLabel)}`;
+}
+
+function skiPixlScoreDifficulty(mode: string): SkiPixlArcadeDifficulty {
+  const difficulty = mode.toLowerCase();
+  if (
+    difficulty === "easy" ||
+    difficulty === "medium" ||
+    difficulty === "hard"
+  ) {
+    return difficulty;
+  }
+  throw new Error(`Unsupported SkiPixl score board: ${mode}.`);
+}
+
+function quantmanScoreMechanic(mode: string): QuantmanArcadeMechanic {
+  if (mode === "STABILIZE GAZE") return "stabilize-gaze";
+  if (mode === "INVERSE GAZE") return "inverse-gaze";
+  throw new Error(`Unsupported Quantman score board: ${mode}.`);
+}
+
+function requireArcadeScoreboardMode(
+  gameId: ArcadeScoreboardRequest["gameId"],
+  mode: string,
+): void {
+  if (gameId === "skipixl") skiPixlScoreDifficulty(mode);
+  else quantmanScoreMechanic(mode);
 }
 
 function arcadeModeLabel(mode: string): string {
@@ -2115,11 +2311,7 @@ function workshopBaysMarkup(save: QuantumBoxSave): string {
 }
 
 function workshopMarkup(save: QuantumBoxSave): string {
-  const platformAccess =
-    save.story.currentStage === "complete"
-      ? `<a class="qb-workshop-access" href="https://platform.mothquantum.com/" target="_blank" rel="noopener noreferrer">MOTH PLATFORM</a>`
-      : `<span class="qb-workshop-access is-locked">MOTH LINK · STORY LOCKED</span>`;
-  return `<div class="qb-page-panel qb-workshop-page"><h1 class="qb-visually-hidden" tabindex="-1">WORKSHOP</h1><p class="qb-visually-hidden">Inspect recovered engine formulae.</p><ol class="qb-workshop" data-scroll-list>${workshopBaysMarkup(save)}</ol>${scrollPositionMarkup()}${platformAccess}</div>`;
+  return `<div class="qb-page-panel qb-workshop-page"><h1 class="qb-visually-hidden" tabindex="-1">WORKSHOP</h1><p class="qb-visually-hidden">Inspect the five Story workshop records.</p><ol class="qb-workshop" data-scroll-list>${workshopBaysMarkup(save)}</ol>${scrollPositionMarkup()}</div>`;
 }
 
 function settingsMarkup(
@@ -2163,7 +2355,7 @@ function settingsSectionMarkup(
 ): string {
   switch (section) {
     case "display":
-      return `<fieldset class="qb-settings"><legend>LOCAL PRESENTATION</legend>${setting("reducedMotion", "REDUCED MOTION", save.settings.reducedMotion)}${setting("crtFlicker", "DISPLAY FLICKER", save.settings.crtFlicker)}${setting("soundMuted", "SOUND MUTED · M", save.settings.soundMuted)}${volumeSetting(save.settings.soundVolume)}${arcadeInitialsSetting(save.settings.arcadeInitials)}</fieldset>`;
+      return `<fieldset class="qb-settings"><legend>LOCAL PRESENTATION</legend>${setting("reducedMotion", "REDUCED MOTION", save.settings.reducedMotion)}${setting("crtFlicker", "DISPLAY FLICKER", save.settings.crtFlicker)}${setting("soundMuted", "SOUND MUTED · M", save.settings.soundMuted)}${volumeSetting(save.settings.soundVolume)}</fieldset><fieldset class="qb-settings qb-arcade-initials-settings"><legend>ARCADE SCORES</legend>${arcadeInitialsSetting(save.settings.arcadeInitials)}</fieldset>`;
     case "background":
       return backgroundProgrammeSettings(save);
     case "controls":
@@ -2178,14 +2370,17 @@ function workshopBay(view: WorkshopBayView, save: QuantumBoxSave): string {
 }
 
 function formulaMarkup(
-  selectedFormula: GameId | null,
+  selectedFormula: WorkshopFormulaId | null,
   save: QuantumBoxSave,
 ): string {
   if (
     selectedFormula === null ||
-    !save.story.recoveredFormulae.includes(selectedFormula)
+    !isWorkshopFormulaRecovered(selectedFormula, save)
   ) {
     return `<div class="qb-page-panel"><p class="qb-kicker">ACCESS REFUSED</p><h1 tabindex="-1">NO FORMULA SELECTED</h1><p>Only recovered formulae can be inspected.</p></div>`;
+  }
+  if (selectedFormula === "quarry") {
+    return quarryFormulaMarkup();
   }
   if (selectedFormula === "skipixl") {
     return skipixlFormulaMarkup(save);
@@ -2213,6 +2408,11 @@ function formulaMarkup(
     ? `<dl><div><dt>PLAY PACK</dt><dd>${escapeHtml(receipt.selectedPackId)}</dd></div><div><dt>PLAY PACK SHA-256</dt><dd>${receipt.selectedPackContentSha256}</dd></div><div><dt>SELECTOR PACK</dt><dd>${escapeHtml(receipt.selectorPackId)}</dd></div><div><dt>SELECTOR SHA-256</dt><dd>${receipt.selectorContentSha256}</dd></div><div><dt>RECORDED SELECTOR BITS</dt><dd>${receipt.selectorBits.join("")} → PACK ${receipt.selectedPackIndex + 1} OF 4</dd></div><div><dt>BIT POSITIONS</dt><dd>${receipt.selectorBitIndices.join(" / ")}</dd></div><div><dt>SELECTOR CYCLE</dt><dd>${receipt.selectorCycle}${receipt.reusedSelectorBits ? " · RECORDED BITS REUSED" : " · FIRST PASS"}</dd></div><div><dt>ACTIVE-PLAY NETWORK</dt><dd>none</dd></div></dl>`
     : `<p>This save predates the required QPU selection receipt. Replay is unavailable until Qong is recovered from a validated installed bank.</p>`;
   return `<div class="qb-page-panel qb-scroll qb-formula"><p class="qb-kicker">BAY 01 · RECOVERED</p><h1 tabindex="-1">RULE STATE</h1>${qongSource}<p class="qb-formula-lead">${qongLead}</p>${formulaPath()}${formulaLayer("01", "VISIBLE BEHAVIOR", "Each round begins with one unresolved constitutive rule: score through the opposite goal line, or score through your own. A physical crossing is determinate, but what that crossing counts as remains unresolved until observation. Pressing Space observes early; an unresolved crossing forces measurement and resolves the rule and point together.", true)}${formulaLayer("02", "CLASSICAL DECODER", "The browser decodes each frozen recorded result with a fixed table: 0 or heads becomes OPPOSITE GOAL; 1 or tails becomes OWN GOAL. Paddle physics, opponent behavior, scoring, and replay are entirely classical and local. Active play makes no provider request.")}${formulaLayer("03", "RETURNED RESULT", returnedResult)}${formulaLayer("04", "SUBMITTED INPUT", submittedInput)}${formulaLayer("05", "ENGINE OPERATION", "Coin Toss prepares a qubit in |0⟩, applies Hadamard to produce equal measurement probabilities in the computational basis, then measures. This supplies hardware-derived randomness, not evidence of quantum advantage; a fair coin toss is classically simulable.")}${formulaLayer("06", "SOURCE EVIDENCE", record)}${fictionLayer("qong")}</div>`;
+}
+
+function quarryFormulaMarkup(): string {
+  const evidence = `<dl><div><dt>HARDWARE BANK</dt><dd>quarry-qgraph-ibm-fez-bank-v2</dd></div><div><dt>HARDWARE CAPTURES</dt><dd>24 IBM Fez QGraph executions</dd></div><div><dt>RECIPE FAMILIES</dt><dd>6 · 4 realizations each</dd></div><div><dt>ACTIVE-PLAY NETWORK</dt><dd>none</dd></div></dl><a class="qb-workshop-quarry-access" data-story-moth-link href="https://platform.mothquantum.com/" target="_blank" rel="noopener noreferrer">OPEN MOTH PLATFORM</a>`;
+  return `<div class="qb-page-panel qb-scroll qb-formula"><p class="qb-kicker">BAY 05 · RECOVERED</p><h1 tabindex="-1">PURSUIT ECOLOGY</h1>${sourceClass("MOTH QGRAPH / IBM FEZ", "FROZEN BEFORE PLAY")}<p class="qb-formula-lead">Each Quarry run selects one of 24 recorded 12-qubit IBM Fez QGraph results. Its temporary directed relations determine which ducks may score on which quarry until the next scheduled remeasurement.</p>${formulaPath()}${formulaLayer("01", "VISIBLE BEHAVIOR", "Directed lines show the current pursuit ecology. A valid aerial catch scores, knocks out the caught duck, and respawns it with a grace period. The catch does not consume the relation or trigger a new measurement; the whole ecology changes together on its fixed schedule.", true)}${formulaLayer("02", "CLASSICAL DECODER", "The browser samples complete recorded 12-bit states from the selected frozen return and maps their directed edges into predator and quarry relations in canonical Player A through D order. Simulation, catches, respawns, scoring, and schedule timing are classical, deterministic, local, and provider-free during play.")}${formulaLayer("03", "RETURNED RESULT", "The installed bank contains 24 independent IBM Fez QGraph executions: four hardware realizations for each of six submitted relational recipe families. The Moth QGraph response preserves its ranked top 20 outcomes rather than claiming a complete 4,096-shot distribution.")}${formulaLayer("04", "SUBMITTED INPUT", "Each acquisition submitted one of six twelve-qubit relational recipes: all opposed, all equal, two front/back mixtures, and two alternating forms. Exact requests, job identities, backend records, hashes, shot counts, bit ordering, and source-bank lineage remain attached to the selected run evidence.")}${formulaLayer("05", "ENGINE OPERATION", "QGraph returns a measured joint distribution over the submitted relation circuit. Quarry uses that captured joint state as a temporary ontology of who hunts whom; it does not call Moth or IBM during the match and does not repair or fabricate missing outcomes.")}${formulaLayer("06", "SOURCE EVIDENCE", evidence)}</div>`;
 }
 
 function skipixlFormulaMarkup(save: QuantumBoxSave): string {
@@ -2332,16 +2532,38 @@ function keyboardSettings(save: QuantumBoxSave, playerId: PlayerId): string {
     (control) =>
       `<button type="button" class="qb-key-binding" data-action="rebind-key" data-player-id="${playerId}" data-control="${control}"><span>${control.toUpperCase()}</span><b>${escapeHtml(displayKeyCode(save.settings.keyboardBindings[playerId][control]))}</b></button>`,
   ).join("");
-  return `<fieldset class="qb-settings qb-keymap"><legend>PLAYER ${playerId}</legend><nav class="qb-keymap-players" aria-label="Player key profiles">${playerTabs}</nav><section aria-label="Player ${playerId} bindings">${bindings}</section><p>ESC / P / M / X are reserved. Each key can belong to only one player control.</p></fieldset>`;
+  return `<fieldset class="qb-settings qb-keymap"><legend>PLAYER ${playerId}</legend><nav class="qb-keymap-players" aria-label="Player key profiles">${playerTabs}</nav><section aria-label="Player ${playerId} bindings">${bindings}</section><p>ESC / P / M / X RESERVED · ONE CONTROL PER KEY</p></fieldset>`;
 }
 
 function backgroundProgrammeSettings(save: QuantumBoxSave): string {
-  return `<fieldset class="qb-settings qb-background-programmes"><legend>BACKGROUND FIELD</legend>${BROWN_BOX_BACKGROUND_PROGRAMMES.map(
+  const selected =
+    BROWN_BOX_BACKGROUND_PROGRAMMES.find(
+      (programme) =>
+        programme.programmeId === save.settings.backgroundProgrammeId,
+    ) ?? BROWN_BOX_BACKGROUND_PROGRAMMES[0]!;
+  return `<fieldset class="qb-settings qb-background-programmes" aria-label="Background field options">${BROWN_BOX_BACKGROUND_PROGRAMMES.map(
     (programme) =>
       `<label><input type="radio" name="background-programme" data-setting="backgroundProgrammeId" value="${programme.programmeId}" ${save.settings.backgroundProgrammeId === programme.programmeId ? "checked" : ""}/><span>${escapeHtml(programme.label)}</span></label>`,
   ).join(
     "",
-  )}<p>Recorded endpoints and local derivations retain their source classifications. Selecting a field makes no provider request.</p></fieldset>`;
+  )}<output class="qb-background-summary" aria-live="polite"><strong>${escapeHtml(selected.label)}</strong><span>${escapeHtml(backgroundProgrammeSummary(selected.programmeId))}</span></output></fieldset>`;
+}
+
+function backgroundProgrammeSummary(
+  programmeId: BrownBoxBackgroundProgrammeId,
+): string {
+  switch (programmeId) {
+    case "current-four-state-v1":
+      return "4 QPIXL-MAPPED STATES · 22.8S OFFLINE LOOP";
+    case "adaptive-direct-v1":
+    case "adaptive-restrained-v1":
+    case "adaptive-stronger-v1":
+      return "24 LOCAL KEYFRAME DERIVATIVES · 23.04S OFFLINE LOOP";
+    case "amplified-four-state-v1":
+      return "4 LOCAL PANEL COMPOSITES · 22.8S OFFLINE LOOP";
+    case "seeded-sixteen-state-v1":
+      return "16 CLASSICALLY ASSIGNED STATES · 91.2S OFFLINE LOOP";
+  }
 }
 
 function fluxballLobbyMarkup(
@@ -2370,7 +2592,7 @@ function volumeSetting(volume: number): string {
 }
 
 function arcadeInitialsSetting(initials: string): string {
-  return `<label class="qb-arcade-initials"><span>ARCADE INITIALS</span><input type="text" maxlength="3" inputmode="text" autocomplete="off" spellcheck="false" value="${escapeHtml(initials)}" data-setting="arcadeInitials" aria-label="Arcade scoreboard initials"/></label>`;
+  return `<label class="qb-arcade-initials"><span class="qb-setting-copy"><strong>DEFAULT INITIALS</strong><small>USED FOR NEW TOP-FIVE SCORES</small></span><input type="text" minlength="3" maxlength="3" inputmode="text" autocomplete="off" spellcheck="false" value="${escapeHtml(initials)}" data-setting="arcadeInitials" aria-label="Arcade scoreboard initials"/></label>`;
 }
 
 function isShellPage(value: string | undefined): value is ShellPage {
@@ -2379,6 +2601,7 @@ function isShellPage(value: string | undefined): value is ShellPage {
     value === "story" ||
     value === "story-brief" ||
     value === "arcade" ||
+    value === "scores" ||
     value === "workshop" ||
     value === "formula" ||
     value === "interlude" ||
@@ -2421,6 +2644,21 @@ function storyWalkDirectionForCode(
 
 function isGameId(value: string | undefined): value is GameId {
   return value !== undefined && GAME_IDS.includes(value as GameId);
+}
+
+function isWorkshopFormulaId(
+  value: string | undefined,
+): value is WorkshopFormulaId {
+  return value === "quarry" || isGameId(value);
+}
+
+function isWorkshopFormulaRecovered(
+  formulaId: WorkshopFormulaId,
+  save: QuantumBoxSave,
+): boolean {
+  return formulaId === "quarry"
+    ? save.story.completedStages.includes("quarry")
+    : save.story.recoveredFormulae.includes(formulaId);
 }
 
 function isPlayerId(value: string | undefined): value is PlayerId {

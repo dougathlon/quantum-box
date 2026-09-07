@@ -91,12 +91,8 @@ interface SkiCarveVoice {
   readonly envelope: GainNode;
 }
 
-interface MenuMusicVoice {
-  readonly source: AudioBufferSourceNode;
-  readonly envelope: GainNode;
-}
-
 type AudioContextFactory = () => AudioContext;
+type MenuAudioFactory = () => HTMLAudioElement;
 
 const MENU_TUNE_EVENTS: readonly MenuTuneEvent[] = Object.freeze([
   menuEvent("B", 0, 88),
@@ -352,17 +348,30 @@ export class SynthAudio {
   private paused = false;
   private unavailable = false;
   private skiCarveVoice: SkiCarveVoice | null = null;
+  private skiCarveReleaseTimer: ReturnType<typeof setTimeout> | null = null;
   private menuMusicRequested = false;
   private menuMusicDelaySeconds = 0;
-  private menuMusicVoice: MenuMusicVoice | null = null;
-  private menuMusicBuffer: AudioBuffer | null = null;
-  private menuMusicBufferPromise: Promise<AudioBuffer | null> | null = null;
+  private menuMusicElement: HTMLAudioElement | null = null;
+  private menuMusicPlayPending: Promise<void> | null = null;
+  private menuMusicDelayTimer: ReturnType<typeof setTimeout> | null = null;
+  private menuMusicDelayActive = false;
   private readonly transientSources = new Set<OscillatorNode>();
+  private readonly onContextStateChange = (): void => {
+    const context = this.context;
+    if (!context || context.state === "closed") return;
+    if (context.state === "running") {
+      if (this.menuMusicRequested) this.startMenuMusic();
+      return;
+    }
+    if (this.menuMusicRequested) void this.resumeExistingContext(context);
+  };
 
   public constructor(
     settings: Pick<QuantumBoxSettings, "soundMuted" | "soundVolume">,
     private readonly createContext: AudioContextFactory = () =>
       new AudioContext({ latencyHint: "interactive" }),
+    private readonly createMenuAudio: MenuAudioFactory = () =>
+      new Audio(MENU_TUNE_ASSET_URL),
   ) {
     this.muted = settings.soundMuted;
     this.volume = normalizeSoundVolume(settings.soundVolume);
@@ -374,22 +383,36 @@ export class SynthAudio {
    * error outside the console.
    */
   public async unlock(): Promise<boolean> {
+    if (this.menuMusicRequested) this.startMenuMusic();
     if (this.unavailable) return false;
-    try {
-      if (!this.context) {
+    if (!this.context) {
+      try {
         this.context = this.createContext();
+        this.context.addEventListener("statechange", this.onContextStateChange);
         this.master = this.context.createGain();
         this.master.connect(this.context.destination);
-        this.skiCarveVoice = createSkiCarveVoice(this.context, this.master);
         this.applyGain();
+      } catch {
+        this.unavailable = true;
+        return false;
       }
-      if (this.context.state === "suspended") await this.context.resume();
-      if (this.menuMusicRequested) this.startMenuMusic();
-      return this.context.state === "running";
-    } catch {
-      this.unavailable = true;
-      return false;
     }
+    const context = this.context;
+    if (context.state !== "running") await this.resumeExistingContext(context);
+    if (this.menuMusicRequested) this.startMenuMusic();
+    return context.state === "running";
+  }
+
+  /**
+   * Browser tab suspension is not a permanent audio failure. Resume an already
+   * unlocked context when the page becomes active or receives another gesture.
+   */
+  public recoverFromBrowserInterruption(): void {
+    if (this.menuMusicRequested) this.startMenuMusic();
+    const context = this.context;
+    if (!context || context.state === "closed") return;
+    if (context.state === "running") return;
+    void this.resumeExistingContext(context);
   }
 
   public setSettings(
@@ -467,9 +490,29 @@ export class SynthAudio {
 
   public setSkiCarve(intensity: number): void {
     const context = this.context;
-    const voice = this.skiCarveVoice;
-    if (!context || !voice || context.state !== "running") return;
+    const master = this.master;
+    if (!context || !master || context.state !== "running") return;
     const profile = skiCarveProfile(intensity);
+    if (profile.intensity <= 0) {
+      const voice = this.skiCarveVoice;
+      if (!voice) return;
+      voice.envelope.gain.setTargetAtTime(0, context.currentTime, 0.018);
+      if (this.skiCarveReleaseTimer === null) {
+        this.skiCarveReleaseTimer = setTimeout(() => {
+          this.skiCarveReleaseTimer = null;
+          if (this.skiCarveVoice !== voice) return;
+          this.skiCarveVoice = null;
+          disposeSkiCarveVoice(voice);
+        }, 100);
+      }
+      return;
+    }
+    if (this.skiCarveReleaseTimer !== null) {
+      clearTimeout(this.skiCarveReleaseTimer);
+      this.skiCarveReleaseTimer = null;
+    }
+    const voice = this.skiCarveVoice ?? createSkiCarveVoice(context, master);
+    this.skiCarveVoice = voice;
     voice.envelope.gain.setTargetAtTime(
       profile.gain,
       context.currentTime,
@@ -489,117 +532,130 @@ export class SynthAudio {
     this.setSkiCarve(0);
     this.stopTransientSources();
     this.stopMenuMusic();
-    this.menuMusicBuffer = null;
-    this.menuMusicBufferPromise = null;
+    if (this.skiCarveReleaseTimer !== null) {
+      clearTimeout(this.skiCarveReleaseTimer);
+      this.skiCarveReleaseTimer = null;
+    }
+    const menuMusicElement = this.menuMusicElement;
+    if (carveVoice) disposeSkiCarveVoice(carveVoice);
+    this.menuMusicElement = null;
+    this.menuMusicPlayPending = null;
     this.skiCarveVoice = null;
     this.context = null;
     this.master = null;
-    if (carveVoice) {
-      try {
-        carveVoice.source.stop();
-      } catch {
-        // The source may already have stopped during context teardown.
-      }
-      carveVoice.source.disconnect();
-      carveVoice.filter.disconnect();
-      carveVoice.envelope.disconnect();
+    context?.removeEventListener("statechange", this.onContextStateChange);
+    if (menuMusicElement) {
+      menuMusicElement.removeEventListener("ended", this.onMenuMusicEnded);
+      menuMusicElement.removeEventListener("canplay", this.onMenuMusicCanPlay);
+      menuMusicElement.removeAttribute("src");
+      menuMusicElement.load();
     }
     if (context && context.state !== "closed")
       void context.close().catch(() => {});
   }
 
   private applyGain(): void {
-    if (!this.context || !this.master) return;
     const gain = this.muted || this.paused ? 0 : this.volume;
-    this.master.gain.setTargetAtTime(gain, this.context.currentTime, 0.012);
+    if (this.context && this.master) {
+      this.master.gain.setTargetAtTime(gain, this.context.currentTime, 0.012);
+    }
+    this.applyMenuMusicGain();
+  }
+
+  private async resumeExistingContext(context: AudioContext): Promise<void> {
+    if (this.context !== context || context.state === "closed") return;
+    try {
+      await context.resume();
+    } catch {
+      // A browser may still require a fresh gesture. The next player input
+      // calls unlock() again; a transient denial must not disable all audio.
+      return;
+    }
+    if (
+      this.context === context &&
+      context.state === "running" &&
+      this.menuMusicRequested
+    ) {
+      this.startMenuMusic();
+    }
   }
 
   private startMenuMusic(): void {
-    const context = this.context;
-    const master = this.master;
-    if (
-      !this.menuMusicRequested ||
-      this.menuMusicVoice ||
-      !context ||
-      !master ||
-      context.state !== "running"
-    ) {
-      return;
+    if (!this.menuMusicRequested) return;
+    const element = this.ensureMenuMusicElement();
+    if (!element.paused || this.menuMusicPlayPending) return;
+    const delaySeconds = this.menuMusicDelaySeconds;
+    this.menuMusicDelaySeconds = 0;
+    this.menuMusicDelayActive = delaySeconds > 0;
+    this.applyMenuMusicGain();
+    const pending = element
+      .play()
+      .catch(() => {
+        // Autoplay policies can reject any individual attempt. A subsequent
+        // pointer, keyboard, focus, visibility, or canplay event retries it.
+      })
+      .finally(() => {
+        if (this.menuMusicPlayPending === pending) {
+          this.menuMusicPlayPending = null;
+        }
+      });
+    this.menuMusicPlayPending = pending;
+    if (this.menuMusicDelayActive) {
+      this.clearMenuMusicDelay();
+      this.menuMusicDelayActive = true;
+      this.menuMusicDelayTimer = setTimeout(() => {
+        this.menuMusicDelayTimer = null;
+        this.menuMusicDelayActive = false;
+        this.applyMenuMusicGain();
+      }, delaySeconds * 1_000);
     }
-    void this.startMenuMusicWhenReady(context, master);
   }
 
-  private async startMenuMusicWhenReady(
-    context: AudioContext,
-    master: GainNode,
-  ): Promise<void> {
-    const buffer = await this.loadMenuMusicBuffer(context);
-    if (
-      !buffer ||
-      !this.menuMusicRequested ||
-      this.menuMusicVoice ||
-      this.context !== context ||
-      this.master !== master ||
-      context.state !== "running"
-    ) {
-      return;
-    }
-    const source = context.createBufferSource();
-    source.buffer = buffer;
-    source.loop = true;
-    source.loopStart = 0;
-    source.loopEnd = buffer.duration;
-    const envelope = context.createGain();
-    envelope.gain.value = 0.42;
-    source.connect(envelope);
-    envelope.connect(master);
-    const voice = Object.freeze({ source, envelope });
-    this.menuMusicVoice = voice;
-    source.addEventListener(
-      "ended",
-      () => {
-        if (this.menuMusicVoice !== voice) return;
-        this.menuMusicVoice = null;
-        source.disconnect();
-        envelope.disconnect();
-        if (this.menuMusicRequested) this.startMenuMusic();
-      },
-      { once: true },
-    );
-    source.start(context.currentTime + 0.006 + this.menuMusicDelaySeconds);
-  }
-
-  private async loadMenuMusicBuffer(
-    context: AudioContext,
-  ): Promise<AudioBuffer | null> {
-    if (this.menuMusicBuffer) return this.menuMusicBuffer;
-    this.menuMusicBufferPromise ??= (async () => {
-      try {
-        const response = await fetch(MENU_TUNE_ASSET_URL, {
-          cache: "force-cache",
-        });
-        if (!response.ok) return null;
-        return await context.decodeAudioData(await response.arrayBuffer());
-      } catch {
-        return null;
-      }
-    })();
-    const buffer = await this.menuMusicBufferPromise;
-    if (this.context === context) this.menuMusicBuffer = buffer;
-    return buffer;
+  private ensureMenuMusicElement(): HTMLAudioElement {
+    if (this.menuMusicElement) return this.menuMusicElement;
+    const element = this.createMenuAudio();
+    element.preload = "auto";
+    element.loop = true;
+    element.addEventListener("ended", this.onMenuMusicEnded);
+    element.addEventListener("canplay", this.onMenuMusicCanPlay);
+    this.menuMusicElement = element;
+    this.applyMenuMusicGain();
+    return element;
   }
 
   private stopMenuMusic(): void {
-    const voice = this.menuMusicVoice;
-    this.menuMusicVoice = null;
-    if (!voice) return;
-    try {
-      voice.source.stop();
-    } catch {
-      // A source stopped by context teardown cannot be stopped twice.
+    this.clearMenuMusicDelay();
+    this.menuMusicDelayActive = false;
+    const element = this.menuMusicElement;
+    if (!element) return;
+    element.pause();
+    element.currentTime = 0;
+    this.applyMenuMusicGain();
+  }
+
+  private readonly onMenuMusicEnded = (): void => {
+    if (!this.menuMusicRequested || !this.menuMusicElement) return;
+    this.menuMusicElement.currentTime = 0;
+    this.startMenuMusic();
+  };
+
+  private readonly onMenuMusicCanPlay = (): void => {
+    if (this.menuMusicRequested) this.startMenuMusic();
+  };
+
+  private applyMenuMusicGain(): void {
+    if (!this.menuMusicElement) return;
+    this.menuMusicElement.muted = this.muted || this.paused;
+    this.menuMusicElement.volume = this.menuMusicDelayActive
+      ? 0
+      : Math.min(1, this.volume * 0.42);
+  }
+
+  private clearMenuMusicDelay(): void {
+    if (this.menuMusicDelayTimer !== null) {
+      clearTimeout(this.menuMusicDelayTimer);
+      this.menuMusicDelayTimer = null;
     }
-    voice.source.disconnect();
-    voice.envelope.disconnect();
   }
 
   private stopTransientSources(): void {
@@ -761,4 +817,15 @@ function createSkiCarveVoice(
   envelope.connect(destination);
   source.start();
   return Object.freeze({ source, filter, envelope });
+}
+
+function disposeSkiCarveVoice(voice: SkiCarveVoice): void {
+  try {
+    voice.source.stop();
+  } catch {
+    // An already-ended source can still be disconnected safely.
+  }
+  voice.source.disconnect();
+  voice.filter.disconnect();
+  voice.envelope.disconnect();
 }

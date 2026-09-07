@@ -2,6 +2,7 @@ import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 
 const mainSource = readFileSync("src/main.ts", "utf8");
+const indexSource = readFileSync("index.html", "utf8");
 const appSource = readFileSync("src/app/QuantumBoxApp.ts", "utf8");
 const brownBoxCss = readFileSync("src/display/brownBox.css", "utf8");
 const displaySource = readFileSync("src/display/BrownBoxDisplay.ts", "utf8");
@@ -33,6 +34,19 @@ const pixelTextSource = readFileSync("src/display/PixelText.ts", "utf8");
 const pixelHudSource = readFileSync("src/display/PixelHud.ts", "utf8");
 
 describe("Brown Box internal visual contract", () => {
+  it("paints state one before the asynchronous title layers initialize", () => {
+    const stateOnePath =
+      "background-programs/current-four-state-v1/state-01.png";
+    expect(indexSource).toContain(stateOnePath);
+    expect(indexSource).toContain('rel="preload"');
+    expect(indexSource).toContain("title-formica-device.png");
+    expect(brownBoxCss).toContain(stateOnePath);
+    expect(indexSource).not.toContain("#090a08");
+    expect(brownBoxCss).toMatch(
+      /\.qb-title\s*\{[^}]*background-image:\s*none;/s,
+    );
+  });
+
   it("imports the exact visual guard after every legacy stylesheet", () => {
     expect(
       mainSource.indexOf('import "./display/brownBox.css"'),
@@ -155,7 +169,7 @@ describe("Brown Box internal visual contract", () => {
       expect(shellSource).toContain(label);
     }
     expect(shellSource).not.toContain('"2 PLAYER / INDIVIDUAL": "2P LOCAL"');
-    expect(brownBoxCss).toContain("grid-auto-rows: 6cqh");
+    expect(brownBoxCss).toContain("grid-template-rows: repeat(2, 6cqh)");
     expect(shellSource).not.toContain("data-quantman-topology");
     expect(brownBoxCss).not.toContain(".qb-quantman-course");
   });
@@ -168,12 +182,13 @@ describe("Brown Box internal visual contract", () => {
       '<header><h1 tabindex="-1">STORY</h1></header>',
     );
     expect(brownBoxCss).toContain(
-      "grid-template-columns: 10cqw 6cqw minmax(0, 1fr) 7cqw",
+      "grid-template-columns: 10cqw 6cqw minmax(0, 1fr) 15cqw",
     );
-    expect(brownBoxCss).toContain("width: 7cqw");
-    expect(shellSource).toContain('data-bitmap-text="${icon}"');
+    expect(brownBoxCss).toContain("width: 15cqw");
+    expect(shellSource).toContain('data-bitmap-text="${statusText}"');
+    expect(shellSource).not.toContain('class="qb-story-select-progress"');
     expect(shellSource).not.toContain('${current ? "OPEN" : "CLOSED"}');
-    expect(brownBoxCss).toContain("text-align: center");
+    expect(brownBoxCss).toContain("text-align: right");
   });
 
   it("renders SkiPixl telemetry as framebuffer rectangles with hidden DOM mirrors", () => {
