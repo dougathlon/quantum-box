@@ -1,8 +1,14 @@
 {
   "name": "quantum-box-browser",
   "version": "0.1.0",
+  "description": "A hardware-backed quantum game anthology for the browser.",
   "private": true,
   "type": "module",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/dougathlon/quantum-box.git"
+  },
+  "homepage": "https://dougathlon.github.io/quantum-box/",
   "scripts": {
     "dev": "vite --host 127.0.0.1 --port 4390 --strictPort",
     "build": "tsc -b && vite build",
@@ -25,9 +31,10 @@
     "check:pages": "node scripts/check-pages-artifact.mjs",
     "scan:artifact": "node scripts/scan-release.mjs",
     "scan:source": "node scripts/scan-public-source.mjs",
+    "check:docs": "node scripts/check-public-docs.mjs",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "check": "pnpm format:check && pnpm typecheck && pnpm test && pnpm test:moth && pnpm audit:visual && pnpm audit:assets && pnpm audit:qgraph-assets && pnpm audit:runtime-pixels && pnpm test:e2e:collect && pnpm build && pnpm check:pages && pnpm scan:artifact"
+    "check": "pnpm format:check && pnpm check:docs && pnpm typecheck && pnpm test && pnpm test:moth && pnpm audit:visual && pnpm audit:assets && pnpm audit:qgraph-assets && pnpm audit:runtime-pixels && pnpm test:e2e:collect && pnpm build && pnpm check:pages && pnpm scan:artifact"
   },
   "dependencies": {
     "ajv": "8.18.0",

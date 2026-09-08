@@ -1,6 +1,6 @@
 # Quantum Box design system v1
 
-**Status:** binding browser implementation contract, revised 2026-09-05
+**Status:** binding browser implementation contract, revised 2026-09-07
 **Logical screen:** 320 × 180  
 **Reference authority:** `docs/visual-reference-contract.md`
 
@@ -25,24 +25,25 @@ Screens preserve sparse peripheral counters and a clear central playfield. Text-
 - **Launch:** show only STORY, ARCADE, WORKSHOP, and SETTINGS as four quiet
   primary rows. Credits belongs under Settings. Do not place game thumbnails on
   the launch surface.
-- **Story and Arcade:** each is a separate five-cabinet selection screen for
+- **Story and Arcade:** each begins with a non-scrolling five-cabinet index for
   Qong, SkiPixl, Fluxball, Quantman, and Quarry, and both reuse the same
-  canonical preview marks. Enclose is not shipped. Story shows only preview,
+  canonical preview marks. Enclose is not shipped. Story shows preview,
   number, title, chapter status, and compact paired-stage progress. Arcade
-  shows only preview, title, and the launch modes
-  required to distinguish its playable formats. Neither selection surface
-  repeats its page heading. Arcade does not paint source subtitles, label a
-  mode-selection panel, or outline individual hit targets. Arcade authority
-  metadata remains in the accessible structure rather than becoming visible
-  diagnostic copy. Preview marks use only the three-colour palette.
+  shows preview, number, title, and `OPEN`; selecting a row opens that game’s
+  separate trial sheet. The sheet gives one premise plus `OBJECT`, `CONDITION`,
+  `CONTROLS`, and `SELECT TRIAL`, then the existing modes and score access.
+  Neither index repeats its page heading. Provider identifiers and dense
+  authority metadata remain in the accessible/source structure rather than
+  competing with first-play comprehension. Preview marks use only the
+  three-colour palette.
 - **Arcade labels:** describe the actual playable choice. Qong uses
   `PLAYER / CPU` and `PLAYER / PLAYER`; SkiPixl uses `EASY`, `MEDIUM`, and
-  `HARD`; Quantman uses `STABILIZE GAZE` and `INVERSE GAZE`; Fluxball uses
-  `2P GLOBAL`, `2P INDIVIDUAL`, `4P GLOBAL`, and `4P INDIVIDUAL`; and Quarry
-  exposes its supported human/CPU join flow. `LOCAL` is not a visible rule label because it ambiguously names
+  `HARD`; Quantman uses `HOLD` and `INVERT`; Fluxball uses `2P SHARED`,
+  `2P SPLIT`, `4P SHARED`, and `4P SPLIT`; and Quarry uses `1 PLAYER` through
+  `4 PLAYER`. `LOCAL` is not a visible rule label because it ambiguously names
   both same-device multiplayer and locally decoded rule variation. Every mode
-  target reserves the same logical height so short Fluxball labels cannot
-  trigger a larger bitmap-text scale.
+  target reserves the same logical height so short labels cannot trigger a
+  larger bitmap-text scale.
 - **SkiPixl:** use the compact seven-state runtime skier family derived from the
   posture, scale, and rotation logic of Atari _Skiing_ (1980) without copying
   its sprite. The earlier Candidate B sheet is historical development evidence,
@@ -57,13 +58,14 @@ Screens preserve sparse peripheral counters and a clear central playfield. Text-
   outgoing or final shared triplet. Do not add opaque rule cards or new colours.
 - **Quantman:** use continuous cream corridors, small fragments, the selected
   notched player, and signal ghosts without copying a protected maze or
-  character. Both modes render the 10×10/100-bit local synthetic control; the
-  preserved Moth remote-Aer preview is comparison evidence, not visual or
-  gameplay authority.
+  character. Both modes render intact admissible measured states from the
+  installed 10×10/100-bit IBM Fez Labyrinth corpus. The authored topology,
+  returned state, disclosed local filter, and parity-to-passage decoder remain
+  visually and semantically distinct.
 - **Quarry:** use the four silhouette-distinct duck families, directed relation
-  lines, open wraparound sides, and sparse arena architectures. Its QGraph-
-  compatible relationship schedule is a local synthetic model; do not visually
-  transfer Fluxball's IBM Fez provenance to it.
+  lines, open wraparound sides, and sparse arena architectures. Its relation
+  phases come from its own 24-record IBM Fez QGraph corpus. Do not visually or
+  semantically transfer Fluxball's separate 40-record QGraph provenance to it.
 - **Story:** the five chapters contain eight gameplay stages: Qong; SkiPixl
   Medium then Hard; Fluxball 2P Global then 4P Individual; Quantman Stabilize
   then Inverse; and Quarry. Morphs, doors, dismounts, and transports are shown
@@ -72,8 +74,12 @@ Screens preserve sparse peripheral counters and a clear central playfield. Text-
   cabin, and terminal grammar. The former four spatial tutorial rooms are
   legacy QA surfaces, not current Story destinations.
 - **Workshop and Settings:** retain the ordinary Brown Box menu frame. Workshop
-  contains four engine bays and no invented fifth row; Settings keeps stable
-  DISPLAY, FIELD, CONTROLS, and DATA sections and reveals one group at a time.
+  contains five Story records that unlock independently; the fifth Quarry
+  record reuses QGraph without pretending to be a fifth engine family. The
+  MOTH link remains gated by Quarry completion and appears within its final
+  Workshop/recovery material, never as an ungated menu shortcut. Settings
+  keeps stable DISPLAY, FIELD, CONTROLS, and DATA sections and reveals one
+  group at a time.
 
 Each mapping is tested with a served screenshot beside the exact reference. Similar palette alone is insufficient.
 
@@ -109,6 +115,18 @@ Each mapping is tested with a served screenshot beside the exact reference. Simi
 ## Typography and spacing
 
 - Uppercase monospace is the default machine voice.
+- Internal semantic text retains the established 3 by 5 raster face. The
+  renderer reserves at least one blank logical column between glyphs and
+  aligns complete lines to integer positions inside their measured bounds;
+  zero-spacing compression and clipped edge columns are invalid.
+- The photographed title alone uses the locally authored 5 by 7 uppercase
+  `five-by-seven-original-v1` raster. It adopts period character-generator
+  constraints without copying a proprietary terminal ROM or typeface. A
+  broader 7 by 9 or 10 by 10-cell internal redesign requires separate approval
+  and complete screen-by-screen reflow testing.
+- Player-facing explanatory copy uses the Professor’s concise trial-sheet
+  register: premise, object, condition, controls, then trial choice. It should
+  sound formal and operational, not antiquarian or faux-technical.
 - Major titles occupy roughly 9–12% of screen height; cabinet counters 8–11%; labels 2–4%.
 - Primary structure aligns to an eight-pixel logical rhythm; fine raster marks may use two-pixel increments.
 - Surface texture comes from the committed static field rather than an animated raster filter. Reduced-motion mode keeps the same field and disables title/display movement.
@@ -137,4 +155,7 @@ Each mapping is tested with a served screenshot beside the exact reference. Simi
 
 ## Exceptions
 
-The physical title is currently a reviewed raster asset behind a live accessible `PRESS START` control. It is isolated from the internal UI and may later be decomposed into device/table/screen layers without changing title-state behavior. No other approved reference is shipped as a static gameplay image.
+The physical title uses the reviewed photographed device/table layer, the live
+background programme inside the CRT mask, and locally drawn 5 by 7 title copy
+behind an accessible `PRESS START` control. It is isolated from the internal UI.
+No other approved reference is shipped as a static gameplay image.

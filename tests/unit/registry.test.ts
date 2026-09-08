@@ -10,6 +10,7 @@ import {
   isArcadeCabinetId,
   isShippedArcadeCabinetId,
   nextStoryStage,
+  ARCADE_CABINET_DEFINITIONS,
 } from "../../src/games/registry";
 
 describe("Quantum Box registry", () => {
@@ -52,5 +53,15 @@ describe("Quantum Box registry", () => {
     expect(nextStoryStage("fluxball-two")).toBe("fluxball-four");
     expect(nextStoryStage("quantman")).toBe("quarry");
     expect(nextStoryStage("quarry")).toBe("complete");
+  });
+
+  it("gives every Arcade cabinet one concise trial sheet", () => {
+    for (const gameId of ARCADE_CABINET_IDS) {
+      const brief = ARCADE_CABINET_DEFINITIONS[gameId].brief;
+      expect(brief.premise).toMatch(/\.$/);
+      expect(brief.object).toMatch(/\.$/);
+      expect(brief.condition).toMatch(/\.$/);
+      expect(brief.controls).toMatch(/\.$/);
+    }
   });
 });

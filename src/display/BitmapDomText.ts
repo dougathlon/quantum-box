@@ -40,10 +40,10 @@ export interface BitmapFocusCursorPlacement {
 
 export interface BitmapTextLayout {
   readonly pixel: 1 | 2;
-  readonly spacing: 0 | 1 | 2;
+  readonly spacing: 1 | 2;
 }
 
-/** Prefers larger glyphs, then tighter tracking, before allowing a label to wrap. */
+/** Prefers larger glyphs without ever collapsing adjacent letter cells together. */
 export function bitmapTextLayout(
   source: string,
   maxWidth: number,
@@ -56,18 +56,31 @@ export function bitmapTextLayout(
           { pixel: 2, spacing: 2 },
           { pixel: 2, spacing: 1 },
           { pixel: 1, spacing: 1 },
-          { pixel: 1, spacing: 0 },
         ]
-      : [
-          { pixel: 1, spacing: 1 },
-          { pixel: 1, spacing: 0 },
-        ];
+      : [{ pixel: 1, spacing: 1 }];
   return (
     candidates.find(
       ({ pixel, spacing }) =>
         pixelTextWidth(normalized, pixel, spacing) <= maxWidth,
     ) ?? candidates[candidates.length - 1]!
   );
+}
+
+export function bitmapTextLineLeft(
+  rectLeft: number,
+  rectRight: number,
+  lineWidth: number,
+  align: "left" | "center" | "right",
+): number {
+  const safeLeft = Math.max(0, Math.ceil(rectLeft));
+  const safeRight = Math.min(LOGICAL_WIDTH, Math.floor(rectRight));
+  const available = Math.max(0, safeRight - safeLeft);
+  if (lineWidth >= available) return safeLeft;
+  if (align === "right") return safeRight - lineWidth;
+  if (align === "center") {
+    return safeLeft + Math.floor((available - lineWidth) / 2);
+  }
+  return safeLeft;
 }
 
 /** Keeps the controller-ready focus marker outside the focused control. */
@@ -267,7 +280,9 @@ export class BitmapDomTextRenderer {
   ): void {
     const normalized = normalizePixelText(source);
     if (normalized.length === 0 || rect.width < 2 || rect.height < 2) return;
-    const roundedWidth = Math.max(1, Math.floor(rect.width));
+    const clipLeft = Math.max(0, Math.ceil(rect.left));
+    const clipRight = Math.min(LOGICAL_WIDTH, Math.floor(rect.right));
+    const roundedWidth = Math.max(1, clipRight - clipLeft);
     const { pixel, spacing } = bitmapTextLayout(
       normalized,
       roundedWidth,
@@ -303,32 +318,27 @@ export class BitmapDomTextRenderer {
         : style.textAlign === "right" || style.textAlign === "end"
           ? "right"
           : "left";
-    const x =
-      align === "center"
-        ? Math.round(rect.left + rect.width / 2)
-        : align === "right"
-          ? Math.round(rect.right)
-          : Math.round(rect.left);
-
     this.drawFocusCursor(owner);
 
     this.context.save();
     this.context.beginPath();
     this.context.rect(
-      Math.floor(rect.left),
+      clipLeft,
       Math.floor(rect.top),
-      Math.ceil(rect.width),
+      roundedWidth,
       Math.ceil(rect.height),
     );
     this.context.clip();
     lines.forEach((line, index) => {
+      const lineWidth = pixelTextWidth(line, pixel, spacing);
+      const x = bitmapTextLineLeft(rect.left, rect.right, lineWidth, align);
       drawCanvasPixelText(this.context, line, {
         x,
         y: top + index * lineHeight,
         pixel,
         colour: textColour(owner),
         spacing,
-        align,
+        align: "left",
       });
     });
     this.context.restore();

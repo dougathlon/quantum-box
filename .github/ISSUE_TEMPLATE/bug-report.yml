@@ -1,0 +1,72 @@
+name: Bug report
+description: Report a reproducible problem in the game or public build
+title: "[Bug] "
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Include the exact build and state. A screenshot without a URL, browser, and reproduction path is usually not enough to distinguish code, cache, save, input, or rendering failures.
+  - type: input
+    id: url
+    attributes:
+      label: Exact URL or commit
+      description: Include the full Pages/local URL and any build query string, or the commit SHA.
+      placeholder: https://dougathlon.github.io/quantum-box/?build=...
+    validations:
+      required: true
+  - type: input
+    id: environment
+    attributes:
+      label: Browser, operating system, and input
+      placeholder: Brave 1.x on macOS 15; keyboard
+    validations:
+      required: true
+  - type: dropdown
+    id: save
+    attributes:
+      label: Save state
+      options:
+        - Fresh or reset save
+        - Existing save
+        - Unknown
+    validations:
+      required: true
+  - type: input
+    id: surface
+    attributes:
+      label: Game, mode, or menu
+      placeholder: Fluxball / 4P Individual / round 2
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Reproduction steps
+      description: Start at page load and list each input or selection.
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual behavior
+    validations:
+      required: true
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Screenshot, recording, console output, or save detail
+      description: Drag files here. Remove credentials and private data first.
+  - type: checkboxes
+    id: boundaries
+    attributes:
+      label: Checks
+      options:
+        - label: I reproduced this after a full reload.
+        - label: I have not included credentials, private provider data, or signed URLs.
+          required: true

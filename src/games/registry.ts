@@ -109,6 +109,20 @@ export interface ArcadeCabinetDefinition {
   readonly arcadeModes: readonly string[];
   readonly sourceLabel: string;
   readonly bitmapSourceLabel: string;
+  readonly brief: ArcadeCabinetBrief;
+}
+
+/**
+ * Player-facing cabinet notes use the terse grammar of a laboratory trial:
+ * one premise, one objective, one governing condition, and the controls.
+ * Provider provenance remains in the source record instead of competing with
+ * first-play comprehension here.
+ */
+export interface ArcadeCabinetBrief {
+  readonly premise: string;
+  readonly object: string;
+  readonly condition: string;
+  readonly controls: string;
 }
 
 export const ARCADE_CABINET_DEFINITIONS = Object.freeze({
@@ -116,21 +130,49 @@ export const ARCADE_CABINET_DEFINITIONS = Object.freeze({
     ...GAME_DEFINITIONS.qong,
     sourceLabel: "MOTH COIN TOSS QPU BANK",
     bitmapSourceLabel: "QB-01 QPU COIN",
+    brief: {
+      premise: "A PADDLE MATCH WHOSE GOAL RULE IS UNRESOLVED.",
+      object: "WIN AT LEAST FOUR OF SEVEN ROUNDS.",
+      condition:
+        "A LINE CROSSING COUNTS AT THE FAR GOAL OR YOUR OWN. OBSERVE EARLY, OR LET THE CROSSING RESOLVE IT.",
+      controls: "P1 W / S. P2 UP / DOWN. SPACE OBSERVES.",
+    },
   },
   skipixl: {
     ...GAME_DEFINITIONS.skipixl,
     sourceLabel: "IBM FEZ QPIXL PACK",
     bitmapSourceLabel: "QB-02 IBM QPIXL",
+    brief: {
+      premise: "A DOWNHILL COURSE CUT FROM A RECORDED QPIXL FIELD.",
+      object: "REACH THE FINISH BEFORE THE LIMIT.",
+      condition: "PASS BETWEEN THE GATE FLAGS. MISSES AND COLLISIONS ADD TIME.",
+      controls: "LEFT / RIGHT CARVES. RELEASE TO CENTRE.",
+    },
   },
   fluxball: {
     ...GAME_DEFINITIONS.fluxball,
     sourceLabel: "QPU-FIRST RULE BANK",
     bitmapSourceLabel: "QB-03 QPU RULES",
+    brief: {
+      premise: "FOUR ROUNDS OF BALL PLAY. THE RULES MAY CHANGE.",
+      object: "LEAD ON ROUND WINS AFTER FOUR ROUNDS.",
+      condition:
+        "SHARED USES ONE RULE SET. SPLIT GIVES EACH PLAYER THEIR OWN. CHANGE RULES ONCE PER ROUND.",
+      controls:
+        "MOVE WITH YOUR PLAYER KEYS. ACTION CARRIES, KICKS, OR CHANGES RULES.",
+    },
   },
   quantman: {
     ...GAME_DEFINITIONS.quantman,
     sourceLabel: "IBM FEZ LABYRINTH BANK",
     bitmapSourceLabel: "QB-04 QPU MAZE",
+    brief: {
+      premise: "A MAZE THAT CHANGES WITH THE DIRECTION YOU LOOK.",
+      object: "CLEAR EVERY FRAGMENT BEFORE YOUR LIVES ARE SPENT.",
+      condition:
+        "HOLD KEEPS THE PASSAGE YOU FACE. INVERT FLIPS IT AFTER A STEADY LOOK.",
+      controls: "MOVE WITH DIRECTION KEYS. THE GAZE FOLLOWS YOUR FACING.",
+    },
   },
   quarry: {
     id: "quarry",
@@ -141,6 +183,13 @@ export const ARCADE_CABINET_DEFINITIONS = Object.freeze({
     arcadeModes: ["1 PLAYER", "2 PLAYER", "3 PLAYER", "4 PLAYER"],
     sourceLabel: "IBM FEZ QGRAPH BANK",
     bitmapSourceLabel: "QB-05 QPU QGRAPH",
+    brief: {
+      premise: "AN AERIAL HUNT. WHO HUNTS WHOM CHANGES WITH THE CLOCK.",
+      object: "WIN ROUNDS BY MAKING THE MOST CATCHES.",
+      condition:
+        "FOLLOW YOUR HUNT LINE AND STRIKE FROM ABOVE. CAUGHT DUCKS RETURN ELSEWHERE; RELATIONS CHANGE ON THE TIMER.",
+      controls: "LEFT / RIGHT MOVES. YOUR ACTION KEY FLAPS.",
+    },
   },
 } as const satisfies Readonly<
   Record<ShippedArcadeCabinetId, ArcadeCabinetDefinition>

@@ -8,10 +8,18 @@ async function openArcade(page: Page): Promise<void> {
   await page.getByRole("button", { name: "ARCADE", exact: true }).click();
 }
 
-function quarryCabinet(page: Page) {
-  return page.getByRole("region", { name: "QUARRY" }).getByRole("button", {
-    name: "1 PLAYER",
-  });
+function quarryIndexRow(page: Page) {
+  return page.locator(
+    '[data-action="open-arcade-cabinet"][data-game-id="quarry"]',
+  );
+}
+
+async function openQuarryCabinet(page: Page): Promise<void> {
+  await quarryIndexRow(page).click();
+  await page
+    .locator('[data-arcade-detail="quarry"]')
+    .getByRole("button", { name: "1 PLAYER" })
+    .click();
 }
 
 function recordProviderRequests(page: Page): string[] {
@@ -42,7 +50,7 @@ test("Quarry pauses, restarts, exits, leaves Story unchanged, and stays provider
     JSON.stringify(window.__QUANTUM_BOX_TEST__?.getSave()),
   );
 
-  await quarryCabinet(page).click();
+  await openQuarryCabinet(page);
   const region = page.getByRole("region", {
     name: "Quarry directed aerial hunt arena",
   });
@@ -73,9 +81,7 @@ test("Quarry pauses, restarts, exits, leaves Story unchanged, and stays provider
   await expect(region).toBeVisible();
   await region.getByRole("button", { name: "RETURN · ESC" }).click();
   await expect(region).toBeHidden();
-  await expect(
-    page.getByRole("heading", { name: "ARCADE", exact: true }),
-  ).toBeVisible();
+  await expect(page.locator('[data-arcade-detail="quarry"]')).toBeVisible();
 
   const saveAfter = await page.evaluate(() =>
     JSON.stringify(window.__QUANTUM_BOX_TEST__?.getSave()),
@@ -94,9 +100,9 @@ test("the shipped roster launches Quarry and rejects a stale Enclose launch", as
   const providerRequests = recordProviderRequests(page);
   await openArcade(page);
 
-  await expect(page.getByRole("region", { name: "QUARRY" })).toBeVisible();
-  await expect(page.getByRole("region", { name: "QUAG" })).toHaveCount(0);
-  await expect(page.getByRole("region", { name: "ENCLOSE" })).toHaveCount(0);
+  await expect(quarryIndexRow(page)).toBeVisible();
+  await expect(page.getByText("QUAG", { exact: true })).toHaveCount(0);
+  await expect(page.getByText("ENCLOSE", { exact: true })).toHaveCount(0);
   await expect(page.locator("[data-game-id='enclose']")).toHaveCount(0);
   await expect(page.locator("[data-cabinet='enclose']")).toHaveCount(0);
 
@@ -114,11 +120,9 @@ test("the shipped roster launches Quarry and rejects a stale Enclose launch", as
     "That legacy cabinet is not shipped in this build.",
   );
   await expect(page.locator("[data-ui='game']")).toBeHidden();
-  await expect(
-    page.getByRole("heading", { name: "ARCADE", exact: true }),
-  ).toBeVisible();
+  await expect(page.locator(".qb-cabinet-index")).toBeVisible();
 
-  await quarryCabinet(page).click();
+  await openQuarryCabinet(page);
   await expect(
     page.getByRole("region", {
       name: "Quarry directed aerial hunt arena",
@@ -135,7 +139,7 @@ test("Quarry introduces Player A and freezes its 60-second clock during orientat
     "Quarry first-contact framing needs one deterministic desktop execution.",
   );
   await openArcade(page);
-  await quarryCabinet(page).click();
+  await openQuarryCabinet(page);
   const region = page.getByRole("region", {
     name: "Quarry directed aerial hunt arena",
   });
@@ -166,35 +170,27 @@ test("Quarry introduces Player A and freezes its 60-second clock during orientat
   await expect(region.locator("[data-quag='controls']")).toBeHidden();
 });
 
-test("wheel and keyboard navigation reach the fifth Arcade cabinet", async ({
+test("all five Arcade cabinets fit and keyboard navigation reaches Quarry", async ({
   page,
 }, testInfo) => {
   test.skip(
     testInfo.project.name !== "desktop-1280x720",
-    "The scroll routes need one deterministic desktop execution.",
+    "The five-row route needs one deterministic desktop execution.",
   );
   await openArcade(page);
-  const list = page.locator("[data-scroll-list]");
-  const marker = page.locator("[data-scroll-position]");
-  await expect(marker).toBeVisible();
-  await expect(marker).toHaveAttribute("aria-hidden", "true");
-  await list.hover();
-  await page.mouse.wheel(0, 600);
-  await expect
-    .poll(() => list.evaluate((element) => element.scrollTop))
-    .toBeGreaterThan(0);
-  await expect(marker).toHaveAttribute("data-scroll-state", /middle|end/);
-  await expect(quarryCabinet(page)).toBeInViewport();
-
-  await page.reload();
-  await openArcade(page);
-  const firstCabinet = page
-    .getByRole("region", { name: "QONG" })
-    .getByRole("button", { name: "PLAYER / CPU" });
+  const list = page.locator(".qb-arcade-list");
+  const firstCabinet = page.locator(
+    '[data-action="open-arcade-cabinet"][data-game-id="qong"]',
+  );
   await expect(firstCabinet).toBeFocused();
-  for (let step = 0; step < 20; step += 1) {
+  await expect(page.locator("[data-scroll-position]")).toHaveCount(0);
+  await expect(quarryIndexRow(page)).toBeInViewport();
+  expect(await list.evaluate((element) => element.scrollHeight)).toBe(
+    await list.evaluate((element) => element.clientHeight),
+  );
+  for (let step = 0; step < 8; step += 1) {
     if (
-      await quarryCabinet(page).evaluate(
+      await quarryIndexRow(page).evaluate(
         (button) => document.activeElement === button,
       )
     ) {
@@ -202,8 +198,8 @@ test("wheel and keyboard navigation reach the fifth Arcade cabinet", async ({
     }
     await page.keyboard.press("ArrowDown");
   }
-  await expect(quarryCabinet(page)).toBeFocused();
-  await expect(quarryCabinet(page)).toBeInViewport();
+  await expect(quarryIndexRow(page)).toBeFocused();
+  await expect(quarryIndexRow(page)).toBeInViewport();
 });
 
 test("the Quarry cabinet miniature renders at exact integer scale", async ({
@@ -237,17 +233,17 @@ test("the Quarry cabinet miniature renders at exact integer scale", async ({
   ).toHaveCount(0);
 });
 
-test("native 320 by 180 touch scrolling reaches Quarry", async ({
+test("native 320 by 180 keeps all five Arcade cabinets on one screen", async ({
   browser,
 }, testInfo) => {
   test.skip(
     testInfo.project.name !== "desktop-1280x720",
-    "The native touch route creates its own 320 by 180 context once.",
+    "The native fit route creates its own 320 by 180 context once.",
   );
-  await verifyTouchScroll(browser);
+  await verifyNativeFit(browser);
 });
 
-async function verifyTouchScroll(browser: Browser): Promise<void> {
+async function verifyNativeFit(browser: Browser): Promise<void> {
   const context = await browser.newContext({
     hasTouch: true,
     viewport: { width: 320, height: 180 },
@@ -256,30 +252,11 @@ async function verifyTouchScroll(browser: Browser): Promise<void> {
   await page.goto(E2E_ORIGIN);
   await page.getByRole("button", { name: "PRESS START" }).click();
   await page.getByRole("button", { name: "ARCADE", exact: true }).click();
-  const list = page.locator("[data-scroll-list]");
-  const bounds = await list.boundingBox();
-  if (!bounds)
-    throw new Error("Arcade scroll list has no native-screen bounds.");
-  const client = await context.newCDPSession(page);
-  const x = bounds.x + bounds.width / 2;
-  const startY = bounds.y + bounds.height * 0.8;
-  const endY = bounds.y + bounds.height * 0.2;
-  await client.send("Input.dispatchTouchEvent", {
-    type: "touchStart",
-    touchPoints: [{ x, y: startY }],
-  });
-  await client.send("Input.dispatchTouchEvent", {
-    type: "touchMove",
-    touchPoints: [{ x, y: endY }],
-  });
-  await client.send("Input.dispatchTouchEvent", {
-    type: "touchEnd",
-    touchPoints: [],
-  });
-  await expect
-    .poll(() => list.evaluate((element) => element.scrollTop))
-    .toBeGreaterThan(0);
-  await expect(quarryCabinet(page)).toBeAttached();
-  await expect(page.getByRole("region", { name: "ENCLOSE" })).toHaveCount(0);
+  const list = page.locator(".qb-arcade-list");
+  await expect(quarryIndexRow(page)).toBeInViewport();
+  expect(await list.evaluate((element) => element.scrollHeight)).toBe(
+    await list.evaluate((element) => element.clientHeight),
+  );
+  await expect(page.getByText("ENCLOSE", { exact: true })).toHaveCount(0);
   await context.close();
 }

@@ -77,7 +77,12 @@ test("keyboard held action changes each cabinet and keyup applies cabinet releas
     },
   ] as const) {
     await page
-      .locator(`section[aria-labelledby='arcade-${cabinet.gameId}']`)
+      .locator(
+        `[data-action="open-arcade-cabinet"][data-game-id="${cabinet.gameId}"]`,
+      )
+      .click();
+    await page
+      .locator(`[data-arcade-detail="${cabinet.gameId}"]`)
       .getByRole("button", { name: cabinet.launch, exact: true })
       .click();
     if (cabinet.gameId === "fluxball") {
@@ -167,6 +172,7 @@ test("keyboard held action changes each cabinet and keyup applies cabinet releas
     );
     await region.getByRole("button", { name: "RETURN · ESC" }).click();
     await expect(region).toBeHidden();
+    await page.getByRole("button", { name: "RETURN · ESC" }).click();
   }
 
   expect(externalRequests).toEqual([]);

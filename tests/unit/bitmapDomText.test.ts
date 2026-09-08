@@ -5,6 +5,7 @@ import {
   auditBitmapCanvasPixels,
   BITMAP_DOM_TEXT_CONTRACT,
   bitmapFocusCursorPlacement,
+  bitmapTextLineLeft,
   bitmapTextLayout,
   wrapBitmapText,
 } from "../../src/display/BitmapDomText";
@@ -89,19 +90,25 @@ describe("semantic DOM bitmap mirror", () => {
     ]);
   });
 
-  it("tightens bitmap tracking before truncating explicit single-line labels", () => {
-    expect(bitmapTextLayout("SCORE", 18, 8)).toEqual({
+  it("retains a blank column between letters instead of compressing labels", () => {
+    expect(bitmapTextLayout("SCORE", 19, 8)).toEqual({
       pixel: 1,
-      spacing: 0,
+      spacing: 1,
     });
-    expect(bitmapTextLayout("TUTORIAL", 30, 8)).toEqual({
+    expect(bitmapTextLayout("TUTORIAL", 31, 8)).toEqual({
       pixel: 1,
-      spacing: 0,
+      spacing: 1,
     });
-    const scoreLayout = bitmapTextLayout("SCORE", 18, 8);
+    const scoreLayout = bitmapTextLayout("SCORE", 19, 8);
     expect(
-      wrapBitmapText("SCORE", 18, scoreLayout.pixel, scoreLayout.spacing, 1),
+      wrapBitmapText("SCORE", 19, scoreLayout.pixel, scoreLayout.spacing, 1),
     ).toEqual(["SCORE"]);
+  });
+
+  it("places complete aligned lines inside integer clip boundaries", () => {
+    expect(bitmapTextLineLeft(12.2, 42.8, 19, "left")).toBe(13);
+    expect(bitmapTextLineLeft(12.2, 42.8, 19, "center")).toBe(18);
+    expect(bitmapTextLineLeft(12.2, 42.8, 19, "right")).toBe(23);
   });
 
   it("publishes an explicit-label fit audit on the bitmap plane", () => {

@@ -159,7 +159,16 @@ describe("Brown Box internal visual contract", () => {
     expect(brownBoxCss).toContain("-webkit-text-fill-color: transparent");
   });
 
-  it("keeps Arcade labels player-facing and all launch rows at one bitmap scale", () => {
+  it("separates the five-cabinet Arcade index from each game's trial sheet", () => {
+    expect(shellSource).toContain('data-action="open-arcade-cabinet"');
+    expect(shellSource).toContain('class="qb-page-panel qb-arcade-detail');
+    expect(shellSource).toContain("OBJECT");
+    expect(shellSource).toContain("CONDITION");
+    expect(shellSource).toContain("CONTROLS");
+    expect(shellSource).toContain("SELECT TRIAL");
+    expect(brownBoxCss).toContain(
+      "grid-template-rows: repeat(5, minmax(0, 1fr))",
+    );
     for (const label of [
       '"HUMAN / CPU": "PLAYER / CPU"',
       '"LOCAL TWO PLAYER": "PLAYER / PLAYER"',
@@ -169,7 +178,7 @@ describe("Brown Box internal visual contract", () => {
       expect(shellSource).toContain(label);
     }
     expect(shellSource).not.toContain('"2 PLAYER / INDIVIDUAL": "2P LOCAL"');
-    expect(brownBoxCss).toContain("grid-template-rows: repeat(2, 6cqh)");
+    expect(shellSource).toContain('data-bitmap-text="SCORES"');
     expect(shellSource).not.toContain("data-quantman-topology");
     expect(brownBoxCss).not.toContain(".qb-quantman-course");
   });
@@ -182,7 +191,7 @@ describe("Brown Box internal visual contract", () => {
       '<header><h1 tabindex="-1">STORY</h1></header>',
     );
     expect(brownBoxCss).toContain(
-      "grid-template-columns: 10cqw 6cqw minmax(0, 1fr) 15cqw",
+      "grid-template-columns: 13cqw 6cqw minmax(0, 1fr) 15cqw",
     );
     expect(brownBoxCss).toContain("width: 15cqw");
     expect(shellSource).toContain('data-bitmap-text="${statusText}"');

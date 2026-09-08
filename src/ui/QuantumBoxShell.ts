@@ -14,6 +14,7 @@ import {
   STORY_CHAPTER_IDS,
   STORY_SEQUENCE,
   isArcadeCabinetId,
+  isShippedArcadeCabinetId,
 } from "../games/registry";
 import type { QuantumBoxSave, QuantumBoxSettings } from "../save/types";
 import {
@@ -112,6 +113,7 @@ export type ShellPage =
   | "story-brief"
   | "help"
   | "arcade"
+  | "arcade-detail"
   | "scores"
   | "workshop"
   | "formula"
@@ -169,6 +171,7 @@ const PAGE_TITLES: Readonly<Record<ShellPage, string>> = {
   "story-brief": "STORY",
   help: "TUTORIAL",
   arcade: "ARCADE",
+  "arcade-detail": "ARCADE",
   scores: "SCORES",
   workshop: "WORKSHOP",
   formula: "FORMULA",
@@ -227,6 +230,7 @@ export class QuantumBoxShell {
     context: "arcade" | "story-loss";
   }> | null = null;
   private arcadeScoreboard: ArcadeScoreboardRequest | null = null;
+  private selectedArcadeCabinet: ShippedArcadeCabinetId | null = null;
   private fluxballLobbyOpen = false;
   private backgroundActivationGeneration = 0;
   private pendingBinding: {
@@ -284,10 +288,6 @@ export class QuantumBoxShell {
     this.shell.style.setProperty(
       "--qb-title-device",
       `url(${JSON.stringify(titleAssets.device)})`,
-    );
-    this.shell.style.setProperty(
-      "--qb-title-copy-layer",
-      `url(${JSON.stringify(titleAssets.sharpLocalLayer)})`,
     );
     this.shell.dataset["reducedMotion"] = String(
       initialSave.settings.reducedMotion,
@@ -368,6 +368,7 @@ export class QuantumBoxShell {
     if (!this.entered || this.cabinetActive) return;
     this.status.textContent = "";
     this.storyUnavailableMessage = null;
+    if (page === "arcade") this.selectedArcadeCabinet = null;
     if (page !== "help") this.gameHelp = null;
     if (page !== "interlude") this.storyWalkMachine = null;
     if (page !== "scores") this.arcadeScoreboard = null;
@@ -401,8 +402,9 @@ export class QuantumBoxShell {
   ): void {
     if (!this.entered || this.cabinetActive) return;
     this.fluxballLobbyOpen = true;
-    this.page = "arcade";
-    this.shell.dataset["page"] = "arcade";
+    this.selectedArcadeCabinet = "fluxball";
+    this.page = "arcade-detail";
+    this.shell.dataset["page"] = "arcade-detail";
     this.pageRoot.innerHTML = fluxballLobbyMarkup(
       format,
       humanPlayerIds,
@@ -521,11 +523,11 @@ export class QuantumBoxShell {
     if (this.page === "main") this.returnToTitle();
     else if (this.page === "story-brief") this.showPage("story");
     else if (this.page === "help") {
-      const destination =
-        this.gameHelp?.context === "arcade" ? "arcade" : "story";
-      this.showPage(destination);
+      if (this.gameHelp?.context === "arcade") this.returnFromArcadeSubpage();
+      else this.showPage("story");
     } else if (this.page === "formula") this.showPage("workshop");
-    else if (this.page === "scores") this.showPage("arcade");
+    else if (this.page === "scores") this.returnFromArcadeSubpage();
+    else if (this.page === "arcade-detail") this.showPage("arcade");
     else if (this.page === "developer" || this.page === "credits") {
       this.showPage("settings");
     } else if (this.page === "interlude") {
@@ -534,6 +536,11 @@ export class QuantumBoxShell {
       this.actions.onStoryPresentationExited();
       this.showPage("story");
     } else this.showPage("main");
+  }
+
+  private returnFromArcadeSubpage(): void {
+    if (this.selectedArcadeCabinet) this.showPage("arcade-detail");
+    else this.showPage("arcade");
   }
 
   public updateSave(save: QuantumBoxSave): void {
@@ -561,6 +568,7 @@ export class QuantumBoxShell {
     this.storyUnavailableMessage = null;
     this.gameHelp = null;
     this.arcadeScoreboard = null;
+    this.selectedArcadeCabinet = null;
     this.fluxballLobbyOpen = false;
     this.pendingBinding = null;
     this.page = "main";
@@ -1062,6 +1070,7 @@ export class QuantumBoxShell {
       this.storyUnavailableMessage,
       this.gameHelp,
       this.arcadeScoreboard,
+      this.selectedArcadeCabinet,
       this.settingsSection,
       this.settingsPlayerId,
     );
@@ -1081,20 +1090,22 @@ export class QuantumBoxShell {
         this.page === "main"
           ? "button[data-page='arcade']"
           : this.page === "arcade"
-            ? "button[data-action='launch-arcade']"
-            : this.page === "scores"
-              ? this.arcadeScoreboard?.initialsEditable
-                ? "[data-arcade-score-initials]"
-                : "button[data-action='close-arcade-scores']"
-              : this.page === "story"
-                ? "button[data-action='launch-story']"
-                : this.page === "help"
-                  ? "button[data-action='help-continue']"
-                  : this.page === "interlude" && this.storyWalkMachine
-                    ? "[data-story-walk-room]"
-                    : this.storyUnavailableMessage
-                      ? "button[data-page='arcade']"
-                      : "h1";
+            ? "button[data-action='open-arcade-cabinet']"
+            : this.page === "arcade-detail"
+              ? "button[data-action='launch-arcade']"
+              : this.page === "scores"
+                ? this.arcadeScoreboard?.initialsEditable
+                  ? "[data-arcade-score-initials]"
+                  : "button[data-action='close-arcade-scores']"
+                : this.page === "story"
+                  ? "button[data-action='launch-story']"
+                  : this.page === "help"
+                    ? "button[data-action='help-continue']"
+                    : this.page === "interlude" && this.storyWalkMachine
+                      ? "[data-story-walk-room]"
+                      : this.storyUnavailableMessage
+                        ? "button[data-page='arcade']"
+                        : "h1";
       const target = this.pageRoot.querySelector<HTMLElement>(selector);
       target?.focus();
       target?.scrollIntoView({ block: "nearest" });
@@ -1206,6 +1217,12 @@ export class QuantumBoxShell {
         this.selectedFormula = gameId;
         this.showPage("formula");
       }
+    } else if (action === "open-arcade-cabinet") {
+      const gameId = button.dataset["gameId"];
+      if (isShippedArcadeCabinetId(gameId)) {
+        this.selectedArcadeCabinet = gameId;
+        this.showPage("arcade-detail");
+      }
     } else if (action === "launch-arcade") {
       const gameId = button.dataset["gameId"];
       const mode = button.dataset["mode"];
@@ -1238,7 +1255,7 @@ export class QuantumBoxShell {
         });
       }
     } else if (action === "close-arcade-scores") {
-      this.showPage("arcade");
+      this.returnFromArcadeSubpage();
     } else if (action === "how-to-play") {
       const gameId = button.dataset["gameId"];
       if (gameId === "qong" || gameId === "fluxball") {
@@ -1249,7 +1266,7 @@ export class QuantumBoxShell {
       }
     } else if (action === "help-continue" && this.gameHelp) {
       const help = this.gameHelp;
-      if (help.context === "arcade") this.showPage("arcade");
+      if (help.context === "arcade") this.returnFromArcadeSubpage();
       else this.actions.onFirstLossHelpContinue(help.gameId);
     } else if (action === "export-save") this.actions.onExportSave();
     else if (action === "lobby-toggle") {
@@ -1399,7 +1416,7 @@ export class QuantumBoxShell {
       event.stopPropagation();
       if (event.code === "Escape") {
         event.preventDefault();
-        this.showPage("arcade");
+        this.returnFromArcadeSubpage();
       }
       return;
     }
@@ -1711,6 +1728,7 @@ function pageMarkup(
     context: "arcade" | "story-loss";
   }> | null,
   arcadeScoreboard: ArcadeScoreboardRequest | null,
+  selectedArcadeCabinet: ShippedArcadeCabinetId | null,
   settingsSection: SettingsSection,
   settingsPlayerId: PlayerId,
 ): string {
@@ -1734,7 +1752,11 @@ function pageMarkup(
         ? howToPlayMarkup(gameHelp.gameId, gameHelp.context)
         : storySelectionMarkup(save);
     case "arcade":
-      return `<div class="qb-page-panel qb-arcade-library"><h1 class="qb-visually-hidden" tabindex="-1">ARCADE</h1><p class="qb-visually-hidden">All channels open. Arcade runs do not grant Story authority.</p><div class="qb-arcade-list" data-scroll-list>${ARCADE_CABINET_IDS.map((id) => arcadeGameMarkup(id, save)).join("")}</div>${scrollPositionMarkup()}</div>`;
+      return arcadeSelectionMarkup();
+    case "arcade-detail":
+      return selectedArcadeCabinet
+        ? arcadeGameMarkup(selectedArcadeCabinet)
+        : arcadeSelectionMarkup();
     case "scores":
       return arcadeScoreboard
         ? arcadeScoreboardPageMarkup(arcadeScoreboard, save)
@@ -1789,7 +1811,16 @@ function howToPlayMarkup(
 }
 
 function storySelectionMarkup(save: QuantumBoxSave): string {
-  return `<div class="qb-page-panel qb-story-select"><h1 class="qb-visually-hidden" tabindex="-1">STORY</h1><div class="qb-story-select-list" data-scroll-list>${STORY_CHAPTER_IDS.map((chapterId) => storySelectionRow(chapterId, save)).join("")}</div>${scrollPositionMarkup()}</div>`;
+  return `<div class="qb-page-panel qb-story-select"><h1 class="qb-visually-hidden" tabindex="-1">STORY</h1><div class="qb-story-select-list">${STORY_CHAPTER_IDS.map((chapterId) => storySelectionRow(chapterId, save)).join("")}</div></div>`;
+}
+
+function arcadeSelectionMarkup(): string {
+  return `<div class="qb-page-panel qb-arcade-library qb-cabinet-index"><h1 class="qb-visually-hidden" tabindex="-1">ARCADE</h1><p class="qb-visually-hidden">Choose one of five cabinets. Each cabinet opens a separate trial sheet before play.</p><div class="qb-arcade-list">${ARCADE_CABINET_IDS.map(arcadeSelectionRow).join("")}</div></div>`;
+}
+
+function arcadeSelectionRow(gameId: ShippedArcadeCabinetId): string {
+  const game = ARCADE_CABINET_DEFINITIONS[gameId];
+  return `<button class="qb-arcade-select-row" type="button" data-action="open-arcade-cabinet" data-game-id="${gameId}" aria-label="${escapeHtml(game.title)} · OPEN">${arcadePreview(gameId)}<span class="qb-arcade-select-number">${game.model.slice(-2)}</span><strong>${escapeHtml(game.title)}</strong><span class="qb-arcade-select-status">OPEN</span></button>`;
 }
 
 function storyV2PresentationMarkup(
@@ -2124,16 +2155,9 @@ export function storySelectionForGame(
   return storySelectionForChapter(gameId, save);
 }
 
-function arcadeGameMarkup(
-  gameId: ShippedArcadeCabinetId,
-  save: QuantumBoxSave,
-): string {
+function arcadeGameMarkup(gameId: ShippedArcadeCabinetId): string {
   const game = ARCADE_CABINET_DEFINITIONS[gameId];
-  const hasTutorial = gameId === "qong" || gameId === "fluxball";
-  const help = hasTutorial
-    ? `<button class="qb-arcade-help" type="button" data-action="how-to-play" data-game-id="${gameId}" data-bitmap-text="TUTORIAL">TUTORIAL</button>`
-    : `<span class="qb-arcade-help qb-arcade-help--unavailable" aria-disabled="true" data-bitmap-text="TUTORIAL">TUTORIAL</span>`;
-  return `<section class="qb-arcade-game qb-arcade-game--${gameId}" aria-labelledby="arcade-${gameId}" aria-describedby="arcade-${gameId}-source"><div class="qb-arcade-identity">${arcadePreview(gameId)}<h2 id="arcade-${gameId}">${game.title}</h2><span class="qb-visually-hidden" id="arcade-${gameId}-source">${game.model} · ${game.sourceLabel}</span>${help}</div><div class="qb-arcade-play"><div class="qb-arcade-launches">${game.arcadeModes
+  return `<section class="qb-page-panel qb-arcade-detail qb-arcade-detail--${gameId}" data-arcade-detail="${gameId}" aria-labelledby="arcade-${gameId}" aria-describedby="arcade-${gameId}-source"><header class="qb-arcade-detail-header">${arcadePreview(gameId)}<div><p class="qb-kicker">${escapeHtml(game.model)} · TRIAL SHEET</p><h1 id="arcade-${gameId}" tabindex="-1">${escapeHtml(game.title)}</h1><p>${escapeHtml(game.brief.premise)}</p></div></header><dl class="qb-arcade-brief"><div><dt>OBJECT</dt><dd>${escapeHtml(game.brief.object)}</dd></div><div><dt>CONDITION</dt><dd>${escapeHtml(game.brief.condition)}</dd></div><div><dt>CONTROLS</dt><dd>${escapeHtml(game.brief.controls)}</dd></div></dl><section class="qb-arcade-trials" aria-label="${escapeHtml(game.title)} trials"><h2>SELECT TRIAL</h2><div class="qb-arcade-launches">${game.arcadeModes
     .map((mode, index) => {
       const label = arcadeModeLabel(mode);
       const placement = arcadeModePlacement(gameId, index);
@@ -2149,7 +2173,9 @@ function arcadeGameMarkup(
         .join(" ");
       return `<span class="${classes}"><button type="button" data-action="launch-arcade" data-game-id="${game.id}" data-mode="${escapeHtml(mode)}" data-bitmap-text="${label}">${label}</button>${scoreboard}</span>`;
     })
-    .join("")}</div></div></section>`;
+    .join(
+      "",
+    )}</div></section><span class="qb-visually-hidden" id="arcade-${gameId}-source">${escapeHtml(game.model)} · ${escapeHtml(game.sourceLabel)}</span></section>`;
 }
 
 function arcadeModePlacement(
@@ -2166,7 +2192,7 @@ function arcadeModePlacement(
   return Object.freeze({
     column: (index + 1) as 1 | 2 | 3,
     row: 1,
-    span: gameId === "qong" && index === 1 ? 2 : 1,
+    span: 1,
   });
 }
 
@@ -2176,7 +2202,7 @@ function arcadeScoreboardMarkup(
 ): string {
   if (gameId !== "skipixl" && gameId !== "quantman") return "";
   requireArcadeScoreboardMode(gameId, mode);
-  return `<button class="qb-arcade-scores" type="button" data-action="open-arcade-scores" data-game-id="${gameId}" data-mode="${escapeHtml(mode)}" data-bitmap-text="SCORE">SCORE</button>`;
+  return `<button class="qb-arcade-scores" type="button" data-action="open-arcade-scores" data-game-id="${gameId}" data-mode="${escapeHtml(mode)}" data-bitmap-text="SCORES">SCORES</button>`;
 }
 
 function arcadeScoreboardPageMarkup(
@@ -2601,6 +2627,7 @@ function isShellPage(value: string | undefined): value is ShellPage {
     value === "story" ||
     value === "story-brief" ||
     value === "arcade" ||
+    value === "arcade-detail" ||
     value === "scores" ||
     value === "workshop" ||
     value === "formula" ||

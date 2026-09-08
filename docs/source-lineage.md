@@ -1,6 +1,6 @@
 # Source lineage and preservation boundaries
 
-**Recorded:** 2026-08-23; demo-release source cutoff revised 2026-09-06.
+**Recorded:** 2026-08-23; demo-release presentation record revised 2026-09-07.
 See `demo-release-contract.md` for the current player-flow and publication
 contract; older QA notes remain historical observations.
 
@@ -20,18 +20,25 @@ The six recovered direction files remain read-only under
 
 The physical title source is shipped through the decomposed layers in
 `src/assets/brown-box/`: `title-formica-device.png`,
-`title-b3-s3-screen-layer.png`, and `title-sharp-local-layer.png`. The RGB
-values in `title-b3-s3-screen-layer.png` are not rendered; its reviewed
-binary-alpha silhouette is used only as the photographed CRT mask.
+`title-b3-s3-screen-layer.png`, and the preserved
+`title-sharp-local-layer.png`. The RGB values in
+`title-b3-s3-screen-layer.png` are not rendered; its reviewed binary-alpha
+silhouette is used only as the photographed CRT mask.
 `BrownBoxTitleField` maps the same four native 320 × 180 endpoints and the same
 hard 22.8-second replacement schedule used by the internal display into that
 mask. The title CRT is a cropped window onto that field at the internal
 foreground's exact integer pixel scale; it does not resize the complete field
-to fit the photographed screen. No title-only field derivative, enlarged-cell
-substitute, provider return, or new hardware result is introduced. This
-photographic room/device composition is the sole approved exception to the
-internal three-colour display. The other five files are historical design
-references, not production sprites or evidence that the games exist.
+to fit the photographed screen. Runtime `QUANTUM BOX` and `PRESS START` copy is
+now a locally authored 5 by 7 uppercase raster drawn by
+`src/display/TitleLettering.ts`; it follows period matrix constraints but does
+not copy a DEC, IBM, HP, OCR-B, or other proprietary glyph set. The old
+`title-sharp-local-layer.png` remains byte-preserved and manifested as
+historical presentation evidence, but its copy pixels are no longer a runtime
+layer. No title-only field derivative, enlarged-cell substitute, provider
+return, or new hardware result is introduced. This photographic room/device
+composition is the sole approved exception to the internal three-colour
+display. The other five files are historical design references, not production
+sprites or evidence that the games exist.
 
 The reviewed source package is
 `drafts/visual-development/quantum-box/core-asset-language-v1/`; the immutable

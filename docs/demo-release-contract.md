@@ -1,8 +1,8 @@
 # Quantum Box MOTH demo release contract
 
-**Status:** canonical implementation contract, accepted 2026-09-06
+**Status:** canonical implementation contract, presentation revision 2026-09-07
 
-**Source:** `qbox/main-game@28deff7fe80244cacdf2ada7f1d8423c2126fb44`
+**Canonical baseline:** `qbox/main-game@28deff7fe80244cacdf2ada7f1d8423c2126fb44`
 
 **Release branch:** `qbox/demo-release`
 
@@ -13,8 +13,11 @@ acceptance claims.
 
 ## Product and narrative decisions
 
-- The main-menu Workshop row remains visible but locked. Story office and
-  terminal scenes remain available at the appropriate post-game transitions.
+- The main-menu Workshop is always selectable and presents five records. Each
+  record remains unrecovered until its corresponding Story chapter supplies
+  qualified evidence. The MOTH platform link remains gated by Quarry completion
+  and appears within Quarry's final Workshop/recovery material, never as an
+  ungated menu shortcut.
 - The Designer received access to MOTH and experimented with its engines. He
   did not invent MOTH, its engines, or the provider hardware.
 - Stored provider returns are selected before play. No screen may describe
@@ -90,6 +93,14 @@ hardware executions of one topology do not constitute additional maze levels.
 
 ## Shared presentation and publication
 
+- Story and Arcade use parallel five-cabinet indexes. Arcade selection opens a
+  separate game-specific trial sheet before its existing modes and score boards;
+  this routing changes explanation hierarchy, not gameplay or provider
+  authority.
+- Internal text retains the established 3 by 5 bitmap face with at least one
+  blank logical tracking column. The photographed title alone uses the locally
+  authored 5 by 7 raster recorded in the lettering research note. No
+  proprietary character ROM or wholesale typography replacement is shipped.
 - The existing default background programme and bytes remain unchanged. Its
   visible label is `STANDARD`, replacing only `CURRENT`. Adaptive programmes
   retain their recorded whole-field evolution and individual timing contracts.

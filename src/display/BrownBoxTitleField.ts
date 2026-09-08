@@ -13,6 +13,7 @@ import {
   resolveBrownBoxViewportFieldLayout,
   type BrownBoxViewportFieldAsset,
 } from "./BrownBoxViewportField";
+import { drawTitleLettering, TITLE_LETTERING_CONTRACT } from "./TitleLettering";
 
 export interface BrownBoxTitleScreenBounds {
   readonly x: number;
@@ -346,8 +347,16 @@ export class BrownBoxTitleField implements BrownBoxBackgroundProgrammeTarget {
     );
     this.context.globalCompositeOperation = "source-over";
 
+    drawTitleLettering(
+      this.context,
+      layout.assetX,
+      layout.assetY,
+      layout.assetWidth / TITLE_LETTERING_CONTRACT.viewBox.width,
+    );
+
     this.canvas.dataset["fieldBoundary"] = String(boundaryWidth);
     this.canvas.dataset["fieldPixelScale"] = String(layout.pixelScale);
+    this.canvas.dataset["titleLettering"] = TITLE_LETTERING_CONTRACT.raster;
   }
 
   private drawEndpoint(

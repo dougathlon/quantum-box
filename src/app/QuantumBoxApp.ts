@@ -2452,7 +2452,7 @@ export class QuantumBoxApp {
       this.shell.showPage("story");
       this.audio.setMenuMusic(true);
       this.shell.announce(
-        "Story complete. The final Story sequence provides the user-initiated MOTH platform link; the main-menu Workshop remains locked.",
+        "Story complete. All five Workshop records are recovered; the Quarry record contains the user-initiated MOTH platform link.",
       );
       return;
     }

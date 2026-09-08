@@ -44,6 +44,7 @@ describe("physical title field presentation", () => {
       'this.context.globalCompositeOperation = "destination-in"',
     );
     expect(titleFieldSource).toContain("this.context.clip()");
+    expect(titleFieldSource).toContain("drawTitleLettering(");
     expect(titleFieldSource).not.toMatch(/gradient|blur|opacity/i);
   });
 

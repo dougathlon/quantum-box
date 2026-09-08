@@ -29,10 +29,11 @@ responsibilities, not separate controller classes:
   the ending.
 - Arcade flow starts any cabinet from the all-open library and never writes
   Story progression or formula recovery.
-- The main-menu Workshop row is a visible locked destination. Story-owned
-  office and terminal scenes read validated source-specific recovery records;
-  they cannot contact Moth, retroactively qualify a run, or grant progress from
-  an Arcade score.
+- The main-menu Workshop is always selectable. Its five records begin
+  unrecovered and unlock only from their corresponding Story chapters.
+  Story-owned office and terminal scenes read validated source-specific
+  recovery records; neither Workshop nor those scenes can contact Moth,
+  retroactively qualify a run, or grant progress from an Arcade score.
 - Every flow constructs the same cabinet-specific session from a frozen
   `RunContext`; Story and Arcade do not fork the simulation rules.
 - Player-facing `RETRY` creates a fresh run. Deterministic replay tapes remain
@@ -167,7 +168,8 @@ The anthology CPU is not the standalone privileged controller. `FluxballCpuPolic
 
 ## Quantman completion and information boundary
 
-The shipped Quantman game has two modes, `STABILIZE GAZE` and `INVERSE GAZE`,
+The shipped Quantman game has two internal mechanics, `STABILIZE GAZE` and
+`INVERSE GAZE`, exposed in Arcade as `HOLD` and `INVERT`,
 over an incrementally extensible bank of 10×10/100-bit Moth Labyrinth returns
 from IBM Fez. The current corpus contains seven distinct authored maze
 topologies and eight independent 4,096-shot hardware captures: the original
@@ -182,26 +184,29 @@ admissible-state index by testing intact measured bitstrings against documented
 spawn, objective, connectivity, screen-clearance, and two-mode requirements.
 The browser samples by the original returned weights only within that admitted
 set; it never repairs or fabricates bits or walls. A fixture with no admissible
-state remains acquisition evidence but is not gameplay authority. Arcade lets
-the player choose one distinct topology, or choose the seed-driven random
-course option; the run seed then chooses a capture beneath that topology.
-Story assigns its Quantman stages successive topologies in stable course order
-and cycles only if future Story progression exceeds the available corpus. It
-never exposes a course selector or writes a high score. The local decoder maps
-equal endpoint bits to an open passage and unequal endpoint bits to a wall. The
+state remains acquisition evidence but is not gameplay authority. Neither
+Story nor Arcade exposes a course selector. Each advances automatically through
+the distinct topology order; the run seed then chooses a capture beneath the
+selected topology. Story cycles only if future progression exceeds the
+available corpus and never writes a high score. Arcade retains course identity
+inside its mode scoreboard and run provenance. The local decoder maps equal
+endpoint bits to an open passage and unequal endpoint bits to a wall. The
 terminal keeps topology input, provider return, filtering, and local game
 mapping distinct. Active play remains provider-free and does not imply live
 QPU execution.
 
 ## Workshop disclosure
 
-The main-menu Workshop row remains visible but locked and non-launchable. It is
-not reachable by pointer, keyboard activation, a stale route, or restored save
-state. Story office and terminal sequences remain accessible. Their recovered
-formulae descend through visible game behavior, local classical decoder,
-returned engine artifact/result, submitted input, evidenced engine operation,
-source hashes and warnings, and fiction. A missing layer is shown as missing;
-the UI does not invent an acquisition to complete the pattern.
+The main-menu Workshop is reachable by pointer and keyboard from the beginning.
+It contains five Story records: Qong, SkiPixl, Fluxball, Quantman, and Quarry.
+Each remains `UNRECOVERED` until its corresponding Story chapter supplies
+qualified evidence. A recovered record descends through visible game behavior,
+local classical decoder, returned engine artifact/result, submitted input,
+evidenced engine operation, source hashes and warnings, and fiction. The MOTH
+platform link remains gated by Quarry completion and is presented within its
+final Workshop/recovery material rather than as an ungated menu shortcut. A
+missing layer is shown as missing; the UI does not invent an acquisition to
+complete the pattern.
 
 The Designer is an experimenter who received an opaque key and access to MOTH,
 not the inventor of MOTH or its engines. His office terminal explains what he

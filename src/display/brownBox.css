@@ -53,7 +53,7 @@
 }
 
 .qb-title-layer--copy {
-  background-image: var(--qb-title-copy-layer);
+  background-image: none;
   image-rendering: pixelated;
 }
 
@@ -3405,6 +3405,255 @@
   color: var(--qb-muted-tan);
   font-size: 1.25cqw;
   line-height: 1.35;
+}
+
+/*
+ * Cabinet index and trial sheets. The index deliberately shares Story's
+ * five-row grammar; explanations and mode choices live on the next screen so
+ * neither labels nor icons need to compete for a single narrow row.
+ */
+.qb-story-select-list,
+.qb-cabinet-index .qb-arcade-list {
+  display: grid;
+  grid-template-rows: repeat(5, minmax(0, 1fr));
+  grid-auto-rows: unset;
+  gap: 0;
+  min-height: 0;
+  overflow: hidden;
+  scroll-snap-type: none;
+}
+
+.qb-story-select-row,
+.qb-arcade-select-row {
+  display: grid;
+  grid-template-columns: 13cqw 6cqw minmax(0, 1fr) 15cqw;
+  align-items: center;
+  gap: 1.5cqw;
+  min-width: 0;
+  min-height: 0;
+  border: 0;
+  border-bottom: 1px solid var(--qb-cream);
+  padding: 0.35cqh 1cqw;
+  color: var(--qb-cream);
+  background: transparent;
+  text-align: left;
+}
+
+.qb-story-select-row:last-child,
+.qb-arcade-select-row:last-child {
+  border-bottom: 0;
+}
+
+.qb-arcade-select-row {
+  width: 100%;
+  cursor: pointer;
+}
+
+.qb-arcade-select-row:is(:hover, :focus-visible) {
+  outline: 0;
+  color: var(--qb-cream);
+  background: transparent;
+}
+
+.qb-story-select-row .qb-arcade-preview,
+.qb-arcade-select-row .qb-arcade-preview {
+  grid-column: 1;
+  grid-row: 1;
+  justify-self: center;
+  width: 12.5cqw;
+  height: 10cqh;
+  margin: 0;
+}
+
+.qb-arcade-select-number,
+.qb-story-select-number {
+  grid-column: 2;
+  text-align: center;
+}
+
+.qb-story-select-row > strong,
+.qb-arcade-select-row > strong {
+  grid-column: 3;
+  min-width: 0;
+  font-size: 2.5cqw !important;
+  line-height: 1 !important;
+  letter-spacing: 0.3125cqw !important;
+}
+
+.qb-arcade-select-status,
+.qb-story-select-status {
+  grid-column: 4;
+  width: 15cqw;
+  min-width: 15cqw;
+  font-size: 1.5625cqw !important;
+  line-height: 1 !important;
+  letter-spacing: 0.3125cqw !important;
+  text-align: right;
+}
+
+.qb-arcade-detail {
+  display: grid;
+  grid-template-rows: 18cqh minmax(0, 1fr) auto;
+  gap: 1cqh;
+  min-height: 0;
+  overflow: hidden;
+  padding: 0;
+  background: transparent;
+}
+
+.qb-arcade-detail-header {
+  display: grid;
+  grid-template-columns: 14cqw minmax(0, 1fr);
+  align-items: center;
+  gap: 2cqw;
+  min-height: 0;
+  border-bottom: 1px solid var(--qb-cream);
+  padding: 0 1cqw 1cqh;
+}
+
+.qb-arcade-detail-header .qb-arcade-preview {
+  grid-column: 1;
+  grid-row: 1;
+  justify-self: center;
+  width: 12cqw;
+  height: 11cqh;
+}
+
+.qb-arcade-detail-header > div {
+  display: grid;
+  align-content: center;
+  gap: 0.5cqh;
+  min-width: 0;
+}
+
+.qb-arcade-detail-header :is(.qb-kicker, h1, p) {
+  margin: 0;
+}
+
+.qb-arcade-detail-header .qb-kicker {
+  font-size: 1.5625cqw !important;
+  line-height: 1 !important;
+  letter-spacing: 0.15cqw !important;
+}
+
+.qb-page .qb-arcade-detail-header h1 {
+  font-size: 3.125cqw;
+  line-height: 1;
+  letter-spacing: 0.3125cqw;
+}
+
+.qb-arcade-detail-header p:last-child {
+  max-width: none;
+  font-size: 1.5625cqw !important;
+  line-height: 1.15 !important;
+  letter-spacing: 0.15cqw !important;
+}
+
+.qb-arcade-brief {
+  display: grid;
+  grid-template-rows: repeat(3, minmax(0, 1fr));
+  min-height: 0;
+  margin: 0;
+}
+
+.qb-arcade-brief > div {
+  display: grid;
+  grid-template-columns: 17cqw minmax(0, 1fr);
+  align-items: center;
+  gap: 2cqw;
+  min-width: 0;
+  min-height: 0;
+  border-bottom: 1px solid var(--qb-muted-tan);
+  padding: 0.45cqh 1cqw;
+}
+
+.qb-arcade-brief :is(dt, dd) {
+  min-width: 0;
+  margin: 0;
+  font-size: 1.5625cqw;
+  line-height: 1.2;
+  letter-spacing: 0.15cqw;
+}
+
+.qb-arcade-brief dt {
+  align-self: center;
+}
+
+.qb-arcade-trials {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  gap: 0.5cqh;
+  min-height: 0;
+  padding: 0 1cqw;
+}
+
+.qb-arcade-trials > h2 {
+  margin: 0;
+  font-size: 1.5625cqw;
+  line-height: 1;
+  letter-spacing: 0.15cqw;
+}
+
+.qb-arcade-detail .qb-arcade-launches {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-rows: repeat(2, minmax(0, 1fr));
+  align-content: stretch;
+  gap: 0.35cqh 2cqw;
+  min-height: 12cqh;
+}
+
+.qb-arcade-detail--qong .qb-arcade-launches,
+.qb-arcade-detail--quantman .qb-arcade-launches,
+.qb-arcade-detail--fluxball .qb-arcade-launches,
+.qb-arcade-detail--quarry .qb-arcade-launches {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.qb-arcade-detail .qb-arcade-mode {
+  display: grid;
+  grid-row: auto;
+  grid-template-rows: minmax(0, 1fr);
+  align-self: stretch;
+  align-content: stretch;
+  min-width: 0;
+}
+
+.qb-arcade-detail .qb-arcade-mode--row-1 {
+  grid-row: 1;
+}
+
+.qb-arcade-detail .qb-arcade-mode--row-2 {
+  grid-row: 2;
+}
+
+.qb-arcade-detail .qb-arcade-mode--scored {
+  grid-row: 1 / span 2;
+  grid-template-rows: repeat(2, minmax(0, 1fr));
+  gap: 0.35cqh;
+}
+
+.qb-arcade-detail .qb-arcade-mode > button {
+  width: 100%;
+  min-height: 0;
+  block-size: auto;
+  padding: 0;
+  font-size: 1.25cqw !important;
+  line-height: 1 !important;
+  letter-spacing: 0.15cqw !important;
+  text-align: center;
+  white-space: nowrap;
+}
+
+.qb-arcade-detail .qb-arcade-scores {
+  justify-self: stretch;
+  width: 100%;
+  min-width: 0;
+  padding: 0;
+  font-size: 1.25cqw !important;
+  line-height: 1 !important;
+  letter-spacing: 0.15cqw !important;
+  text-align: center;
 }
 
 /*

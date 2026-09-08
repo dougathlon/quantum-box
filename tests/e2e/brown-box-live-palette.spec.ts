@@ -54,7 +54,12 @@ test("the live menu and every Arcade cabinet render inside the exact Brown Box p
     },
   ] as const) {
     await page
-      .locator(`section[aria-labelledby='arcade-${cabinet.id}']`)
+      .locator(
+        `[data-action="open-arcade-cabinet"][data-game-id="${cabinet.id}"]`,
+      )
+      .click();
+    await assertCurrentSurface(page, { page: "arcade-detail", cabinet: null });
+    await page
       .getByRole("button", { name: cabinet.button, exact: true })
       .click();
     if (cabinet.id === "fluxball") {
@@ -64,8 +69,15 @@ test("the live menu and every Arcade cabinet render inside the exact Brown Box p
       page.getByRole("region", { name: cabinet.region }),
     ).toBeVisible();
     await assertCurrentSurface(page, {
-      page: "arcade",
+      page: "arcade-detail",
       cabinet: cabinet.id === "quarry" ? "quag" : cabinet.id,
+    });
+    await page
+      .getByRole("button", { name: "RETURN · ESC", exact: true })
+      .click();
+    await assertCurrentSurface(page, {
+      page: "arcade-detail",
+      cabinet: null,
     });
     await page
       .getByRole("button", { name: "RETURN · ESC", exact: true })

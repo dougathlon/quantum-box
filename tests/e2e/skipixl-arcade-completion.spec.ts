@@ -34,8 +34,11 @@ test("Arcade SkiPixl completes the production QPixl descent without Story author
 
   await page.getByRole("button", { name: "PRESS START" }).click();
   await page.getByRole("button", { name: /ARCADE/ }).click();
+  await page
+    .locator('[data-action="open-arcade-cabinet"][data-game-id="skipixl"]')
+    .click();
   const launch = page
-    .locator("section[aria-labelledby='arcade-skipixl']")
+    .locator('[data-arcade-detail="skipixl"]')
     .getByRole("button", {
       name: "EASY",
       exact: true,
