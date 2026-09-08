@@ -458,11 +458,7 @@ test("Story is a five-chapter direct-launch cabinet list", async ({ page }) => {
   await expect(
     page.locator(".qb-story-select-status[aria-label='locked']"),
   ).toHaveCount(4);
-  await expect(page.locator("[data-scroll-position]")).toBeVisible();
-  await expect(page.locator("[data-scroll-position]")).toHaveAttribute(
-    "data-scroll-state",
-    "start",
-  );
+  await expect(page.locator("[data-scroll-position]")).toHaveCount(0);
   await page.getByRole("button", { name: "QONG · UNLOCKED" }).click();
   await expect(page.getByRole("region", { name: "Qong game" })).toBeVisible();
 });
