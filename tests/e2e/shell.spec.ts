@@ -134,7 +134,7 @@ test("Arcade score and mode controls use the intended row hierarchy", async ({
       );
       expect(Math.abs(scoreBox!.x - launchBox!.x)).toBeLessThan(4);
     }
-    await page.getByRole("button", { name: "RETURN · ESC" }).click();
+    await detail.getByRole("button", { name: "ARCADE", exact: true }).click();
   }
 
   for (const cabinet of ["fluxball", "quarry"] as const) {
@@ -152,7 +152,7 @@ test("Arcade score and mode controls use the intended row hierarchy", async ({
       expect(Math.abs(upperBox!.x - lowerBox!.x)).toBeLessThan(4);
       expect(lowerBox!.y).toBeGreaterThan(upperBox!.y);
     }
-    await page.getByRole("button", { name: "RETURN · ESC" }).click();
+    await detail.getByRole("button", { name: "ARCADE", exact: true }).click();
   }
 });
 
@@ -203,7 +203,7 @@ test("SkiPixl and Quantman expose their installed modes without a maze selector"
     "MEDIUM",
     "HARD",
   ]);
-  await page.getByRole("button", { name: "RETURN · ESC" }).click();
+  await skipixl.getByRole("button", { name: "ARCADE", exact: true }).click();
   const quantman = await openArcadeCabinet(page, "quantman");
   await expect(quantman.locator("[data-action='launch-arcade']")).toHaveText([
     "HOLD",

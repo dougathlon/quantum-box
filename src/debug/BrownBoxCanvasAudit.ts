@@ -251,7 +251,14 @@ function auditVisibleInternalStyles(root: HTMLElement): BrownBoxDomStyleReport {
         );
       }
     }
-    for (const [property, expected] of Object.entries(EFFECT_PROPERTIES)) {
+    for (const [property, defaultExpected] of Object.entries(
+      EFFECT_PROPERTIES,
+    )) {
+      const expected =
+        property === "opacity" &&
+        element.classList.contains("qb-bitmap-semantic")
+          ? "0"
+          : defaultExpected;
       const value = style[property as keyof CSSStyleDeclaration] as string;
       if (value !== expected) {
         violations.push(

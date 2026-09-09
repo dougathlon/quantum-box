@@ -88,7 +88,7 @@ export class SkiPixlRuntime {
       }
       return;
     }
-    if (isSkiSteering(signal.action)) {
+    if (isSkiControl(signal.action)) {
       const changed = this.held.has(signal.action) !== signal.pressed;
       if (signal.pressed) this.held.add(signal.action);
       else this.held.delete(signal.action);
@@ -180,13 +180,7 @@ export class SkiPixlRuntime {
       this.recording.push(replayInput);
       return replayInput;
     }
-    const input = Object.freeze({
-      steer: axis(
-        this.held.has("p1-left") || this.held.has("p2-left"),
-        this.held.has("p1-right") || this.held.has("p2-right"),
-      ),
-      throttle: 0,
-    });
+    const input = skiPixlInputFromHeld(this.held);
     this.recording.push(input);
     return input;
   }
@@ -232,13 +226,35 @@ function axis(negative: boolean, positive: boolean): -1 | 0 | 1 {
   return negative === positive ? 0 : negative ? -1 : 1;
 }
 
-function isSkiSteering(action: SemanticAction): boolean {
+function isSkiControl(action: SemanticAction): boolean {
   return (
     action === "p1-left" ||
     action === "p1-right" ||
+    action === "p1-down" ||
     action === "p2-left" ||
-    action === "p2-right"
+    action === "p2-right" ||
+    action === "p2-down" ||
+    action === "p3-down" ||
+    action === "p4-down"
   );
+}
+
+export function skiPixlInputFromHeld(
+  held: ReadonlySet<SemanticAction>,
+): SkiPixlInput {
+  return Object.freeze({
+    steer: axis(
+      held.has("p1-left") || held.has("p2-left"),
+      held.has("p1-right") || held.has("p2-right"),
+    ),
+    throttle:
+      held.has("p1-down") ||
+      held.has("p2-down") ||
+      held.has("p3-down") ||
+      held.has("p4-down")
+        ? 1
+        : 0,
+  });
 }
 
 function earliest(current: number | null, candidate: number): number {

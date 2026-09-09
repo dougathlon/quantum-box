@@ -75,9 +75,7 @@ test("moving frames from all five cabinets remain on the native grid", async ({
     await page
       .getByRole("button", { name: "RETURN · ESC", exact: true })
       .click();
-    await page
-      .getByRole("button", { name: "RETURN · ESC", exact: true })
-      .click();
+    await page.getByRole("button", { name: "ARCADE", exact: true }).click();
   }
 });
 

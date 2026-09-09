@@ -172,7 +172,7 @@ test("keyboard held action changes each cabinet and keyup applies cabinet releas
     );
     await region.getByRole("button", { name: "RETURN · ESC" }).click();
     await expect(region).toBeHidden();
-    await page.getByRole("button", { name: "RETURN · ESC" }).click();
+    await page.getByRole("button", { name: "ARCADE", exact: true }).click();
   }
 
   expect(externalRequests).toEqual([]);
