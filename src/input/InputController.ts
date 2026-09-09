@@ -271,10 +271,10 @@ export function gamepadActions(
   if (y < -0.3 || button(12)) actions.add(`p${player}-up`);
   if (y > 0.3 || button(13)) actions.add(`p${player}-down`);
   if (button(0)) actions.add("primary");
-  if (button(1)) actions.add("secondary");
+  if (button(1)) actions.add("back");
+  if (button(2)) actions.add("secondary");
   if (button(9)) actions.add("start");
   if (button(8)) actions.add("back");
-  if (button(2)) actions.add("pause");
   if (button(3)) actions.add("mute");
   return actions;
 }

@@ -3,7 +3,7 @@ import type { FluxballSnapshot } from "../../games/fluxball/types";
 import type { PlayerId } from "../../games/fluxball/standalone/modes";
 import { fluxballHudModel } from "../../games/fluxball/presentation";
 import { BROWN_BOX_PALETTE } from "../BrownBoxTheme";
-import { drawCenteredPixelPanel } from "../PixelHud";
+import { drawCabinetPauseHeader } from "../PixelHud";
 import { drawPixelText } from "../PixelText";
 import { CANONICAL_SPRITE_PIXEL_SCALE } from "../CanonicalSpriteRaster";
 import { drawQGraphCabinetSprite } from "../QGraphCabinetSpriteRaster";
@@ -31,7 +31,7 @@ export function renderFluxball(
   const g = graphics.clear();
   const sport = view.sport;
   if (!sport) {
-    if (view.paused) drawPause(g);
+    if (view.paused) drawCabinetPauseHeader(g);
     else drawHud(g, snapshot);
     return;
   }
@@ -145,7 +145,7 @@ export function renderFluxball(
   }
 
   if (view.paused) {
-    drawPause(g);
+    drawCabinetPauseHeader(g);
     return;
   }
   drawHud(g, snapshot);
@@ -369,15 +369,6 @@ function drawMotionAccents(
     ),
     { colour: PALETTE.cream },
   );
-}
-
-function drawPause(g: Phaser.GameObjects.Graphics): void {
-  drawCenteredPixelPanel(g, "PAUSED", {
-    centerX: 160,
-    y: 13,
-    pixel: 2,
-    border: true,
-  });
 }
 
 function drawHud(

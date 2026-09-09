@@ -63,13 +63,20 @@ test("title enters the internal archive and exposes the four current channels", 
   expect(externalRequests).toEqual([]);
 });
 
-test("Space enters the archive and keyboard activation begins the linear Story", async ({
+test("Space enters the archive and Enter opens the Story session menu", async ({
   page,
 }) => {
   await page.goto("/");
   await page.getByRole("button", { name: "PRESS START" }).focus();
   await page.keyboard.press("Space");
   await expect(page.getByRole("button", { name: "STORY" })).toBeFocused();
+  await page.keyboard.press("Enter");
+  await expect(
+    page.getByRole("button", { name: "NEW STORY", exact: true }),
+  ).toBeFocused();
+  await expect(
+    page.getByRole("button", { name: "CONTINUE", exact: true }),
+  ).toBeDisabled();
   await page.keyboard.press("Enter");
   await expect(page.locator('[data-terminal-page="intro-1"]')).toBeVisible();
   await expect(page.locator(".qb-story-select")).toHaveCount(0);
@@ -187,7 +194,7 @@ test("Qong Arcade is playable without mutating Story authority", async ({
   await expect(game).toBeVisible();
   await expect(game).toContainText("RULE STATE: UNRESOLVED");
   await expect(game).toContainText("OBS 3");
-  await game.getByRole("button", { name: "RETURN · ESC" }).click();
+  await game.getByRole("button", { name: "BACK · ESC / B" }).click();
   expect(
     await page.evaluate(() => window.__QUANTUM_BOX_TEST__?.getSave()),
   ).toEqual(saveBefore);
@@ -226,7 +233,7 @@ test("Fluxball uses four 40-second rounds and keeps hidden rule authority out of
     "4P SPLIT",
   ] as const) {
     await page.getByRole("button", { name: mode }).click();
-    await page.getByRole("button", { name: "X · START" }).click();
+    await page.getByRole("button", { name: "START · ENTER / A" }).click();
     const game = page.getByRole("region", { name: "Fluxball game" });
     await expect(game).toBeVisible();
     await expect(game).toContainText("R 1/4");
@@ -235,21 +242,19 @@ test("Fluxball uses four 40-second rounds and keeps hidden rule authority out of
     await expect(game).not.toContainText(
       /\bDIRECT\b|\bINVERTED\b|\bCARRY\b|\bSTRIKE\b|\bOPPOSITE\b|\bOWN\b|\bFIXTURE\b/u,
     );
-    await game.getByRole("button", { name: "RETURN · ESC" }).click();
+    await game.getByRole("button", { name: "BACK · ESC / B" }).click();
   }
 });
 
-test("Settings persist sound, motion, initials, and concise field/control copy", async ({
+test("Settings persist sound and motion and omit obsolete default initials", async ({
   page,
 }) => {
   await page.goto("/");
   await page.getByRole("button", { name: "PRESS START" }).click();
   await page.getByRole("button", { name: "SETTINGS" }).click();
-  await expect(page.getByText("ARCADE SCORES", { exact: true })).toBeVisible();
-  const initials = page.getByLabel("Arcade scoreboard initials");
-  await expect(initials).toHaveValue("YOU");
-  await initials.fill("QBX");
-  await initials.press("Tab");
+  await expect(page.getByText("DEFAULT INITIALS", { exact: true })).toHaveCount(
+    0,
+  );
   await page.getByLabel("REDUCED MOTION").check();
   await page.getByLabel("Sound level").fill("0.6");
 
@@ -262,17 +267,18 @@ test("Settings persist sound, motion, initials, and concise field/control copy",
   );
   await page.getByRole("button", { name: "03 CONTROLS" }).click();
   await expect(
-    page.getByText("ESC / P / M / X RESERVED · ONE CONTROL PER KEY", {
-      exact: true,
-    }),
+    page.getByText(
+      "SYSTEM KEYS CANNOT BE REBOUND. EACH CONTROL NEEDS ITS OWN KEY.",
+      {
+        exact: true,
+      },
+    ),
   ).toBeVisible();
 
   await page.reload();
   await page.getByRole("button", { name: "PRESS START" }).click();
   await page.getByRole("button", { name: "SETTINGS" }).click();
-  await expect(page.getByLabel("Arcade scoreboard initials")).toHaveValue(
-    "QBX",
-  );
+  await expect(page.getByLabel("Arcade scoreboard initials")).toHaveCount(0);
   await expect(page.getByLabel("REDUCED MOTION")).toBeChecked();
   await expect(page.getByLabel("Sound level")).toHaveValue("0.6");
 });

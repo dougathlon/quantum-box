@@ -1,7 +1,8 @@
 # Quantum Box project map
 
 This is the shortest route from a new checkout to the code that owns a given
-behavior.
+behavior. For exact rendering and CPU-policy files, start with
+[Editing visuals and AI](editing-visuals-and-ai.md).
 
 ## Product flow
 
@@ -9,7 +10,7 @@ behavior.
 animated Brown Box field + QUANTUM BOX / PRESS START
        ↓ first valid gesture unlocks audio
 home: Story · Arcade · Terminal · Settings
-       ├─ Story → persisted terminal node → fixed-step game → outcome branch
+       ├─ Story → Continue/New Story → persisted terminal node → fixed-step game → outcome branch
        ├─ Arcade → five-cabinet index → trial sheet → game / scores
        └─ Terminal → transcript or independent retry of earliest uncleared stage
        ↓

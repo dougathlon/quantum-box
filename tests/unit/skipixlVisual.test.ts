@@ -50,7 +50,7 @@ describe("SkiPixl Atari-lineage sprite states", () => {
       "WELL DONE. LET ME SHOW YOU SOMETHING.",
     );
     expect(skiPixlNotice({ ...complete, storyQualified: false }, false)).toBe(
-      "DESCENT COMPLETE. QUALIFICATION LIMIT MISSED.",
+      "DESCENT COMPLETE. TIME LIMIT MISSED.",
     );
   });
 });

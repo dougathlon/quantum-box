@@ -16,6 +16,30 @@ import {
 } from "../../src/display/views/QuantmanSyntheticView";
 
 describe("Quantman synthetic main-game runtime", () => {
+  it("pauses and resumes the ready screen without starting the run", () => {
+    const scheduler = new ManualFrameScheduler();
+    const present = vi.fn();
+    const runtime = new QuantmanSyntheticMainGameRuntime(
+      { playMode: "arcade", runSeed: 47, mechanic: "inverse-gaze", scheduler },
+      { present },
+      callbacks(),
+    );
+    runtime.start();
+    expect(runtime.togglePause()).toBe(true);
+    scheduler.advance(1_000);
+    expect(runtime.snapshot().simulation).toMatchObject({
+      phase: "ready",
+      activeTick: 0,
+    });
+    expect(present).toHaveBeenLastCalledWith(runtime.snapshot(), true);
+    expect(runtime.togglePause()).toBe(false);
+    scheduler.advance(17);
+    expect(runtime.snapshot().simulation.phase).toBe("ready");
+    expect(runtime.pause()).toBe(true);
+    expect(runtime.pause()).toBe(false);
+    runtime.stop();
+  });
+
   it("translates semantic input and retains travel direction after key release", () => {
     const scheduler = new ManualFrameScheduler();
     const presentations: QuantmanSyntheticRuntimeSnapshot[] = [];
@@ -175,10 +199,10 @@ describe("Quantman synthetic cabinet presentation", () => {
     });
     const ready = runtime.snapshot();
     expect(quantmanSyntheticHudModel(ready, false)).toMatchObject({
-      mode: "INVERSE GAZE",
+      mode: "INVERT",
       phase: "READY",
       sourceClassification: "LOCAL SYNTHETIC CONTROL",
-      controls: "MOVE / SPACE · START",
+      controls: "MOVE · WASD / ARROWS   START · SPACE / A",
     });
     expect(quantmanSyntheticHudModel(ready, false).announcement).toContain(
       "no provider request",
@@ -187,7 +211,7 @@ describe("Quantman synthetic cabinet presentation", () => {
     const cleared = withPhase(ready, "won");
     expect(quantmanSyntheticHudModel(cleared, false)).toMatchObject({
       phase: "SCREEN CLEARED",
-      controls: "RETRY · X   CONTINUE · SPACE",
+      controls: "RETRY · X / X   CONTINUE · SPACE / A",
     });
     const lost = withPhase(ready, "lost");
     expect(quantmanSyntheticHudModel(lost, false).phase).toBe("RUN LOST");

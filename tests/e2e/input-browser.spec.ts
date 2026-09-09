@@ -86,7 +86,7 @@ test("keyboard held action changes each cabinet and keyup applies cabinet releas
       .getByRole("button", { name: cabinet.launch, exact: true })
       .click();
     if (cabinet.gameId === "fluxball") {
-      await page.getByRole("button", { name: "X · START" }).click();
+      await page.getByRole("button", { name: "START · ENTER / A" }).click();
     } else if (cabinet.gameId === "quantman") {
       await page.keyboard.press("Space");
     }
@@ -170,7 +170,7 @@ test("keyboard held action changes each cabinet and keyup applies cabinet releas
       "data-phase",
       "paused",
     );
-    await region.getByRole("button", { name: "RETURN · ESC" }).click();
+    await region.getByRole("button", { name: "BACK · ESC / B" }).click();
     await expect(region).toBeHidden();
     await page.getByRole("button", { name: "ARCADE", exact: true }).click();
   }

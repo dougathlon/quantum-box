@@ -7,20 +7,20 @@ hardware provenance, or Story authority.
 
 | Cue ID          | Surface                                                              | Shipping asset                   |
 | --------------- | -------------------------------------------------------------------- | -------------------------------- |
-| `cabinet-hum`   | Title/start screen                                                   | `cabinet-hum-loop.wav`           |
 | `key-is-opaque` | Home, Arcade, trial sheets, scores, Settings, Source, Terminal index | `key-is-opaque-backing-loop.wav` |
 | `spare-key`     | Active Story terminal pages and opened Terminal transcripts          | `spare-key-loop.wav`             |
+| none            | Title/start screen                                                   | silent until Start               |
 | none            | Active games, gameplay pauses, and gameplay results                  | effects only                     |
 
 The exact cue hashes are:
 
-- cabinet hum: `f9b1a71687987ba08b6f4009673addc280c57e96b4e15c9f718594279873f01b`;
 - menu backing loop: `feff452edce713f945139fae58469798b8d13aa1783e4683281688bfb7d43d02`;
 - terminal loop: `419e6ecb5bceeec1615b7a2843d2a9389f914f6399422304445f45d04d825a3a`.
 
-The title and terminal files are approved local compositions. The menu loop is
-a local frame-exact derivative of the approved lead-free reference render.
-None is QPU audio.
+The retired cabinet-hum source remains preserved in the repository but is not
+imported by production. The terminal file is an approved local composition.
+The menu loop is a local frame-exact derivative of the approved lead-free
+reference render. None is QPU audio.
 
 ## Menu-loop derivation
 

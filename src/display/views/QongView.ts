@@ -3,7 +3,7 @@ import { qongHudModel } from "../../games/qong/presentation";
 import type { QongOpponent, QongSnapshot } from "../../games/qong/types";
 import { BROWN_BOX_PALETTE } from "../BrownBoxTheme";
 import { drawCanonicalSprite } from "../CanonicalSpriteRaster";
-import { drawCenteredPixelPanel } from "../PixelHud";
+import { drawCabinetPauseHeader } from "../PixelHud";
 import { drawPixelText } from "../PixelText";
 import {
   drawNativePixelLine,
@@ -55,19 +55,10 @@ export function renderQong(
   );
 
   if (view.paused) {
-    drawPause(g);
+    drawCabinetPauseHeader(g);
     return;
   }
   drawHud(g, snapshot, opponent);
-}
-
-function drawPause(g: Phaser.GameObjects.Graphics): void {
-  drawCenteredPixelPanel(g, "PAUSED", {
-    centerX: 160,
-    y: 6,
-    pixel: 2,
-    border: true,
-  });
 }
 
 function drawHud(

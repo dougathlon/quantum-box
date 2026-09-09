@@ -14,6 +14,7 @@ test("Story types an exact terminal page, completes it on action, and resumes th
   await page.goto("/");
   await page.getByRole("button", { name: "PRESS START" }).click();
   await page.getByRole("button", { name: "STORY", exact: true }).click();
+  await page.getByRole("button", { name: "NEW STORY", exact: true }).click();
 
   const first = page.locator('[data-terminal-page="intro-1"]');
   await expect(first).toBeVisible();
@@ -23,7 +24,7 @@ test("Story types an exact terminal page, completes it on action, and resumes th
   await expect(first).toHaveAttribute("data-terminal-complete", "true");
   await expect(first).toContainText("WELCOME TO QUANTUM BOX.");
   await expect(first.locator(".qb-terminal-top-rule")).toHaveCount(1);
-  await expect(first.locator(".qb-terminal-bottom-rule")).toHaveCount(1);
+  await expect(first.locator(".qb-terminal-bottom-rule")).toHaveCount(0);
   await page.keyboard.press("Space");
   await expect(page.locator('[data-terminal-page="intro-2"]')).toBeVisible();
 
@@ -34,6 +35,7 @@ test("Story types an exact terminal page, completes it on action, and resumes th
   await page.reload();
   await page.getByRole("button", { name: "PRESS START" }).click();
   await page.getByRole("button", { name: "STORY", exact: true }).click();
+  await page.getByRole("button", { name: "CONTINUE", exact: true }).click();
   await expect(page.locator('[data-terminal-page="intro-2"]')).toBeVisible();
   await expect(page.locator("[data-qong-story='player']")).toHaveCount(0);
   await expect(page.locator("[data-qong-story='designer']")).toHaveCount(0);

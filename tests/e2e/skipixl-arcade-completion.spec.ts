@@ -81,7 +81,7 @@ test("Arcade SkiPixl completes the production QPixl descent without Story author
     cabinet.getByRole("button", { name: "RETRY · X" }),
   ).toBeVisible();
   await expect(
-    cabinet.getByRole("button", { name: "CONTINUE · SPACE" }),
+    cabinet.getByRole("button", { name: "CONTINUE · SPACE / A" }),
   ).toBeVisible();
   await expect(cabinet.getByRole("button", { name: "EXPORT RUN" })).toHaveCount(
     0,
@@ -123,7 +123,7 @@ test("Arcade SkiPixl completes the production QPixl descent without Story author
   expect(record.runId).toMatch(/^run-[0-9a-f]{8}$/);
 
   await cabinet
-    .getByRole("button", { name: "CONTINUE · SPACE", exact: true })
+    .getByRole("button", { name: "CONTINUE · SPACE / A", exact: true })
     .click();
   await expect(
     page.getByRole("heading", { name: "SKIPIXL · EASY" }),
@@ -136,8 +136,8 @@ test("Arcade SkiPixl completes the production QPixl descent without Story author
   );
   const initials = page.locator("[data-arcade-score-initials]");
   await expect(initials).toHaveValue("YOU");
-  await initials.fill("SKI");
-  await page.getByRole("button", { name: "SAVE · ENTER" }).click();
+  await page.locator("[data-initial-slot='0']").pressSequentially("SKI");
+  await page.getByRole("button", { name: "SAVE · ENTER / A" }).click();
   await expect(page.getByText("SCORE RECORDED", { exact: true })).toBeVisible();
   await expect(initials).toHaveCount(0);
   await expect(scoreRows.filter({ hasText: "SKI" })).toHaveAttribute(

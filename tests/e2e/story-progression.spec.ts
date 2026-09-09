@@ -13,6 +13,7 @@ test("fresh Story advances through the terminal introduction and launches Qong f
   await page.goto("/");
   await page.getByRole("button", { name: "PRESS START" }).click();
   await page.getByRole("button", { name: "STORY", exact: true }).click();
+  await page.getByRole("button", { name: "NEW STORY", exact: true }).click();
 
   for (const [pageId, action] of [
     ["intro-1", "CONTINUE"],

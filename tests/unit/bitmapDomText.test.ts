@@ -5,6 +5,7 @@ import {
   auditBitmapCanvasPixels,
   BITMAP_DOM_TEXT_CONTRACT,
   bitmapFocusCursorPlacement,
+  bitmapFlowTextHeight,
   bitmapTextLineLeft,
   bitmapTextLayout,
   integerLogicalRect,
@@ -114,6 +115,22 @@ describe("semantic DOM bitmap mirror", () => {
       "FIRST LINE",
       "SECOND LINE",
     ]);
+  });
+
+  it("reserves complete bitmap rows when browser-font wrapping would truncate a tutorial", () => {
+    const text =
+      "A LINE CROSSING COUNTS AT THE FAR GOAL OR YOUR OWN. OBSERVE EARLY, OR LET THE CROSSING RESOLVE IT.";
+    const height = bitmapFlowTextHeight(text, 135);
+    expect(height).toBe(18);
+    expect(
+      wrapBitmapText(text, 135, 1, 1, Math.floor(height / 6)).join(" "),
+    ).toBe(text);
+    expect(
+      bitmapFlowTextHeight(
+        "A PADDLE MATCH WHOSE GOAL RULE IS UNRESOLVED.",
+        135,
+      ),
+    ).toBe(12);
   });
 
   it("retains a blank column between letters instead of compressing labels", () => {

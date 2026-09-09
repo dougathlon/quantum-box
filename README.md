@@ -8,6 +8,7 @@ explicit local decoders.
 
 [Play Quantum Box](https://dougathlon.github.io/quantum-box/) ·
 [Project map](docs/project-map.md) ·
+[Edit visuals and AI](docs/editing-visuals-and-ai.md) ·
 [Current status](docs/current-status.md) ·
 [Contributing](CONTRIBUTING.md) ·
 [Documentation index](docs/README.md)
@@ -39,7 +40,7 @@ The title opens on the animated Brown Box field with `QUANTUM BOX` and
 `PRESS START`. The first valid Start gesture unlocks audio and enters a home
 screen with four routes:
 
-- **Story** begins or resumes a linear terminal demonstration. Its seven
+- **Story** opens a terminal menu with Continue (when progress exists) and New Story. Its seven
   gameplay stages are Qong; two SkiPixl courses; Quantman Hold; Fluxball 2P
   Global and 2P Individual; and Quarry.
 - **Arcade** lists all five cabinets. Each opens a terminal-style trial sheet
@@ -47,7 +48,7 @@ screen with four routes:
 - **Terminal** archives the five Story program transcripts. An experienced but
   uncleared program offers a retry; a transcript unlocks only after its required
   genuine Story wins.
-- **Settings** contains display, background field, controls, initials, audio,
+- **Settings** contains display, background field, controls, audio,
   and save-data controls.
 
 Story and Arcade instantiate the same fixed-step simulations. Story owns
@@ -81,6 +82,8 @@ Default keyboard controls:
 | D      | I J K L    | O      |
 
 Escape returns, P pauses, and M mutes. Controls can be rebound in Settings.
+Menus select with Enter / controller A; live Player A actions use Space / A.
+Initials can be entered with directional controls and A, or typed on a keyboard.
 SkiPixl uses Down to accelerate. Each Arcade trial sheet states the applicable
 controls and victory condition before launch.
 

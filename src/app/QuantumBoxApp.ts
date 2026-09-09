@@ -166,6 +166,8 @@ export class QuantumBoxApp {
   private activeStoryReplay = false;
   private activeStoryAttemptSource: StoryAttemptSource = "main-story";
   private activeTerminalView: StoryTerminalView | null = null;
+  private storyTerminalTransitionInFlight = false;
+  private storyPresentationGeneration = 0;
   private terminalTranscript: Readonly<{
     chapterId: StoryChapterId;
     pageIds: readonly string[];
@@ -215,22 +217,27 @@ export class QuantumBoxApp {
       this.saveRepository.snapshot(),
       {
         onStartGesture: () => {
-          void this.audio.unlock().then((unlocked) => {
-            if (unlocked) this.audio.play("boot");
-          });
+          void this.audio.unlock();
         },
         onInternalEntered: () => {
           this.game.scale.refresh();
           this.audio.requestBackgroundCue("key-is-opaque");
         },
-        onTitleReturned: () => this.audio.requestBackgroundCue("cabinet-hum"),
-        onPageChanged: (page) =>
+        onTitleReturned: () => this.audio.requestBackgroundCue(null),
+        onPageChanged: (page) => {
+          if (page !== "story-terminal") {
+            this.storyPresentationGeneration += 1;
+            this.storyTerminalTransitionInFlight = false;
+            this.activeTerminalView = null;
+          }
           this.audio.requestBackgroundCue(
             page === "story-terminal" ? "spare-key" : "key-is-opaque",
-          ),
-        onStartStory: () => this.startOrResumeStory(),
-        onStoryTerminalAction: (action) =>
-          void this.handleStoryTerminalAction(action),
+          );
+        },
+        onContinueStory: () => this.continueStory(),
+        onNewStory: () => this.newStory(),
+        onStoryTerminalAction: (action, nodeId) =>
+          void this.handleStoryTerminalAction(action, nodeId),
         onOpenTerminalTranscript: (chapterId) =>
           this.openTerminalTranscript(chapterId),
         onRetryTerminalChapter: (chapterId) =>
@@ -247,7 +254,7 @@ export class QuantumBoxApp {
           this.handleFluxballLobbyAction(action),
       },
     );
-    this.audio.requestBackgroundCue("cabinet-hum");
+    this.audio.requestBackgroundCue(null);
     this.qongStoryBankPromise = loadInstalledQongStoryBank();
     void this.qongStoryBankPromise.catch(() => undefined);
     this.quarryQpuBankPromise = loadInstalledQuarryQpuBank();
@@ -289,6 +296,7 @@ export class QuantumBoxApp {
       );
     });
     root.addEventListener("pointerdown", this.onAudioGesture, true);
+    root.addEventListener("keydown", this.onAudioGesture, true);
     window.addEventListener("blur", this.onWindowBlur);
     window.addEventListener("focus", this.onAudioRecovery);
     document.addEventListener("visibilitychange", this.onVisibilityChange);
@@ -330,13 +338,14 @@ export class QuantumBoxApp {
       if (qaRoute === "story-terminal") {
         requestAnimationFrame(() => {
           this.shell.enterInternal();
-          this.startOrResumeStory();
+          this.continueStory();
         });
       }
     }
   }
 
   public destroy(): void {
+    this.storyPresentationGeneration += 1;
     this.qongRuntime?.stop();
     this.skipixlRuntime?.stop();
     this.fluxballRuntime?.stop();
@@ -350,6 +359,7 @@ export class QuantumBoxApp {
     this.stopCanvasPaletteAudit = null;
     this.input.dispose();
     this.root.removeEventListener("pointerdown", this.onAudioGesture, true);
+    this.root.removeEventListener("keydown", this.onAudioGesture, true);
     window.removeEventListener("blur", this.onWindowBlur);
     window.removeEventListener("focus", this.onAudioRecovery);
     document.removeEventListener("visibilitychange", this.onVisibilityChange);
@@ -378,14 +388,23 @@ export class QuantumBoxApp {
     if (this.fluxballLobby) {
       if (!signal.pressed) return;
       const playerId = playerIdForAction(signal.action);
-      if (playerId) this.toggleFluxballLobbyPlayer(playerId);
+      if (signal.action === "primary" || signal.action === "start")
+        this.shell.activateFocusedControl();
+      else if (playerId) this.toggleFluxballLobbyPlayer(playerId);
       else if (signal.action === "secondary") this.startFluxballFromLobby();
+      else if (signal.action.endsWith("-up")) this.shell.moveMenuFocus("up");
+      else if (signal.action.endsWith("-down"))
+        this.shell.moveMenuFocus("down");
+      else if (signal.action.endsWith("-left"))
+        this.shell.moveMenuFocus("left");
+      else if (signal.action.endsWith("-right"))
+        this.shell.moveMenuFocus("right");
       else if (signal.action === "back") this.cancelFluxballLobby();
       return;
     }
     if (
       signal.pressed &&
-      signal.action === "pause" &&
+      (signal.action === "pause" || signal.action === "start") &&
       this.hasActiveCabinet()
     ) {
       this.toggleActivePause();
@@ -444,7 +463,7 @@ export class QuantumBoxApp {
       signal.action === "p4-up" ||
       signal.action === "p4-left"
     ) {
-      this.shell.moveMenuFocus(-1);
+      this.shell.moveMenuFocus(signal.action.endsWith("-left") ? "left" : "up");
     } else if (
       signal.action === "p1-down" ||
       signal.action === "p1-right" ||
@@ -455,7 +474,9 @@ export class QuantumBoxApp {
       signal.action === "p4-down" ||
       signal.action === "p4-right"
     ) {
-      this.shell.moveMenuFocus(1);
+      this.shell.moveMenuFocus(
+        signal.action.endsWith("-right") ? "right" : "down",
+      );
     } else if (signal.action === "back") {
       this.shell.handleBack();
     }
@@ -658,11 +679,17 @@ export class QuantumBoxApp {
     this.shell.closeFluxballLobby();
   }
 
-  private startOrResumeStory(): void {
-    const story = this.saveRepository.snapshot().story;
-    if (story.storyCompleted) {
-      this.shell.updateSave(this.saveRepository.replayStoryFromStart());
-    }
+  private continueStory(): void {
+    this.storyPresentationGeneration += 1;
+    this.storyTerminalTransitionInFlight = false;
+    this.terminalTranscript = null;
+    void this.presentCurrentStoryNode();
+  }
+
+  private newStory(): void {
+    this.storyPresentationGeneration += 1;
+    this.storyTerminalTransitionInFlight = false;
+    this.shell.updateSave(this.saveRepository.replayStoryFromStart());
     this.terminalTranscript = null;
     void this.presentCurrentStoryNode();
   }
@@ -707,16 +734,32 @@ export class QuantumBoxApp {
 
   private async handleStoryTerminalAction(
     action: StoryTerminalActionId,
+    expectedNodeId: string,
   ): Promise<void> {
     const view = this.activeTerminalView;
-    if (!view) return;
+    if (
+      !view ||
+      view.nodeId !== expectedNodeId ||
+      this.storyTerminalTransitionInFlight
+    ) {
+      return;
+    }
     if (view.transcript) {
       this.advanceTerminalTranscript();
       return;
     }
-    const save = this.saveRepository.advanceStoryTerminal(action);
-    this.shell.updateSave(save);
-    await this.presentCurrentStoryNode();
+    this.storyTerminalTransitionInFlight = true;
+    const generation = this.storyPresentationGeneration;
+    this.activeTerminalView = null;
+    try {
+      const save = this.saveRepository.advanceStoryTerminal(action);
+      this.shell.updateSave(save);
+      await this.presentCurrentStoryNode();
+    } finally {
+      if (generation === this.storyPresentationGeneration) {
+        this.storyTerminalTransitionInFlight = false;
+      }
+    }
   }
 
   private openTerminalTranscript(chapterId: StoryChapterId): void {
@@ -782,11 +825,18 @@ export class QuantumBoxApp {
     stage: StoryStageId,
     source: StoryAttemptSource,
   ): Promise<void> {
+    const generation = this.storyPresentationGeneration;
+    if (this.hasActiveCabinet()) return;
     this.activeStoryAttemptSource = source;
     const story = this.saveRepository.snapshot().story;
     try {
       if (stage === "qong") {
         const bank = await this.qongStoryBankPromise;
+        if (
+          generation !== this.storyPresentationGeneration ||
+          this.hasActiveCabinet()
+        )
+          return;
         const selection = selectQongStoryPack(bank, story.qongSelector);
         this.startQong("story", "cpu", undefined, selection, false);
         return;
@@ -802,6 +852,11 @@ export class QuantumBoxApp {
       }
       if (stage === "quantman-hold") {
         const bank = await this.quantmanQpuBankPromise;
+        if (
+          generation !== this.storyPresentationGeneration ||
+          this.hasActiveCabinet()
+        )
+          return;
         const runSeed = resolveRunSeed(undefined);
         this.startQuantman(
           "story",
@@ -825,6 +880,11 @@ export class QuantumBoxApp {
         return;
       }
       const bank = await this.quarryQpuBankPromise;
+      if (
+        generation !== this.storyPresentationGeneration ||
+        this.hasActiveCabinet()
+      )
+        return;
       const runSeed = resolveRunSeed(undefined);
       this.startQuag(
         "story",
@@ -833,6 +893,7 @@ export class QuantumBoxApp {
         selectQuarryQpuPack(bank, runSeed),
       );
     } catch (error) {
+      if (generation !== this.storyPresentationGeneration) return;
       this.shell.showStoryUnavailable(
         error instanceof Error
           ? error.message
@@ -968,9 +1029,7 @@ export class QuantumBoxApp {
           : "Qong lost. Continue to the terminal.",
       );
     } else {
-      this.shell.announce(
-        "Arcade result recorded locally with no Story authority.",
-      );
+      this.shell.announce("Arcade result recorded locally.");
     }
   }
 
@@ -1220,7 +1279,7 @@ export class QuantumBoxApp {
         });
       }
       this.shell.announce(
-        `Arcade descent completed on ${this.activeSkiPixlPack?.payload.courseLabel ?? "unknown course"} in ${snapshot.elapsedSeconds.toFixed(2)} seconds with no Story authority.`,
+        `Arcade descent completed on ${this.activeSkiPixlPack?.payload.courseLabel ?? "unknown course"} in ${snapshot.elapsedSeconds.toFixed(2)} seconds.`,
       );
     }
   }
@@ -1446,9 +1505,7 @@ export class QuantumBoxApp {
           : "Fluxball lost. Continue to the terminal.",
       );
     } else {
-      this.shell.announce(
-        "Arcade Fluxball result recorded locally with no Story authority.",
-      );
+      this.shell.announce("Arcade Fluxball result recorded locally.");
     }
   }
 
@@ -1875,9 +1932,7 @@ export class QuantumBoxApp {
       );
       return;
     }
-    this.shell.announce(
-      `Quarry complete · ${quagHumanResult(snapshot)} · recorded QPU relation bank; no Story authority.`,
-    );
+    this.shell.announce(`Quarry complete · ${quagHumanResult(snapshot)}.`);
   }
 
   private restartQuag(): void {
@@ -2081,6 +2136,7 @@ export class QuantumBoxApp {
   }
 
   private returnFromStoryCabinet(): void {
+    if (this.activeRun?.playMode !== "story") return;
     const source = this.activeStoryAttemptSource;
     this.exitCabinet(source === "main-story" ? "spare-key" : "key-is-opaque");
     if (source === "main-story") {

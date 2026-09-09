@@ -10,7 +10,9 @@
   terminal.
 - Physical Designer/player figures, morphs, doors, offices, dens, walking
   sequences, and Workshop rooms are not production surfaces or assets.
-- Story begins or resumes directly. It has no chapter-selection menu.
+- Story opens Continue/New Story; Continue is disabled without progress.
+  New Story resets the narrative cursor while retaining historical records.
+  There is no chapter-selection menu.
 - Terminal is a five-program transcript archive and independent retry surface.
 - Enclose is not a shipped cabinet, route, asset, or source-record entry.
 
@@ -77,7 +79,7 @@ hardware authority.
   sheet with tutorial copy and controls.
 - Story terminals type header then body, reveal actions only when complete, and
   persist their node before transition. Reduced Motion renders them immediately.
-- Title uses Cabinet Hum; menu surfaces use the lead-free Key Is Opaque backing;
+- Title is silent; after the first gesture, menu surfaces use the lead-free Key Is Opaque backing;
   terminal pages use A Spare Key; games and results are effects-only.
 
 ## Persistence and publication

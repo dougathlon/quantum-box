@@ -16,6 +16,7 @@ import {
   drawCanonicalSprite,
 } from "../CanonicalSpriteRaster";
 import { drawPixelText, pixelTextWidth } from "../PixelText";
+import { drawCabinetPauseHeader } from "../PixelHud";
 import {
   formatSkiPixlTime,
   skiPixlCanvasPrompt,
@@ -82,17 +83,20 @@ export function renderSkiPixl(
     drawFinish(g, Math.round(view.finishY));
   }
 
-  drawSpeedSpray(g, snapshot);
+  drawSpeedTrails(g, snapshot);
   drawSkier(g, snapshot);
 
-  drawHud(g, snapshot, payload, paused, options.hideCompletionPrompt === true);
+  if (paused) {
+    drawCabinetPauseHeader(g);
+    return;
+  }
+  drawHud(g, snapshot, payload, options.hideCompletionPrompt === true);
 }
 
 function drawHud(
   g: Phaser.GameObjects.Graphics,
   snapshot: SkiPixlSnapshot,
   payload: SkiPixlPackPayload,
-  paused: boolean,
   hideCompletionPrompt: boolean,
 ): void {
   drawNativePixelLine(
@@ -160,10 +164,10 @@ function drawHud(
 
   const prompt = hideCompletionPrompt
     ? ""
-    : skiPixlCanvasPrompt(snapshot, paused);
+    : skiPixlCanvasPrompt(snapshot, false);
   if (prompt.length === 0) return;
   const promptWidth = pixelTextWidth(prompt, 2);
-  const promptTop = paused ? 29 : 84;
+  const promptTop = 84;
   drawPanelFrame(
     g,
     Math.round(160 - promptWidth / 2) - 5,
@@ -240,40 +244,48 @@ function drawGate(
   );
 }
 
-function drawSpeedSpray(
+function drawSpeedTrails(
   g: Phaser.GameObjects.Graphics,
   snapshot: SkiPixlSnapshot,
 ): void {
   if (snapshot.phase !== "active" || snapshot.knockdownTicksRemaining > 0)
     return;
-  const cadence = snapshot.tick % 6;
   const skierX = snapNativePixel(snapshot.skierX / 2);
-  const spread = 4 + Math.abs(snapshot.steeringAngle);
-  const tail = 4 + Math.round((snapshot.speed - 56) * 0.125);
-  drawNativePixelRect(
-    g,
-    skierX - spread,
-    SKIPIXL_PLAYER_Y + 2 + cadence,
-    1,
-    1,
-    BROWN_BOX_PALETTE.cream,
-  );
-  drawNativePixelRect(
-    g,
-    skierX + spread,
-    SKIPIXL_PLAYER_Y + 3 - cadence,
-    1,
-    1,
-    BROWN_BOX_PALETTE.cream,
-  );
-  drawNativePixelRect(
-    g,
-    skierX - 1,
-    SKIPIXL_PLAYER_Y + tail,
-    2,
-    1,
-    BROWN_BOX_PALETTE.cream,
-  );
+  const boosted = snapshot.speed > 74;
+  const cadence = snapshot.tick % 3;
+  const spread = 4 + Math.round(Math.abs(snapshot.steeringAngle) * 0.5);
+  const trailLength = boosted ? 7 : 3;
+  // The canonical skier occupies a 20-pixel frame; trails stay above it.
+  const lanes = boosted
+    ? [-spread - 2, -spread + 1, spread - 1, spread + 2]
+    : [-spread, spread];
+
+  lanes.forEach((offset, index) => {
+    const stagger = (index + cadence) % 3;
+    const nearY = SKIPIXL_PLAYER_Y - 22 - stagger;
+    drawNativePixelLine(
+      g,
+      { x: skierX + offset, y: nearY - trailLength },
+      { x: skierX + offset, y: nearY },
+      { colour: BROWN_BOX_PALETTE.cream },
+    );
+  });
+
+  if (boosted) {
+    const centerY = SKIPIXL_PLAYER_Y - 24 - cadence;
+    drawNativePixelLine(
+      g,
+      { x: skierX - 1, y: centerY - 5 },
+      { x: skierX - 1, y: centerY },
+      { colour: BROWN_BOX_PALETTE.cream },
+    );
+    drawNativePixelLine(
+      g,
+      { x: skierX + 1, y: centerY - 4 },
+      { x: skierX + 1, y: centerY },
+      { colour: BROWN_BOX_PALETTE.cream },
+    );
+  }
 }
 
 function drawFinish(g: Phaser.GameObjects.Graphics, y: number): void {

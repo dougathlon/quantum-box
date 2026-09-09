@@ -161,7 +161,7 @@ export class QuantmanSyntheticMainGameRuntime {
   }
 
   public togglePause(): boolean | null {
-    if (this.snapshot().simulation.phase !== "active") return null;
+    if (this.isComplete()) return null;
     this.paused = !this.paused;
     this.clock.reset();
     if (this.paused) this.clearInput();
@@ -171,7 +171,7 @@ export class QuantmanSyntheticMainGameRuntime {
   }
 
   public pause(): boolean {
-    if (this.paused || this.snapshot().simulation.phase !== "active") {
+    if (this.paused || this.isComplete()) {
       return false;
     }
     this.paused = true;

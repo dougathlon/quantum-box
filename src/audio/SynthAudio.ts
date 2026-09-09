@@ -1,9 +1,8 @@
 import type { QuantumBoxSettings } from "../save/types";
-import CABINET_HUM_ASSET_URL from "./assets/cabinet-hum-loop.wav?url";
 import KEY_IS_OPAQUE_ASSET_URL from "./assets/key-is-opaque-backing-loop.wav?url";
 import SPARE_KEY_ASSET_URL from "./assets/spare-key-loop.wav?url";
 
-export type BackgroundCueId = "cabinet-hum" | "key-is-opaque" | "spare-key";
+export type BackgroundCueId = "key-is-opaque" | "spare-key";
 
 export interface BackgroundCueProfile {
   readonly id: BackgroundCueId;
@@ -15,7 +14,6 @@ export interface BackgroundCueProfile {
 
 const BACKGROUND_CUE_URLS: Readonly<Record<BackgroundCueId, string>> =
   Object.freeze({
-    "cabinet-hum": CABINET_HUM_ASSET_URL,
     "key-is-opaque": KEY_IS_OPAQUE_ASSET_URL,
     "spare-key": SPARE_KEY_ASSET_URL,
   });
@@ -23,15 +21,6 @@ const BACKGROUND_CUE_URLS: Readonly<Record<BackgroundCueId, string>> =
 export const BACKGROUND_CUE_PROFILES: Readonly<
   Record<BackgroundCueId, BackgroundCueProfile>
 > = Object.freeze({
-  "cabinet-hum": Object.freeze({
-    id: "cabinet-hum",
-    assetFilename: "cabinet-hum-loop.wav",
-    assetSha256:
-      "f9b1a71687987ba08b6f4009673addc280c57e96b4e15c9f718594279873f01b",
-    durationSeconds: 20,
-    provenance:
-      "Approved local cabinet-hum synthesis; source preserved outside the runtime tree.",
-  }),
   "key-is-opaque": Object.freeze({
     id: "key-is-opaque",
     assetFilename: "key-is-opaque-backing-loop.wav",
@@ -419,6 +408,10 @@ export class SynthAudio {
     if (!visible) {
       this.clearBackgroundFade();
       this.backgroundElement?.pause();
+      if (this.activeBackgroundCue !== this.requestedBackgroundCue) {
+        this.releaseBackgroundElement();
+        this.commitBackgroundCue(this.backgroundGeneration);
+      }
       return;
     }
     this.retryBackgroundPlayback();
@@ -628,6 +621,10 @@ export class SynthAudio {
             return;
           }
           this.backgroundAutoplayPending = false;
+          if (!this.documentVisible || this.paused) {
+            element.pause();
+            return;
+          }
           this.fadeBackgroundTo(1, generation);
         },
         () => {

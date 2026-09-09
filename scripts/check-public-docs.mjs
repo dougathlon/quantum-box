@@ -8,6 +8,7 @@ const documents = [
   "docs/README.md",
   "docs/project-map.md",
   "docs/current-status.md",
+  "docs/editing-visuals-and-ai.md",
 ];
 
 const failures = [];

@@ -15,7 +15,7 @@ import { RoomGraph } from "../../games/quantmanSynthetic/labyrinth/RoomGraph";
 import type { DirectionName } from "../../games/quantmanSynthetic/labyrinth/types";
 import { BROWN_BOX_PALETTE } from "../BrownBoxTheme";
 import { drawCanonicalSprite } from "../CanonicalSpriteRaster";
-import { drawCenteredPixelPanel } from "../PixelHud";
+import { drawCabinetPauseHeader, drawCenteredPixelPanel } from "../PixelHud";
 import { drawPixelText } from "../PixelText";
 import {
   drawNativePixelFilledEllipse,
@@ -33,7 +33,7 @@ export const QUANTMAN_SYNTHETIC_VIEWPORT = Object.freeze({
 });
 
 export interface QuantmanSyntheticHudModel {
-  readonly mode: "STABILIZE GAZE" | "INVERSE GAZE";
+  readonly mode: "HOLD" | "INVERT";
   readonly phase: "READY" | "ACTIVE" | "PAUSED" | "SCREEN CLEARED" | "RUN LOST";
   readonly score: string;
   readonly lives: string;
@@ -69,6 +69,10 @@ export function renderQuantmanSynthetic(
   drawTopology(g, state);
   drawCollectibles(g, state);
   drawActors(g, state);
+  if (paused) {
+    drawCabinetPauseHeader(g, QUANTMAN_SYNTHETIC_VIEWPORT.boardTop);
+    return;
+  }
   drawHud(g, quantmanSyntheticHudModel(runtime, paused));
 }
 
@@ -86,16 +90,15 @@ export function quantmanSyntheticHudModel(
         : state.phase === "won"
           ? "SCREEN CLEARED"
           : "RUN LOST";
-  const mode =
-    state.mechanic === "stabilize-gaze" ? "STABILIZE GAZE" : "INVERSE GAZE";
+  const mode = state.mechanic === "stabilize-gaze" ? "HOLD" : "INVERT";
   const controls =
     state.phase === "won" || state.phase === "lost"
-      ? "RETRY · X   CONTINUE · SPACE"
+      ? "RETRY · X / X   CONTINUE · SPACE / A"
       : paused
-        ? "RESUME · P   RETRY · X"
+        ? "RESUME · P / START   RETRY · X / X"
         : state.phase === "ready"
-          ? "MOVE / SPACE · START"
-          : "MOVE · WASD / ARROWS   PAUSE · P";
+          ? "MOVE · WASD / ARROWS   START · SPACE / A"
+          : "MOVE · WASD / ARROWS   PAUSE · P / START";
   const gaze = gazeLabel(state);
   const sourceClassification =
     runtime.fixture.classification === "recorded-moth-qpu"
@@ -202,19 +205,7 @@ function drawTopology(
     );
   }
   drawGhostHome(g);
-  if (state.mechanic === "stabilize-gaze") drawGazeCone(g, state);
-  else if (state.gazeTargetEdgeIndex !== null) {
-    const segment = quantmanSyntheticWallSegmentsForEdge(
-      state.gazeTargetEdgeIndex,
-    );
-    drawTargetCorners(
-      g,
-      segment,
-      state.gazeStatus === "applied"
-        ? BROWN_BOX_PALETTE.cream
-        : BROWN_BOX_PALETTE.mutedTan,
-    );
-  }
+  drawGazeCone(g, state);
 }
 
 function drawCollectibles(
@@ -312,9 +303,16 @@ function drawHud(
   g: Phaser.GameObjects.Graphics,
   hud: QuantmanSyntheticHudModel,
 ): void {
+  drawPixelText(g, "QUANTMAN", {
+    x: 160,
+    y: 4,
+    pixel: 1,
+    colour: BROWN_BOX_PALETTE.cream,
+    align: "center",
+  });
   drawPixelText(g, hud.mode, {
     x: 160,
-    y: 6,
+    y: 11,
     pixel: 1,
     colour: BROWN_BOX_PALETTE.cream,
     align: "center",
@@ -357,7 +355,7 @@ function drawSideValue(
     x,
     y,
     pixel: 1,
-    colour: BROWN_BOX_PALETTE.mutedTan,
+    colour: BROWN_BOX_PALETTE.cream,
     align,
   });
   drawPixelText(g, value, {
@@ -424,18 +422,6 @@ function drawGazeCone(
     ),
     { colour: BROWN_BOX_PALETTE.cream },
   );
-}
-
-function drawTargetCorners(
-  g: Phaser.GameObjects.Graphics,
-  segment: QuantmanSyntheticWallSegment,
-  colour: number,
-): void {
-  const x = Math.round((segment.x1 + segment.x2) / 2);
-  const y = Math.round((segment.y1 + segment.y2) / 2);
-  const radius = 5;
-  const corner = 3;
-  drawCorners(g, x, y, radius, corner, colour);
 }
 
 function drawPerimeterWithTunnel(g: Phaser.GameObjects.Graphics): void {
@@ -596,64 +582,6 @@ function drawFrame(
     { x: x + width, y: y + height },
     { colour },
   );
-}
-
-function drawCorners(
-  g: Phaser.GameObjects.Graphics,
-  x: number,
-  y: number,
-  radius: number,
-  corner: number,
-  colour: number,
-): void {
-  for (const [start, end] of [
-    [
-      { x: x - radius, y: y - radius },
-      { x: x - radius + corner, y: y - radius },
-    ],
-    [
-      { x: x - radius, y: y - radius },
-      { x: x - radius, y: y - radius + corner },
-    ],
-    [
-      { x: x + radius, y: y - radius },
-      { x: x + radius - corner, y: y - radius },
-    ],
-    [
-      { x: x + radius, y: y - radius },
-      { x: x + radius, y: y - radius + corner },
-    ],
-    [
-      { x: x - radius, y: y + radius },
-      { x: x - radius + corner, y: y + radius },
-    ],
-    [
-      { x: x - radius, y: y + radius },
-      { x: x - radius, y: y + radius - corner },
-    ],
-    [
-      { x: x + radius, y: y + radius },
-      { x: x + radius - corner, y: y + radius },
-    ],
-    [
-      { x: x + radius, y: y + radius },
-      { x: x + radius, y: y + radius - corner },
-    ],
-  ] as const)
-    drawNativePixelLine(g, start, end, { colour });
-}
-
-function quantmanSyntheticWallSegmentsForEdge(
-  edgeIndex: number,
-): QuantmanSyntheticWallSegment {
-  const edge = GRAPH.edges[edgeIndex];
-  if (!edge) throw new Error(`Unknown Quantman edge ${edgeIndex}.`);
-  const mask = Array.from({ length: GRAPH.edges.length }, (_, index) =>
-    index === edgeIndex ? "1" : "0",
-  ).join("");
-  const segment = quantmanSyntheticWallSegments(mask)[0];
-  if (!segment) throw new Error(`Unable to map Quantman edge ${edgeIndex}.`);
-  return segment;
 }
 
 function roomPosition(room: number): Readonly<{ x: number; y: number }> {

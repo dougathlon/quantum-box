@@ -25,19 +25,19 @@ eagerly imported.
 
 ## Surface map
 
-| Surface  | Production authority                                                                                             |
-| -------- | ---------------------------------------------------------------------------------------------------------------- |
-| Opening  | Selected Brown Box background programme plus local bitmap `QUANTUM BOX` and `PRESS START`; no photograph         |
-| Home     | Four bitmap rows: Story, Arcade, Terminal, Settings                                                              |
-| Story    | Terminal pages only; no chapter selector or physical characters/rooms                                            |
-| Arcade   | Five-cabinet index followed by a terminal-style trial sheet                                                      |
-| Terminal | Five transcript/retry rows and terminal transcript pages                                                         |
-| Qong     | Canonical paddles plus raster ball, court, and HUD                                                               |
-| SkiPixl  | Approved steering/fall family plus raster terrain and gates                                                      |
-| Quantman | Approved angular player/ghost family plus continuous raster maze rails                                           |
-| Fluxball | Classic-derived role silhouettes; held-ball hand pose; no beam                                                   |
-| Quarry   | Directional duck family, raster arenas, distinct human/CPU relationship lines, knockout and respawn presentation |
-| Settings | Sectioned semantic form whose complete visible geometry is bitmap-projected                                      |
+| Surface  | Production authority                                                                                                      |
+| -------- | ------------------------------------------------------------------------------------------------------------------------- |
+| Opening  | Selected Brown Box background programme plus local bitmap `QUANTUM BOX` and `PRESS START`; no photograph                  |
+| Home     | Four bitmap rows: Story, Arcade, Terminal, Settings                                                                       |
+| Story    | Terminal pages only; no chapter selector or physical characters/rooms                                                     |
+| Arcade   | Five-cabinet index followed by a terminal-style trial sheet                                                               |
+| Terminal | Five transcript/retry rows and terminal transcript pages                                                                  |
+| Qong     | Canonical paddles plus raster ball, court, and HUD                                                                        |
+| SkiPixl  | Approved steering/fall family plus raster terrain and gates                                                               |
+| Quantman | Approved angular player/ghost family plus continuous raster maze rails                                                    |
+| Fluxball | Classic-derived role silhouettes; held-ball hand pose; no beam                                                            |
+| Quarry   | Directional ducks, raster arenas, top hunt relationships and notices, brief remeasurement pulse, knockout and grace blink |
+| Settings | Sectioned semantic form whose complete visible geometry is bitmap-projected                                               |
 
 Physical Designer/player/morph/room assets and Enclose are excluded from the
 shipping manifest and production bundle. Their old source provenance may remain

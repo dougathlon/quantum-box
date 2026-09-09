@@ -118,7 +118,7 @@ describe("native cabinet HUD presentation", () => {
       roundWins: { A: "0", B: "0", C: "0", D: "0" },
       activePlayerIds: ["A", "B"],
       notice: "",
-      ruleChange: "CHANGE RULES · SPACE",
+      ruleChange: "PRESS SPACE / A TO CHANGE RULES",
     });
 
     const changed = session.step({
@@ -137,13 +137,11 @@ describe("native cabinet HUD presentation", () => {
     );
   });
 
-  it("keeps Story qualification language out of Arcade Fluxball results", () => {
+  it("keeps internal Story qualification language out of Fluxball results", () => {
     expect(fluxballCompletionLabel("arcade", true)).toBe("MATCH COMPLETE");
     expect(fluxballCompletionLabel("arcade", false)).toBe("MATCH COMPLETE");
-    expect(fluxballCompletionLabel("story", true)).toBe("STORY CONDITION MET");
-    expect(fluxballCompletionLabel("story", false)).toBe(
-      "STORY CONDITION NOT MET",
-    );
+    expect(fluxballCompletionLabel("story", true)).toBe("YOU WIN");
+    expect(fluxballCompletionLabel("story", false)).toBe("MATCH LOST");
   });
 
   it("derives concise Quantman maze-chase telemetry without changing it", () => {

@@ -25,18 +25,18 @@ placement.
 - **Title:** animated selected field; centred `QUANTUM BOX`; centred
   `PRESS START`; no photographic cabinet or secondary copy inside the display.
 - **Home:** four quiet rows—Story, Arcade, Terminal, Settings.
-- **Story:** no selector. Render the current terminal page directly.
+- **Story:** Continue/New Story entry, then the current terminal page.
 - **Arcade:** one five-cabinet overview. A cabinet opens a dedicated trial sheet
   rather than crowding every mode into the overview.
 - **Terminal:** five transcript rows with a single right-aligned state:
   unopened, retry required, transcript ready, or transcript read.
 - **Settings:** stable Display, Field, Controls, and Data sections; one group at
-  a time. Initials receive their own row.
+  a time. Initials are entered on the score-entry screen, using keyboard or gamepad.
 - **Games:** keep permanent text outside the central playfield where possible.
 
 The Arcade trial sheet shares the terminal frame: title and engine above one
-top rule, Tutorial at left, mode/player/score controls at right, and one bottom
-rule with nothing beneath it. Information appears immediately rather than
+top rule, Tutorial at left, mode/player/score controls at right, and a stable
+footer with real ESC / B and SELECT · ENTER / A controls. Information appears immediately rather than
 typing.
 
 ## Bitmap type and geometry
@@ -62,7 +62,8 @@ guaranteed to align with physical device pixels.
 Transparent native buttons and form controls own semantics, focus, pointer,
 keyboard, and screen-reader behavior. The bitmap layer paints their state.
 Selectors sit outside numerals and labels. D-pad/gamepad movement follows the
-same focus order as arrow keys.
+same spatial navigation as arrow keys. Menu selection uses ENTER / A; live
+Player A action uses SPACE / A.
 
 An action key is release-latched across transitions: a press used to reveal a
 terminal page or complete a game cannot also activate the next surface.
@@ -72,26 +73,34 @@ Important instructions never exist only on canvas.
 
 - **Qong:** cream paddles, ball, court, and compact score state. Rule state does
   not cross the pitch.
-- **SkiPixl:** compact seven-angle skier, distinct trees/moguls/gates, no trail
-  or speed panel. Down acceleration is explained on the trial sheet.
+- **SkiPixl:** compact seven-angle skier, distinct trees/moguls/gates, and
+  restrained trails that strengthen with Down acceleration. No forward spray.
 - **Quantman:** continuous raster maze rails, distinct player/ghost family, and
-  `HOLD` / `INVERT` labels. No maze selector.
+  `QUANTMAN` title and `HOLD` / `INVERT` labels. Both use the same vision cone;
+  no floating target square. Changed walls retain a solid two-pixel muted-brown
+  stroke, unchanged walls one-pixel cream. No maze selector.
 - **Fluxball:** role-distinct figures and readable pitch. A held ball appears
   once at a hand socket with a short arm pose; never draw a possession beam.
-- **Quarry:** four distinct ducks, open horizontal wrap, human pursuit lines as
-  thin continuous cream and CPU lines as cream dashes, plus visible knockout
-  and respawn grace.
+- **Quarry:** four distinct ducks and identity labels; open horizontal wrap
+  without side chevrons. No relationship lines or boxes around ducks. Fixed
+  A–D header columns state who hunts whom. Grace briefly blinks the sprite.
+  Each relation change triggers one 100 ms tobacco-colour screen pulse.
+  Opening, round-end and final-result notices replace the top HUD.
+- **Pause:** all five games replace their normal top HUD with the shared boxed
+  PAUSED header. Resume restores it. Keep the field unobstructed.
 
 ## Terminal grammar
 
 A Story terminal page types header, top rule, then body. Actions appear at the
 bottom right only after completion. The block flashes unless Reduced Motion is
-active. One bottom framing rule appears with no text beneath it. See
+active. Heading, readable text measure and paragraph rhythm share one layout;
+footer actions sit in their own region without a redundant inner rule. See
 [Terminal Story](story-terminal.md).
 
 ## Audio grammar
 
-Title hum, menu backing, and terminal music are mutually exclusive route cues.
+The title is silent. Menu backing and terminal music are mutually exclusive
+route cues, unlocked by the first valid user gesture.
 Games, their pauses, and results are effects-only. Cue transitions fade without
 overlap, same-cue navigation preserves transport position, and tab suspension
 resumes the latest request. See [Audio](audio.md).

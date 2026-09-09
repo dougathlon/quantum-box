@@ -63,7 +63,7 @@ test("the live menu and every Arcade cabinet render inside the exact Brown Box p
       .getByRole("button", { name: cabinet.button, exact: true })
       .click();
     if (cabinet.id === "fluxball") {
-      await page.getByRole("button", { name: "X · START" }).click();
+      await page.getByRole("button", { name: "START · ENTER / A" }).click();
     }
     await expect(
       page.getByRole("region", { name: cabinet.region }),
@@ -73,7 +73,7 @@ test("the live menu and every Arcade cabinet render inside the exact Brown Box p
       cabinet: cabinet.id === "quarry" ? "quag" : cabinet.id,
     });
     await page
-      .getByRole("button", { name: "RETURN · ESC", exact: true })
+      .getByRole("button", { name: "BACK · ESC / B", exact: true })
       .click();
     await assertCurrentSurface(page, {
       page: "arcade-detail",

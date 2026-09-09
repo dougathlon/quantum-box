@@ -52,6 +52,11 @@ export interface BitmapTextLayout {
   readonly spacing: 1 | 2;
 }
 
+/** Reflowing copy reserves rows using the same glyph measure as its raster. */
+export function bitmapFlowTextHeight(source: string, maxWidth: number): number {
+  return wrapBitmapText(normalizePixelText(source), maxWidth, 1, 1).length * 6;
+}
+
 /** Prefers larger glyphs without ever collapsing adjacent letter cells together. */
 export function bitmapTextLayout(
   source: string,
@@ -206,6 +211,7 @@ export class BitmapDomTextRenderer {
   public renderNow(): void {
     this.animationFrame = 0;
     const frameRect = this.frame.getBoundingClientRect();
+    this.layoutFlowText(frameRect);
     this.context.clearRect(0, 0, LOGICAL_WIDTH, LOGICAL_HEIGHT);
     this.focusedControlDrawn = null;
     this.explicitTextOverflowCount = 0;
@@ -229,6 +235,31 @@ export class BitmapDomTextRenderer {
     }
     this.publishAudit();
     if (this.hasVisibleAnimation()) this.requestRender();
+  }
+
+  private layoutFlowText(frameRect: DOMRect): void {
+    if (frameRect.width <= 0) return;
+    for (const root of this.semanticRoots) {
+      for (const owner of root.querySelectorAll<HTMLElement>(
+        "[data-bitmap-flow]",
+      )) {
+        if (!isElementLayoutVisible(owner, this.frame)) continue;
+        const rect = insetRect(
+          toLogicalRect(owner.getBoundingClientRect(), frameRect),
+          1,
+          0,
+        );
+        const width = Math.floor(rect.right) - Math.ceil(rect.left);
+        if (width < 1) continue;
+        const height = bitmapFlowTextHeight(
+          owner.dataset["bitmapText"] ?? owner.textContent ?? "",
+          width,
+        );
+        const minHeight = `${Math.ceil((height * 100_000) / LOGICAL_HEIGHT) / 1000}cqh`;
+        if (owner.style.minHeight !== minHeight)
+          owner.style.minHeight = minHeight;
+      }
+    }
   }
 
   public readPixels(): ImageData {
@@ -403,10 +434,10 @@ export class BitmapDomTextRenderer {
           drawCanvasFrame(this.context, x, y, size, size);
           if (control.checked) {
             this.context.fillRect(
-              x + 2,
-              y + 2,
-              Math.max(1, size - 4),
-              Math.max(1, size - 4),
+              x + 1,
+              y + 1,
+              Math.max(1, size - 2),
+              Math.max(1, size - 2),
             );
           }
         }
@@ -603,7 +634,7 @@ export class BitmapDomTextRenderer {
     const ownerRect = parent.getBoundingClientRect();
     const usesOwnBlock =
       parent.matches(
-        "button, summary, label, p, q, dt, dd, li, span, strong, small, output",
+        "button, summary, label, p, q, dt, dd, li, span, strong, b, legend, h1, h2, h3, small, output",
       ) && directText(parent).length > 0;
     const logical = toLogicalRect(
       usesOwnBlock
@@ -649,12 +680,15 @@ export class BitmapDomTextRenderer {
     const clipLeft = Math.max(0, Math.ceil(rect.left));
     const clipRight = Math.min(LOGICAL_WIDTH, Math.floor(rect.right));
     const roundedWidth = Math.max(1, clipRight - clipLeft);
-    const { pixel, spacing } = bitmapTextLayout(
-      normalized,
-      roundedWidth,
-      rect.height,
+    const { pixel, spacing } = owner.closest(
+      ".qb-terminal-page, .qb-terminal-footer, .qb-screen-footer, [data-bitmap-flow]",
+    )
+      ? { pixel: 1, spacing: 1 }
+      : bitmapTextLayout(normalized, roundedWidth, rect.height);
+    const maxLines = Math.max(
+      1,
+      Math.floor((rect.height + pixel) / (pixel * 6)),
     );
-    const maxLines = Math.max(1, Math.floor(rect.height / (pixel * 6)));
     const lines = wrapBitmapText(
       normalized,
       roundedWidth,
@@ -727,17 +761,26 @@ export class BitmapDomTextRenderer {
   }
 
   private drawFocusCursor(owner: HTMLElement): void {
-    const control = owner.closest<HTMLElement>(
-      "button, summary, label, [role='button']",
+    const active = document.activeElement;
+    if (!(active instanceof HTMLElement)) return;
+    const activeControl =
+      active.closest<HTMLElement>("label") ??
+      active.closest<HTMLElement>(
+        "button, summary, input, select, [role='button']",
+      );
+    const ownerControl = owner.closest<HTMLElement>(
+      "button, summary, label, input, select, [role='button']",
     );
     if (
-      !control ||
-      control !== document.activeElement ||
-      control === this.focusedControlDrawn
+      !activeControl ||
+      !ownerControl ||
+      (ownerControl !== activeControl && !ownerControl.contains(active)) ||
+      activeControl === this.focusedControlDrawn
     ) {
       return;
     }
-    this.focusedControlDrawn = control;
+    const control = activeControl;
+    this.focusedControlDrawn = activeControl;
     const frameRect = this.frame.getBoundingClientRect();
     const controlRect = toLogicalRect(
       control.getBoundingClientRect(),

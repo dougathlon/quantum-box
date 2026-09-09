@@ -198,10 +198,10 @@ describe("background audio lifecycle", () => {
           return item.audio as unknown as HTMLAudioElement;
         },
       );
-      audio.requestBackgroundCue("cabinet-hum");
+      audio.requestBackgroundCue("key-is-opaque");
       await Promise.resolve();
       await vi.advanceTimersByTimeAsync(100);
-      expect(created.map(({ cue }) => cue)).toEqual(["cabinet-hum"]);
+      expect(created.map(({ cue }) => cue)).toEqual(["key-is-opaque"]);
 
       audio.requestBackgroundCue("spare-key");
       await vi.advanceTimersByTimeAsync(80);
@@ -209,7 +209,7 @@ describe("background audio lifecycle", () => {
       expect(created[0]!.audio.paused).toBe(false);
       await vi.advanceTimersByTimeAsync(20);
       expect(created.map(({ cue }) => cue)).toEqual([
-        "cabinet-hum",
+        "key-is-opaque",
         "spare-key",
       ]);
       expect(created[0]!.audio.paused).toBe(true);
@@ -230,7 +230,7 @@ describe("background audio lifecycle", () => {
       () => element as unknown as HTMLAudioElement,
     );
 
-    audio.requestBackgroundCue("cabinet-hum");
+    audio.requestBackgroundCue("key-is-opaque");
     await Promise.resolve();
     await Promise.resolve();
     expect(element.playCalls).toBe(1);
@@ -325,5 +325,71 @@ describe("background audio lifecycle", () => {
     } finally {
       vi.useRealTimers();
     }
+  });
+});
+
+describe("audio transition interruption regressions", () => {
+  it("finishes a cue replacement while hidden and resumes only the requested cue", async () => {
+    vi.useFakeTimers();
+    const elements: FakeMenuAudio[] = [];
+    const audio = new SynthAudio(
+      { soundMuted: false, soundVolume: 0.35 },
+      () => new FakeAudioContext() as unknown as AudioContext,
+      () => {
+        const element = new FakeMenuAudio();
+        elements.push(element);
+        return element as unknown as HTMLAudioElement;
+      },
+    );
+    try {
+      audio.requestBackgroundCue("key-is-opaque");
+      await vi.advanceTimersByTimeAsync(110);
+      audio.requestBackgroundCue("spare-key");
+      await vi.advanceTimersByTimeAsync(32);
+      audio.setDocumentVisible(false);
+      expect(elements[0]!.paused).toBe(true);
+      expect(elements[1]!.playCalls).toBe(0);
+      audio.setDocumentVisible(true);
+      await vi.advanceTimersByTimeAsync(110);
+      expect(audio.backgroundCueState()).toMatchObject({
+        requested: "spare-key",
+        active: "spare-key",
+        autoplayPending: false,
+      });
+      expect(elements.filter((element) => !element.paused)).toEqual([
+        elements[1],
+      ]);
+      audio.requestBackgroundCue(null);
+      audio.setDocumentVisible(false);
+      audio.setDocumentVisible(true);
+      await vi.advanceTimersByTimeAsync(110);
+      expect(elements.every((element) => element.paused)).toBe(true);
+    } finally {
+      audio.destroy();
+      vi.useRealTimers();
+    }
+  });
+
+  it("does not let a pending play promise resume sound after the tab is hidden", async () => {
+    const element = new FakeMenuAudio();
+    let finish: (() => void) | undefined;
+    element.play = () =>
+      new Promise<void>((resolve) => {
+        finish = () => {
+          element.paused = false;
+          resolve();
+        };
+      });
+    const audio = new SynthAudio(
+      { soundMuted: false, soundVolume: 0.35 },
+      () => new FakeAudioContext() as unknown as AudioContext,
+      () => element as unknown as HTMLAudioElement,
+    );
+    audio.requestBackgroundCue("key-is-opaque");
+    audio.setDocumentVisible(false);
+    finish!();
+    await Promise.resolve();
+    expect(element.paused).toBe(true);
+    audio.destroy();
   });
 });

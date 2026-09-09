@@ -23,7 +23,7 @@ export function skiPixlNotice(
   if (snapshot.phase === "complete") {
     return snapshot.storyQualified
       ? "WELL DONE. LET ME SHOW YOU SOMETHING."
-      : "DESCENT COMPLETE. QUALIFICATION LIMIT MISSED.";
+      : "DESCENT COMPLETE. TIME LIMIT MISSED.";
   }
   if (snapshot.latestGate) {
     return snapshot.latestGate.passed

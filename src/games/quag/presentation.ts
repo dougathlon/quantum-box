@@ -1,4 +1,4 @@
-import type { QuagPlayerId, QuagSnapshot } from "./types";
+import { QUAG_PLAYER_IDS, type QuagPlayerId, type QuagSnapshot } from "./types";
 
 export interface QuagRelationPresentation {
   readonly sourceId: QuagPlayerId;
@@ -62,6 +62,20 @@ export function quagHumanQuarrySummary(snapshot: QuagSnapshot): string {
       return `${playerId}>${targets || "-"}`;
     })
     .join(" ");
+}
+
+/** Fixed hunter order keeps changing relations readable without tracking birds. */
+export function quagHuntRows(snapshot: QuagSnapshot): readonly string[] {
+  const relations = quagRelationPresentation(snapshot);
+  return QUAG_PLAYER_IDS.map((hunter) => {
+    const targets = QUAG_PLAYER_IDS.filter((target) =>
+      relations.some(
+        (relation) =>
+          relation.sourceId === hunter && relation.targetId === target,
+      ),
+    );
+    return `${hunter} HUNTS ${targets.join("+") || "NONE"}`;
+  });
 }
 
 export function quagRelationPresentation(

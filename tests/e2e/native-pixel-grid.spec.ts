@@ -65,7 +65,7 @@ test("moving frames from all five cabinets remain on the native grid", async ({
       .getByRole("button", { name: cabinet.launch, exact: true })
       .click();
     if (cabinet.id === "fluxball") {
-      await page.getByRole("button", { name: "X · START" }).click();
+      await page.getByRole("button", { name: "START · ENTER / A" }).click();
     }
     await page.keyboard.down(cabinet.key);
     await page.waitForTimeout(180);
@@ -73,7 +73,7 @@ test("moving frames from all five cabinets remain on the native grid", async ({
     await page.waitForTimeout(40);
     await assertUniformLogicalBlocks(page, 4);
     await page
-      .getByRole("button", { name: "RETURN · ESC", exact: true })
+      .getByRole("button", { name: "BACK · ESC / B", exact: true })
       .click();
     await page.getByRole("button", { name: "ARCADE", exact: true }).click();
   }

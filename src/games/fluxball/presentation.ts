@@ -8,7 +8,7 @@ export interface FluxballHudModel {
   readonly roundWins: Readonly<Record<PlayerId, string>>;
   readonly activePlayerIds: readonly PlayerId[];
   readonly notice: string;
-  readonly ruleChange: "CHANGE RULES · SPACE" | "";
+  readonly ruleChange: "PRESS SPACE / A TO CHANGE RULES" | "";
 }
 
 export function fluxballHudModel(
@@ -28,7 +28,7 @@ export function fluxballHudModel(
     notice: fluxballNotice(snapshot, paused),
     ruleChange:
       snapshot.phase === "active" && snapshot.remainingRuleChanges === 1
-        ? "CHANGE RULES · SPACE"
+        ? "PRESS SPACE / A TO CHANGE RULES"
         : "",
   });
 }
@@ -38,7 +38,7 @@ export function fluxballCompletionLabel(
   humanWon: boolean,
 ): string {
   if (playMode === "arcade") return "MATCH COMPLETE";
-  return humanWon ? "STORY CONDITION MET" : "STORY CONDITION NOT MET";
+  return humanWon ? "YOU WIN" : "MATCH LOST";
 }
 
 function scoreStrings(

@@ -79,7 +79,7 @@ test("Quarry pauses, restarts, exits, leaves Story unchanged, and stays provider
   );
   await region.getByRole("button", { name: "RESTART · X" }).click();
   await expect(region).toBeVisible();
-  await region.getByRole("button", { name: "RETURN · ESC" }).click();
+  await region.getByRole("button", { name: "BACK · ESC / B" }).click();
   await expect(region).toBeHidden();
   await expect(page.locator('[data-arcade-detail="quarry"]')).toBeVisible();
 

@@ -17,7 +17,10 @@ grant broader rights to the project or its assets.
    before touching a bank, selector, decoder, or public claim.
 6. For visual work, read the
    [visual reference contract](docs/visual-reference-contract.md) and
-   [design system](docs/design-system-v1.md).
+   [design system](docs/design-system-v1.md), then the
+   [visual and AI editing guide](docs/editing-visuals-and-ai.md) for exact files.
+7. For opponent behavior, start with the AI map in that guide; preserve each
+   policy's public observation boundary and deterministic decisions.
 
 Historical names and recovery adapters can be load-bearing. An apparently
 obvious rename or deletion can invalidate saves, replays, manifests, or exact
@@ -92,7 +95,8 @@ comprehension or game feel by themselves.
 
 ### Audio
 
-- Only one background cue may play: title hum, menu backing, or terminal loop.
+- The title is silent. Only one background cue may play: menu backing or
+  terminal loop, started after a valid user gesture.
 - Games are effects-only. Muting, volume, tab suspension, and same-cue requests
   must not restart transport.
 - Do not replace the menu backing with the older Fluxball composition or add a

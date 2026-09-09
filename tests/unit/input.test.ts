@@ -43,7 +43,7 @@ describe("Quantum Box keyboard profiles", () => {
 });
 
 describe("Quantum Box gamepad map", () => {
-  it("maps standard face buttons to selection, pause, and mute", () => {
+  it("maps A to selection, X to retry, and Y to mute", () => {
     const pressed = new Set([0, 2, 3]);
     const gamepad = {
       axes: [0, 0],
@@ -53,7 +53,7 @@ describe("Quantum Box gamepad map", () => {
     } as unknown as Gamepad;
 
     expect(gamepadActions(gamepad, 1)).toEqual(
-      new Set(["primary", "pause", "mute"]),
+      new Set(["primary", "secondary", "mute"]),
     );
   });
 
@@ -90,7 +90,6 @@ describe("Quantum Box gamepad map", () => {
         "secondary",
         "start",
         "back",
-        "pause",
         "mute",
       ]),
     );

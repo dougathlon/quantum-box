@@ -71,9 +71,8 @@ describe("Quantum Box synth audio", () => {
     });
   });
 
-  it("pins the three approved background cues and excludes the retired tune", () => {
+  it("pins the two active background cues and excludes the retired title hum", () => {
     expect(Object.keys(BACKGROUND_CUE_PROFILES)).toEqual([
-      "cabinet-hum",
       "key-is-opaque",
       "spare-key",
     ]);

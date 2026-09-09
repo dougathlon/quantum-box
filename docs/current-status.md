@@ -10,7 +10,13 @@
 
 - Native `320×180` Brown Box framebuffer, integer nearest-neighbour scaling,
   bitmap UI, animated selectable background programmes, and a field-based title.
-- Home routes: Story, Arcade, Terminal, and Settings.
+- Home routes: Story (Continue/New Story), Arcade, Terminal, and Settings.
+- Spatial keyboard/gamepad focus, selectable footer actions, and controller-only
+  initials entry. Enter / A selects menus; Space / A is Player A's live action.
+- Shared top pause headers; Quarry hunt relations and opening/round/result
+  notices at the top, with a single brief remeasurement pulse.
+- Quantman Hold/Invert share a cone without a target square; restored brown
+  changed walls and readable labels. SkiPixl acceleration has trailing speed cues.
 - A linear terminal-mediated Story with seven gameplay stages. Physical
   Designer/player morphs, rooms, doors, dens, and Workshop presentation are not
   part of the shipping application.
@@ -23,8 +29,8 @@
   four 40-second-round Fluxball formats, and one-to-four-player Quarry.
 - Hardware-backed runtime banks: Qong Coin Toss, SkiPixl QPixl, Quantman
   Labyrinth, Fluxball QGraph, and Quarry QGraph. Gameplay is provider-free.
-- Three mutually exclusive background audio routes: title hum, menu backing,
-  and terminal loop. Games are effects-only.
+- Silent title, then mutually exclusive menu backing and terminal loop.
+  Browser unlock and scene ownership prevent overlap. Games are effects-only.
 - Persistent top-five SkiPixl and Quantman Arcade boards with initials and exact
   run/course provenance.
 - Enclose absent from the shipped navigation, runtime imports, and release

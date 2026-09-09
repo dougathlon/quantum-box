@@ -183,9 +183,9 @@ describe("Brown Box internal visual contract", () => {
     expect(brownBoxCss).not.toContain(".qb-quantman-course");
   });
 
-  it("starts Story directly and keeps five transcript states together in Terminal", () => {
+  it("opens the Story session menu and keeps five transcript states together in Terminal", () => {
     expect(shellSource).toContain(
-      'primaryMenuAction("start-story", "01", "STORY")',
+      'primaryMenuButton("story-start", "01", "STORY")',
     );
     expect(shellSource).toContain(
       '<h1 class="qb-visually-hidden" tabindex="-1">TERMINAL</h1>',
