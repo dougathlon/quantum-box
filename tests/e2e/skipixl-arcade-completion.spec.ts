@@ -99,7 +99,7 @@ test("Arcade SkiPixl completes the production QPixl descent without Story author
     formatSkiPixlTime(record.officialTimeMs / 1_000),
   );
   expect(arcadeCompletionStatus).toBe(
-    `Arcade descent completed on ${plan.courseLabel} in ${(record.officialTimeMs / 1_000).toFixed(2)} seconds with no Story authority.`,
+    `Arcade descent completed on ${plan.courseLabel} in ${(record.officialTimeMs / 1_000).toFixed(2)} seconds.`,
   );
   expect(record.officialTimeMs).toBeLessThanOrEqual(60_000);
   expect(

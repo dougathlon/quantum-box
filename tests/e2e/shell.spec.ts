@@ -101,7 +101,7 @@ test("Arcade overview contains five cabinets and every cabinet opens a terminal-
     await expect(detail).toContainText(engineId);
     await expect(detail.getByText("TUTORIAL", { exact: true })).toBeVisible();
     await expect(detail.locator(".qb-terminal-top-rule")).toHaveCount(1);
-    await expect(detail.locator(".qb-terminal-bottom-rule")).toHaveCount(1);
+    await expect(detail.locator(".qb-terminal-bottom-rule")).toHaveCount(0);
     const titleBox = await detail
       .getByRole("heading", { name: title })
       .boundingBox();
@@ -109,8 +109,14 @@ test("Arcade overview contains five cabinets and every cabinet opens a terminal-
     expect(titleBox).not.toBeNull();
     expect(previewBox).not.toBeNull();
     expect(titleBox!.x).toBeLessThan(previewBox!.x);
-    const back = detail.getByRole("button", { name: "ARCADE", exact: true });
-    await expect(back).toHaveAttribute("data-bitmap-text", "ARCADE");
+    const back = detail.getByRole("button", {
+      name: "BACK · ESC / B",
+      exact: true,
+    });
+    await expect(back).toHaveText("ESC / B");
+    await expect(
+      detail.getByRole("button", { name: "SELECT · ENTER / A", exact: true }),
+    ).toBeEnabled();
     await back.click();
   }
 });
@@ -141,7 +147,9 @@ test("Arcade score and mode controls use the intended row hierarchy", async ({
       );
       expect(Math.abs(scoreBox!.x - launchBox!.x)).toBeLessThan(4);
     }
-    await detail.getByRole("button", { name: "ARCADE", exact: true }).click();
+    await detail
+      .getByRole("button", { name: "BACK · ESC / B", exact: true })
+      .click();
   }
 
   for (const cabinet of ["fluxball", "quarry"] as const) {
@@ -159,7 +167,9 @@ test("Arcade score and mode controls use the intended row hierarchy", async ({
       expect(Math.abs(upperBox!.x - lowerBox!.x)).toBeLessThan(4);
       expect(lowerBox!.y).toBeGreaterThan(upperBox!.y);
     }
-    await detail.getByRole("button", { name: "ARCADE", exact: true }).click();
+    await detail
+      .getByRole("button", { name: "BACK · ESC / B", exact: true })
+      .click();
   }
 });
 
@@ -210,7 +220,9 @@ test("SkiPixl and Quantman expose their installed modes without a maze selector"
     "MEDIUM",
     "HARD",
   ]);
-  await skipixl.getByRole("button", { name: "ARCADE", exact: true }).click();
+  await skipixl
+    .getByRole("button", { name: "BACK · ESC / B", exact: true })
+    .click();
   const quantman = await openArcadeCabinet(page, "quantman");
   await expect(quantman.locator("[data-action='launch-arcade']")).toHaveText([
     "HOLD",
@@ -238,7 +250,7 @@ test("Fluxball uses four 40-second rounds and keeps hidden rule authority out of
     await expect(game).toBeVisible();
     await expect(game).toContainText("R 1/4");
     await expect(game).toContainText("40");
-    await expect(game).toContainText("AVAILABLE");
+    await expect(game).toContainText("PRESS SPACE / A TO CHANGE RULES");
     await expect(game).not.toContainText(
       /\bDIRECT\b|\bINVERTED\b|\bCARRY\b|\bSTRIKE\b|\bOPPOSITE\b|\bOWN\b|\bFIXTURE\b/u,
     );

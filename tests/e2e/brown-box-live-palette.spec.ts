@@ -79,7 +79,9 @@ test("the live menu and every Arcade cabinet render inside the exact Brown Box p
       page: "arcade-detail",
       cabinet: null,
     });
-    await page.getByRole("button", { name: "ARCADE", exact: true }).click();
+    await page
+      .getByRole("button", { name: "BACK · ESC / B", exact: true })
+      .click();
     await assertCurrentSurface(page, { page: "arcade", cabinet: null });
   }
 });
