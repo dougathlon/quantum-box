@@ -23,8 +23,14 @@ class FakeAudioParam {
 }
 
 class FakeAudioNode {
-  public connect(): void {}
-  public disconnect(): void {}
+  public readonly connections: unknown[] = [];
+  public disconnected = false;
+  public connect(node: unknown): void {
+    this.connections.push(node);
+  }
+  public disconnect(): void {
+    this.disconnected = true;
+  }
 }
 
 class FakeGainNode extends FakeAudioNode {
@@ -109,9 +115,19 @@ class FakeAudioContext extends EventTarget {
   public readonly destination = new FakeAudioNode();
   public readonly sources: FakeAudioBufferSourceNode[] = [];
   public rejectResume = false;
+  public readonly mediaSources: FakeAudioNode[] = [];
+  public readonly gains: FakeGainNode[] = [];
+
+  public createMediaElementSource(): MediaElementAudioSourceNode {
+    const source = new FakeAudioNode();
+    this.mediaSources.push(source);
+    return source as unknown as MediaElementAudioSourceNode;
+  }
 
   public createGain(): GainNode {
-    return new FakeGainNode() as unknown as GainNode;
+    const gain = new FakeGainNode();
+    this.gains.push(gain);
+    return gain as unknown as GainNode;
   }
 
   public createBuffer(_channels: number, length: number): AudioBuffer {
@@ -153,6 +169,54 @@ class FakeAudioContext extends EventTarget {
 afterEach(() => vi.unstubAllGlobals());
 
 describe("background audio lifecycle", () => {
+  it("boosts music by 12 dB once and releases each media graph", async () => {
+    vi.useFakeTimers();
+    try {
+      const context = new FakeAudioContext();
+      const elements: FakeMenuAudio[] = [];
+      const audio = new SynthAudio(
+        { soundMuted: false, soundVolume: 0.35 },
+        () => context as unknown as AudioContext,
+        () => {
+          const element = new FakeMenuAudio();
+          elements.push(element);
+          return element as unknown as HTMLAudioElement;
+        },
+      );
+      await audio.unlock();
+      audio.requestBackgroundCue("key-is-opaque");
+      await vi.advanceTimersByTimeAsync(120);
+      expect(elements[0]?.volume).toBe(1);
+      const musicGain = context.gains[1]!;
+      expect(musicGain.gain.value).toBeCloseTo(0.35 * 0.42 * 10 ** (12 / 20));
+      expect(context.mediaSources[0]?.connections).toEqual([musicGain]);
+      expect(musicGain.connections).toEqual([context.destination]);
+      audio.setSettings({ soundMuted: false, soundVolume: 1 });
+      expect(musicGain.gain.value).toBeCloseTo(0.42 * 10 ** (12 / 20));
+      audio.setSettings({ soundMuted: true, soundVolume: 1 });
+      expect(elements[0]?.muted).toBe(true);
+      audio.setSettings({ soundMuted: false, soundVolume: 1 });
+      audio.requestBackgroundCue("key-is-opaque");
+      await audio.unlock();
+      audio.setDocumentVisible(false);
+      audio.setDocumentVisible(true);
+      await vi.advanceTimersByTimeAsync(120);
+      expect(context.mediaSources).toHaveLength(1);
+      expect(elements[0]?.playCalls).toBe(2);
+      audio.requestBackgroundCue("spare-key");
+      await vi.advanceTimersByTimeAsync(240);
+      expect(context.mediaSources).toHaveLength(2);
+      expect(context.mediaSources[0]?.disconnected).toBe(true);
+      expect(musicGain.disconnected).toBe(true);
+      expect(context.gains[2]?.gain.value).toBeCloseTo(0.42 * 10 ** (12 / 20));
+      audio.destroy();
+      expect(context.mediaSources[1]?.disconnected).toBe(true);
+      expect(context.gains[2]?.disconnected).toBe(true);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
   it("keeps the same cue alive and restarts only an unexpected ending", async () => {
     vi.useFakeTimers();
     try {

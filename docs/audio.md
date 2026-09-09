@@ -57,6 +57,35 @@ experimental fragmentation variant.
 Web Audio oscillator/noise voices remain effects. Long-lived effects such as
 SkiPixl carve noise must be stopped on pause, result, route exit, and disposal.
 
+## Playback mix
+
+Music retains the original WAV bytes and gains 12 dB relative to the previous
+0.42 playback multiplier: `0.42 * 10 ** (12 / 20) = 1.6720501163`.
+After gesture unlock, each native audio element connects once to its own Web
+Audio gain node and then directly to the destination. Element volume is unity;
+the music gain applies the saved volume and existing fade exactly once. Effects
+retain their separate master path and original levels. Released cues disconnect
+both source and gain nodes. Native playback retains the former level if Web
+Audio is unavailable or has not yet been unlocked.
+
+The default remains 35%; saved settings and schemas are unchanged. Publication
+of this mix was approved on 2026-09-09 after local review.
+
+Browser OfflineAudioContext measurements used the actual runtime gain values,
+20-second renders, and unchanged select plus launch effects triggered together
+every 80 ms as an overlap stress case. Values are sample peak / RMS dBFS;
+these are not LUFS or a human loudness judgment.
+
+| Cue      | Volume | Music peak / RMS | With effects peak / RMS |
+| -------- | ------ | ---------------- | ----------------------- |
+| Menu     | 35%    | -23.70 / -32.02  | -18.41 / -31.44         |
+| Menu     | 100%   | -14.58 / -22.90  | -9.29 / -22.32          |
+| Designer | 35%    | -22.89 / -31.64  | -18.82 / -31.08         |
+| Designer | 100%   | -13.77 / -22.52  | -9.70 / -21.96          |
+
+No sampled output clipped in these cases. Effect levels remain unchanged pending
+listening comparison; measurements do not establish subjective balance.
+
 ## Verification
 
 Unit tests cover one-cue ownership, same-cue no-op, transition order, rejected

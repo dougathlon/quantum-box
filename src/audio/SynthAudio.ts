@@ -114,6 +114,7 @@ type BackgroundAudioFactory = (
 ) => HTMLAudioElement;
 
 const BACKGROUND_GAIN = 0.42;
+const BACKGROUND_BOOST = 10 ** (12 / 20);
 const BACKGROUND_FADE_SECONDS = 0.096;
 const BACKGROUND_FADE_STEPS = 6;
 
@@ -297,6 +298,8 @@ export class SynthAudio {
   private requestedBackgroundCue: BackgroundCueId | null = null;
   private activeBackgroundCue: BackgroundCueId | null = null;
   private backgroundElement: HTMLAudioElement | null = null;
+  private backgroundSource: MediaElementAudioSourceNode | null = null;
+  private backgroundGain: GainNode | null = null;
   private backgroundPlayPending: Promise<void> | null = null;
   private backgroundFadeTimer: ReturnType<typeof setInterval> | null = null;
   private backgroundFadeFactor = 0;
@@ -333,8 +336,10 @@ export class SynthAudio {
    * error outside the console.
    */
   public async unlock(): Promise<boolean> {
-    this.retryBackgroundPlayback();
-    if (this.unavailable) return false;
+    if (this.unavailable) {
+      this.retryBackgroundPlayback();
+      return false;
+    }
     if (!this.context) {
       try {
         this.context = this.createContext();
@@ -585,6 +590,7 @@ export class SynthAudio {
   private retryBackgroundPlayback(): void {
     const cue = this.requestedBackgroundCue;
     const element = this.backgroundElement;
+    this.connectBackgroundGraph();
     if (
       !cue ||
       cue !== this.activeBackgroundCue ||
@@ -703,10 +709,38 @@ export class SynthAudio {
     this.retryBackgroundPlayback();
   };
 
+  private connectBackgroundGraph(): void {
+    if (!this.context || !this.backgroundElement || this.backgroundSource)
+      return;
+    const gain = this.context.createGain();
+    gain.gain.value = 0;
+    const source = this.context.createMediaElementSource(
+      this.backgroundElement,
+    );
+    source.connect(gain);
+    gain.connect(this.context.destination);
+    this.backgroundSource = source;
+    this.backgroundGain = gain;
+    this.applyBackgroundGain();
+  }
+
   private applyBackgroundGain(): void {
     const element = this.backgroundElement;
     if (!element) return;
     element.muted = this.muted || this.paused;
+    if (this.backgroundGain && this.context) {
+      element.volume = 1;
+      this.backgroundGain.gain.setTargetAtTime(
+        this.volume *
+          BACKGROUND_GAIN *
+          BACKGROUND_BOOST *
+          this.backgroundFadeFactor,
+        this.context.currentTime,
+        0.012,
+      );
+      return;
+    }
+    // Preserve native playback if Web Audio is unavailable or not yet unlocked.
     element.volume = Math.min(
       1,
       this.volume * BACKGROUND_GAIN * this.backgroundFadeFactor,
@@ -723,6 +757,10 @@ export class SynthAudio {
   private releaseBackgroundElement(): void {
     const element = this.backgroundElement;
     this.clearBackgroundFade();
+    this.backgroundSource?.disconnect();
+    this.backgroundGain?.disconnect();
+    this.backgroundSource = null;
+    this.backgroundGain = null;
     this.backgroundElement = null;
     this.backgroundPlayPending = null;
     this.activeBackgroundCue = null;
