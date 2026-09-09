@@ -36,8 +36,8 @@ export function qongDisplayView(
   });
 }
 
-export const SKIPIXL_PLAYER_Y = 116;
-export const SKIPIXL_WORLD_SCALE = 1.05;
+export const SKIPIXL_PLAYER_Y = 58;
+export const SKIPIXL_WORLD_SCALE = 0.525;
 
 export interface SkiPixlVisibleObstacle {
   readonly obstacle: SkiPixlObstacle;
@@ -78,11 +78,11 @@ export function skiPixlDisplayView(
     .map((obstacle) =>
       Object.freeze({ obstacle, screenY: worldToY(obstacle.distance) }),
     )
-    .filter(({ screenY }) => screenY >= 54 && screenY <= 344);
+    .filter(({ screenY }) => screenY >= 27 && screenY <= 172);
   const visibleGates = (payload.gates ?? [])
     .filter((gate) => gate.distance >= snapshot.distance - 30)
     .map((gate) => Object.freeze({ gate, screenY: worldToY(gate.distance) }))
-    .filter(({ screenY }) => screenY >= 54 && screenY <= 344);
+    .filter(({ screenY }) => screenY >= 27 && screenY <= 172);
   const groundCues = payload.obstacles
     .flatMap((obstacle) => {
       const firstDistance =
@@ -112,7 +112,7 @@ export function skiPixlDisplayView(
         }),
       ];
     })
-    .filter(({ screenY }) => screenY >= 54 && screenY <= 344);
+    .filter(({ screenY }) => screenY >= 27 && screenY <= 172);
 
   return Object.freeze({
     direction: "down-screen",

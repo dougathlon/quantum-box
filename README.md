@@ -1,57 +1,77 @@
 # Quantum Box
 
 Quantum Box is a browser-game anthology built as if a 1970s experimental game
-console had been given access to present-day quantum hardware. Its five games
-use stored, provenance-rich results from MOTH engine runs on IBM hardware, then
+console had been given access to present-day quantum hardware. Five games use
+stored, provenance-rich results from MOTH engine runs on IBM hardware, then
 turn those results into rules, terrain, mazes, or pursuit relations through
 explicit local decoders.
 
-[Play the latest verified build](https://dougathlon.github.io/quantum-box/) ·
+[Play Quantum Box](https://dougathlon.github.io/quantum-box/) ·
 [Project map](docs/project-map.md) ·
 [Current status](docs/current-status.md) ·
 [Contributing](CONTRIBUTING.md) ·
 [Documentation index](docs/README.md)
 
-> **Release status:** public demo. The core games, deterministic run evidence,
-> hardware-backed data banks, saves, Arcade scoreboards, and complete Story
-> route are implemented. Qong and SkiPixl have the most developed Story
-> staging. Later Story transitions and the Workshop still need a dedicated
-> presentation and editorial pass; they should not be represented as final.
+> **Release status:** public demo candidate. The five cabinets, terminal-led
+> Story, Terminal transcript archive, deterministic run evidence, save
+> migration, and Arcade scoreboards are implemented. Fluxball and Quarry Story
+> prose is deliberately labelled `PLACEHOLDER` until approved copy exists.
 
 ## The five cabinets
 
-| Cabinet  | What the player does                                      | Stored hardware result used in play                                                                                        |
-| -------- | --------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------- |
-| Qong     | Plays Pong under an unresolved own/opposite goal rule.    | One-shot Coin Toss results resolve the constitutive goal rule.                                                             |
-| SkiPixl  | Skis a slalom course through trees and moguls.            | Twenty recorded QPixl fields become terrain through a disclosed residual decoder.                                          |
-| Fluxball | Plays a two- or four-player ball game with mutable rules. | Forty recorded QGraph distributions supply Global or player-specific rule states.                                          |
-| Quantman | Clears a maze whose passages react to gaze.               | Eight Labyrinth captures are grouped beneath seven authored maze topologies; intact admissible states are sampled locally. |
-| Quarry   | Hunts and evades other ducks in a changing ecology.       | Twenty-four QGraph captures supply directed predator-to-quarry relations.                                                  |
+| Cabinet  | Player action                                            | Stored hardware result used in play                                                                                        |
+| -------- | -------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------- |
+| Qong     | Play Pong under an unresolved own/opposite goal rule.    | One-shot Coin Toss results resolve the constitutive goal rule.                                                             |
+| SkiPixl  | Ski a timed slalom through trees, moguls, and gates.     | Twenty recorded QPixl fields become terrain through a disclosed residual decoder.                                          |
+| Quantman | Clear a maze whose passages respond to gaze.             | Eight Labyrinth captures are grouped beneath seven authored maze topologies; intact admissible states are sampled locally. |
+| Fluxball | Play a two- or four-player ball game with mutable rules. | Forty recorded QGraph distributions supply Global or player-specific rule states.                                          |
+| Quarry   | Hunt and evade other ducks in a changing ecology.        | Twenty-four QGraph captures supply directed predator-to-quarry relations.                                                  |
 
-The browser never contacts MOTH or IBM during play. It selects a validated
-record before a run, preserves its identity, and executes the game locally.
-Authored input, provider return, local filtering or decoding, simulation, and
-presentation are deliberately kept separate. See
-[Source lineage](docs/source-lineage.md) for the exact contracts and hashes.
+The browser never contacts MOTH or IBM during play. It selects validated
+recorded evidence before a run, preserves its identity, and executes gameplay
+locally. Authored input, provider return, local filtering or decoding,
+simulation, and presentation remain separate. See
+[source lineage](docs/source-lineage.md) for the contracts and caveats.
 
-## Try it locally
+## Product flow
+
+The title opens on the animated Brown Box field with `QUANTUM BOX` and
+`PRESS START`. The first valid Start gesture unlocks audio and enters a home
+screen with four routes:
+
+- **Story** begins or resumes a linear terminal demonstration. Its seven
+  gameplay stages are Qong; two SkiPixl courses; Quantman Hold; Fluxball 2P
+  Global and 2P Individual; and Quarry.
+- **Arcade** lists all five cabinets. Each opens a terminal-style trial sheet
+  containing the tutorial, modes, player choices, and scores where applicable.
+- **Terminal** archives the five Story program transcripts. An experienced but
+  uncleared program offers a retry; a transcript unlocks only after its required
+  genuine Story wins.
+- **Settings** contains display, background field, controls, initials, audio,
+  and save-data controls.
+
+Story and Arcade instantiate the same fixed-step simulations. Story owns
+progression and evidence. Arcade owns repeat play and the SkiPixl/Quantman
+top-five boards. Arcade, QA, deterministic replay, and abandoned runs cannot
+advance Story or write Story evidence.
+
+## Run locally
 
 Requirements:
 
 - Node.js 24 or newer
-- pnpm 10.14.0 or another compatible pnpm 10 release
-- Python 3.13 and the packages in `requirements-ci.txt` for the full audit suite
+- pnpm 10.14.0 or a compatible pnpm 10 release
+- Python 3.13 plus `requirements-ci.txt` for the complete audit suite
 
 ```bash
 pnpm install --frozen-lockfile
 pnpm dev
 ```
 
-Open <http://127.0.0.1:4390>. The development server intentionally uses that
-strict port so a stale or duplicate server cannot silently produce the wrong
-build.
+Open <http://127.0.0.1:4390>. The strict port prevents a stale second server
+from silently becoming the build under review.
 
-The default keyboard profiles are:
+Default keyboard controls:
 
 | Player | Movement   | Action |
 | ------ | ---------- | ------ |
@@ -60,68 +80,46 @@ The default keyboard profiles are:
 | C      | T F G H    | R      |
 | D      | I J K L    | O      |
 
-Escape returns, P pauses, and M mutes. Player bindings can be changed in
-Settings. Each Arcade trial sheet states the controls and win condition for its
-game before launch.
+Escape returns, P pauses, and M mutes. Controls can be rebound in Settings.
+SkiPixl uses Down to accelerate. Each Arcade trial sheet states the applicable
+controls and victory condition before launch.
 
-## Product structure
-
-The home screen has four routes:
-
-- **Story** presents five chapters and eight ordered stages: Qong; SkiPixl
-  Medium and Hard; Fluxball 2P Global and 4P Individual; Quantman Hold and
-  Invert; and Quarry.
-- **Arcade** presents all five cabinets in one index. Selecting a cabinet opens
-  a separate trial sheet before its modes and scoreboards.
-- **Workshop** is always selectable. Its five records begin unrecovered and
-  unlock through Story. The MOTH platform link is gated by Quarry completion
-  and appears within Quarry's final Workshop/recovery material, never as an
-  ungated menu shortcut.
-- **Settings** contains display, field, control, and save-data controls.
-
-Story and Arcade instantiate the same fixed-step cabinet simulations. Story
-owns progression and evidence; Arcade owns optional repeat play and the
-SkiPixl/Quantman top-five scoreboards. Arcade, QA, and replay cannot advance
-Story.
-
-## How the code is organized
+## Repository map
 
 ```text
-semantic DOM shell and input
-          ↓
-application flow and frozen RunContext
-          ↓
-fixed-step cabinet session
-          ↓
+semantic DOM input and accessibility
+               ↓
+application flow + frozen run context
+               ↓
+fixed-step cabinet simulation
+               ↓
 immutable presentation snapshot
-          ↓
-Phaser raster display and local audio
+               ↓
+native 320×180 raster + local audio
 ```
 
-Start with these directories:
+- `src/app/` — route, launch, Story, Arcade, and result orchestration
+- `src/story/terminal/` — terminal pages, graph, transcript gates, and copy
+  provenance
+- `src/games/` — cabinet sessions, deterministic policies, banks, and decoders
+- `src/ui/` and `src/display/` — semantic controls and Brown Box raster output
+- `src/save/` — `quantum-box-save-v6`, legacy migration, settings, and records
+- `src/assets/` and `src/audio/` — audited shipping assets and cue transport
+- `tests/` — unit, provenance, save, deterministic, browser, and visual checks
+- `compiler/` — offline acquisition/validation tools; never imported by Vite
 
-- `src/app/` — launch, Story/Arcade flow, run construction, and result handling
-- `src/games/` — cabinet simulations, policies, banks, and game-specific types
-- `src/story/v2/` — current Story sequence, evidence binding, and presentation
-- `src/ui/` and `src/display/` — semantic UI, Brown Box renderer, HUDs, and type
-- `src/save/` — save migration, Story state, settings, and Arcade records
-- `src/assets/` and `src/audio/` — audited runtime assets and local sound
-- `tests/` — unit, contract, determinism, save, browser, and visual checks
-- `compiler/` — offline acquisition/validation tooling; never imported by Vite
+Two source names are historical. Player-facing Quarry still uses some `quag`
+module paths, and the hardware-backed Quantman runtime still lives under
+`quantmanSynthetic`. They preserve save and source lineage; do not rename them
+without a complete migration.
 
-There are two historical naming traps. Player-facing **Quarry** still lives
-under some `quag` module and asset paths for save and provenance compatibility.
-The hardware-backed Quantman runtime lives under `quantmanSynthetic` because
-that directory predates the installed IBM Fez bank. Do not rename either as a
-drive-by cleanup; both require explicit migration work.
-
-The more detailed map is in [docs/project-map.md](docs/project-map.md). The
-binding runtime architecture is [docs/architecture.md](docs/architecture.md).
+See the [project map](docs/project-map.md),
+[architecture](docs/architecture.md), [Story contract](docs/story-terminal.md),
+and [audio contract](docs/audio.md) before changing cross-cutting behavior.
 
 ## Validation
 
-For a focused code change, run the nearest unit tests and TypeScript check. For
-a release candidate, run:
+For a release candidate:
 
 ```bash
 pnpm check
@@ -129,39 +127,23 @@ pnpm test:e2e
 pnpm scan:source
 ```
 
-`pnpm check` runs formatting, strict TypeScript, unit and compiler tests,
-asset/provenance audits, Playwright collection, the production build, Pages
-artifact checks, and the release scan. It collects the browser suite but does
-not execute it. `pnpm test:e2e` performs the browser journeys separately.
+`pnpm check` formats, type-checks, runs unit and compiler tests, audits assets
+and provenance, collects the browser suite, builds production output, and scans
+the Pages artifact. `pnpm test:e2e` executes browser journeys separately.
 
-Canvas-heavy changes also require screenshots at native `320×180`, served
-`1280×720`, and served `1920×1080`. Automated checks, local browser execution,
-the deployed build, and human acceptance are separate evidence categories.
-The full change protocol is in [CONTRIBUTING.md](CONTRIBUTING.md).
+Automated checks, direct browser execution, fresh-save Story completion,
+deployed-site verification, and human visual/listening acceptance are distinct
+forms of evidence. See [deployment](docs/deployment.md).
 
-## GitHub Pages
+## GitHub Pages and rights
 
-`main` is the public release branch. A push triggers
-[the pinned verification and deployment workflow](.github/workflows/deploy-pages.yml),
-which performs a clean install, audits dependencies and source, runs all local
-checks, executes the Chromium journeys on Linux, and deploys only the verified
-`dist/` artifact. Do not commit `dist/` or bypass a failed gate with a manual
-upload.
-
-The stable public address is
-<https://dougathlon.github.io/quantum-box/>. Query parameters such as `?build=`
-may identify a review request, but do not create a separate deployment.
-
-The workflow requires no provider credentials. `.moth-cache`, environment
-files, raw operator material, local QA history, source maps, and retired
-production code are excluded from the public release surface.
-
-## Rights and collaboration
+`main` is the public release branch. Its pinned workflow verifies and deploys
+only `dist/` to the stable address
+<https://dougathlon.github.io/quantum-box/>. Query parameters may identify a
+build but do not create a second public URL.
 
 This repository is public for review and invited collaboration, but Quantum
-Box does **not** currently carry an open-source project licence. Third-party
-dependency notices in `public/THIRD_PARTY_NOTICES.txt` apply only to those
-dependencies. Until the maintainer chooses a project licence, do not assume
-permission to redistribute or reuse the game's code, writing, music, or visual
-assets outside this repository. Pull requests and issue reports remain welcome
-under the process in [CONTRIBUTING.md](CONTRIBUTING.md).
+Box does **not** currently carry an open-source project licence. Dependency
+notices in `public/THIRD_PARTY_NOTICES.txt` apply only to those dependencies.
+Do not assume permission to redistribute the game's code, writing, music, or
+visual assets outside this repository.

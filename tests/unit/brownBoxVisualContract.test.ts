@@ -26,20 +26,17 @@ const quantmanViewSource = readFileSync(
   "utf8",
 );
 const quarryViewSource = readFileSync("src/display/views/QuagView.ts", "utf8");
-const tutorialViewSource = readFileSync(
-  "src/display/views/TutorialWorldView.ts",
-  "utf8",
-);
 const pixelTextSource = readFileSync("src/display/PixelText.ts", "utf8");
 const pixelHudSource = readFileSync("src/display/PixelHud.ts", "utf8");
 
 describe("Brown Box internal visual contract", () => {
-  it("paints state one before the asynchronous title layers initialize", () => {
+  it("paints state one before the asynchronous opening field initializes", () => {
     const stateOnePath =
       "background-programs/current-four-state-v1/state-01.png";
     expect(indexSource).toContain(stateOnePath);
     expect(indexSource).toContain('rel="preload"');
-    expect(indexSource).toContain("title-formica-device.png");
+    expect(indexSource).not.toContain("title-formica-device.png");
+    expect(indexSource).not.toContain("title-b3-s3-screen-layer.png");
     expect(brownBoxCss).toContain(stateOnePath);
     expect(indexSource).not.toContain("#090a08");
     expect(brownBoxCss).toMatch(
@@ -47,10 +44,9 @@ describe("Brown Box internal visual contract", () => {
     );
   });
 
-  it("imports the exact visual guard after every legacy stylesheet", () => {
-    expect(
-      mainSource.indexOf('import "./display/brownBox.css"'),
-    ).toBeGreaterThan(mainSource.indexOf('import "./qongDesigner.css"'));
+  it("imports the native visual guard without the retired Designer stylesheet", () => {
+    expect(mainSource).toContain('import "./display/brownBox.css"');
+    expect(mainSource).not.toContain("qongDesigner.css");
   });
 
   it("uses only the approved three literal colours in the final stylesheet", () => {
@@ -90,7 +86,6 @@ describe("Brown Box internal visual contract", () => {
       skiPixlViewSource,
       fluxballViewSource,
       quantmanViewSource,
-      tutorialViewSource,
     ]) {
       expect(source).not.toMatch(/fillRect\(0, 0, 640, 360\)/);
     }
@@ -124,39 +119,44 @@ describe("Brown Box internal visual contract", () => {
   });
 
   it("keeps the cream library boundary without decorative corner blocks", () => {
-    expect(screenSceneSource).toContain(
-      "g.lineStyle(1, PALETTE.cream, 1).strokeRect(13, 10, 614, 340)",
-    );
+    expect(screenSceneSource).toContain("drawNativePixelLine(");
+    expect(screenSceneSource).toContain("{ x: 7, y: 5 }");
+    expect(screenSceneSource).toContain("{ x: 313, y: 175 }");
     expect(screenSceneSource).not.toContain("fillRect(26, 24, 5, 5)");
     expect(screenSceneSource).not.toContain("fillRect(609, 24, 5, 5)");
     expect(screenSceneSource).not.toContain("fillRect(26, 333, 5, 5)");
     expect(screenSceneSource).not.toContain("fillRect(609, 333, 5, 5)");
   });
 
-  it("keeps Designer dialogue out of antialiased Phaser text", () => {
+  it("keeps terminal copy out of antialiased Phaser text", () => {
     expect(screenSceneSource).not.toContain("GameObjects.Text");
     expect(screenSceneSource).not.toMatch(/this\.add\s*\.text\s*\(/);
-    expect(shellSource).toContain('class="qb-story-dialogue"');
-    expect(shellSource).toContain('class="qb-story-terminal"');
-    expect(shellSource).toContain('data-story-beat="${escapeHtml(beat.id)}"');
+    expect(shellSource).toContain('class="qb-page-panel qb-terminal-page"');
+    expect(shellSource).toContain(
+      'data-terminal-page="${escapeHtml(page.id)}"',
+    );
+    expect(shellSource).toContain('data-action="story-terminal-action"');
     expect(shellSource).toContain("BitmapDomTextRenderer");
     expect(shellSource).toContain('data-ui="bitmap-text"');
   });
 
-  it("routes menus, control bars, Designer dialogue and Fluxball reveals through the bitmap semantic layer", () => {
+  it("routes menus, control bars, terminal pages and Fluxball reveals through the bitmap semantic layer", () => {
     for (const className of [
       "qb-screen-header",
       "qb-screen-footer",
       "qb-page",
       "qb-game-ui",
-      "qb-story-dialogue",
-      "qb-story-terminal",
+      "qb-terminal-page",
+      "qb-terminal-index",
       "qb-fluxball-reveal",
     ]) {
       expect(shellSource).toContain(className);
     }
     expect(brownBoxCss).toContain(".qb-bitmap-semantic");
-    expect(brownBoxCss).toContain("-webkit-text-fill-color: transparent");
+    expect(brownBoxCss).toContain("opacity: 0 !important");
+    expect(readFileSync("src/display/BitmapDomText.ts", "utf8")).toContain(
+      "drawElementGeometry",
+    );
   });
 
   it("separates the five-cabinet Arcade index from each game's trial sheet", () => {
@@ -165,7 +165,7 @@ describe("Brown Box internal visual contract", () => {
     expect(shellSource).toContain("OBJECT");
     expect(shellSource).toContain("CONDITION");
     expect(shellSource).toContain("CONTROLS");
-    expect(shellSource).toContain("SELECT TRIAL");
+    expect(shellSource).toContain("TRIALS");
     expect(brownBoxCss).toContain(
       "grid-template-rows: repeat(5, minmax(0, 1fr))",
     );
@@ -183,20 +183,20 @@ describe("Brown Box internal visual contract", () => {
     expect(brownBoxCss).not.toContain(".qb-quantman-course");
   });
 
-  it("keeps Story sparse with compact bitmap lock states", () => {
+  it("starts Story directly and keeps five transcript states together in Terminal", () => {
     expect(shellSource).toContain(
-      '<h1 class="qb-visually-hidden" tabindex="-1">STORY</h1>',
+      'primaryMenuAction("start-story", "01", "STORY")',
     );
-    expect(shellSource).not.toContain(
-      '<header><h1 tabindex="-1">STORY</h1></header>',
+    expect(shellSource).toContain(
+      '<h1 class="qb-visually-hidden" tabindex="-1">TERMINAL</h1>',
     );
     expect(brownBoxCss).toContain(
-      "grid-template-columns: 13cqw 6cqw minmax(0, 1fr) 15cqw",
+      "grid-template-columns: 8cqw minmax(0, 1fr) 29cqw",
     );
-    expect(brownBoxCss).toContain("width: 15cqw");
-    expect(shellSource).toContain('data-bitmap-text="${statusText}"');
-    expect(shellSource).not.toContain('class="qb-story-select-progress"');
-    expect(shellSource).not.toContain('${current ? "OPEN" : "CLOSED"}');
+    expect(shellSource).toContain("TRANSCRIPT READY");
+    expect(shellSource).toContain("RETRY REQUIRED");
+    expect(shellSource).toContain("UNOPENED");
+    expect(shellSource).not.toContain('data-action="open-story-stage"');
     expect(brownBoxCss).toContain("text-align: right");
   });
 

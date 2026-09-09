@@ -7,6 +7,7 @@ import {
   bitmapFocusCursorPlacement,
   bitmapTextLineLeft,
   bitmapTextLayout,
+  integerLogicalRect,
   wrapBitmapText,
 } from "../../src/display/BitmapDomText";
 
@@ -25,19 +26,18 @@ describe("semantic DOM bitmap mirror", () => {
       '<button class="qb-primary-menu-row" type="button"',
     );
     expect(shellSource).toContain('role="status" aria-live="polite"');
-    expect(shellSource).toContain('data-action="story-v2-continue"');
-    expect(shellSource).toContain('class="qb-story-dialogue"');
+    expect(shellSource).toContain('data-action="story-terminal-action"');
+    expect(shellSource).toContain('class="qb-page-panel qb-terminal-page"');
     expect(shellSource).not.toContain('data-cabinet="tutorial-world"');
   });
 
-  it("makes DOM glyph paint transparent without removing focus or input geometry", () => {
-    expect(cssSource).toContain(".qb-bitmap-semantic *");
-    expect(cssSource).toContain("color: transparent !important");
+  it("makes the complete DOM paint transparent without removing focus or input geometry", () => {
     expect(cssSource).toContain("pointer-events: none");
     const semanticRule = cssSource.match(
-      /\.qb-bitmap-semantic,\n\.qb-bitmap-semantic \* \{([^}]*)\}/,
+      /\.qb-bitmap-semantic \{([^}]*)\}/,
     )?.[1];
     expect(semanticRule).toBeDefined();
+    expect(semanticRule).toContain("opacity: 0 !important");
     expect(semanticRule).not.toContain("display:");
     expect(semanticRule).not.toContain("visibility:");
     expect(readFileSync("src/display/BitmapDomText.ts", "utf8")).toContain(
@@ -49,9 +49,31 @@ describe("semantic DOM bitmap mirror", () => {
     expect(readFileSync("src/display/BitmapDomText.ts", "utf8")).toContain(
       `input[type='text']`,
     );
+    expect(readFileSync("src/display/BitmapDomText.ts", "utf8")).toContain(
+      "drawElementGeometry",
+    );
+    expect(readFileSync("src/display/BitmapDomText.ts", "utf8")).toContain(
+      "drawImages",
+    );
+    expect(readFileSync("src/display/BitmapDomText.ts", "utf8")).toContain(
+      "drawFormControls",
+    );
     expect(cssSource).toContain("outline: 0 !important");
     expect(readFileSync("src/display/BitmapDomText.ts", "utf8")).not.toContain(
       "drawStatus(",
+    );
+  });
+
+  it("does not confuse accessibility hiding with visual bitmap suppression", () => {
+    const rendererSource = readFileSync("src/display/BitmapDomText.ts", "utf8");
+    const paintPredicate = rendererSource.match(
+      /function isElementPainted\([\s\S]*?\n}\n\nfunction isElementLayoutVisible/,
+    )?.[0];
+    expect(paintPredicate).toBeDefined();
+    expect(paintPredicate).not.toContain('getAttribute("aria-hidden")');
+    expect(shellSource).toContain('<header aria-hidden="true">');
+    expect(shellSource).toContain(
+      '<section class="qb-terminal-body" aria-hidden="true">',
     );
   });
 
@@ -88,6 +110,10 @@ describe("semantic DOM bitmap mirror", () => {
       "EFGH",
       "I",
     ]);
+    expect(wrapBitmapText("FIRST LINE\nSECOND LINE", 200, 1, 1, 3)).toEqual([
+      "FIRST LINE",
+      "SECOND LINE",
+    ]);
   });
 
   it("retains a blank column between letters instead of compressing labels", () => {
@@ -105,6 +131,13 @@ describe("semantic DOM bitmap mirror", () => {
     ).toEqual(["SCORE"]);
   });
 
+  it("chooses a glyph scale that fits every authored line vertically", () => {
+    expect(bitmapTextLayout("ONE\nTWO\nTHREE", 200, 18)).toEqual({
+      pixel: 1,
+      spacing: 1,
+    });
+  });
+
   it("places complete aligned lines inside integer clip boundaries", () => {
     expect(bitmapTextLineLeft(12.2, 42.8, 19, "left")).toBe(13);
     expect(bitmapTextLineLeft(12.2, 42.8, 19, "center")).toBe(18);
@@ -112,9 +145,40 @@ describe("semantic DOM bitmap mirror", () => {
   });
 
   it("publishes an explicit-label fit audit on the bitmap plane", () => {
-    expect(readFileSync("src/display/BitmapDomText.ts", "utf8")).toContain(
-      'dataset["explicitTextFitAudit"]',
-    );
+    const source = readFileSync("src/display/BitmapDomText.ts", "utf8");
+    expect(source).toContain('dataset["explicitTextFitAudit"]');
+    expect(source).toContain('dataset["fractionalPlacementAudit"]');
+    expect(source).toContain('dataset["visibleDomPaintAudit"]');
+  });
+
+  it("quantizes each projected DOM rectangle once at the presentation edge", () => {
+    expect(
+      integerLogicalRect({
+        left: 10.49,
+        top: 4.51,
+        right: 22.6,
+        bottom: 11.4,
+        width: 12.11,
+        height: 6.89,
+      }),
+    ).toEqual({
+      left: 10,
+      top: 5,
+      right: 23,
+      bottom: 11,
+      width: 13,
+      height: 6,
+    });
+    expect(() =>
+      integerLogicalRect({
+        left: Number.NaN,
+        top: 0,
+        right: 1,
+        bottom: 1,
+        width: 1,
+        height: 1,
+      }),
+    ).toThrow("must be finite");
   });
 
   it("removes the clipped Home status column from semantic and bitmap layout", () => {

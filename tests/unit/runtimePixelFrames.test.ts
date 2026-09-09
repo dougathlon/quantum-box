@@ -21,7 +21,7 @@ describe("browser-independent runtime pixel frames", () => {
     expect(RUNTIME_PIXEL_FRAME_SUMMARY).toEqual([
       expect.objectContaining({
         familyId: "canonical-runtime-v2",
-        frameCount: 98,
+        frameCount: 52,
       }),
       expect.objectContaining({
         familyId: "qgraph-cabinet-v1",

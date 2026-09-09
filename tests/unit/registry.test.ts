@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  ARCADE_CABINET_DEFINITIONS,
   ARCADE_CABINET_IDS,
   GAME_IDS,
   STORY_CHAPTER_IDS,
@@ -10,11 +11,10 @@ import {
   isArcadeCabinetId,
   isShippedArcadeCabinetId,
   nextStoryStage,
-  ARCADE_CABINET_DEFINITIONS,
 } from "../../src/games/registry";
 
 describe("Quantum Box registry", () => {
-  it("ships five cabinets while preserving dormant legacy ids only at compatibility boundaries", () => {
+  it("ships five cabinets in the canonical demonstration order", () => {
     expect(GAME_IDS).toEqual(["qong", "skipixl", "fluxball", "quantman"]);
     expect(ARCADE_CABINET_IDS).toEqual([
       "qong",
@@ -26,18 +26,17 @@ describe("Quantum Box registry", () => {
     expect(STORY_CHAPTER_IDS).toEqual([
       "qong",
       "skipixl",
-      "fluxball",
       "quantman",
+      "fluxball",
       "quarry",
     ]);
     expect(STORY_SEQUENCE).toEqual([
       "qong",
-      "skipixl-medium",
-      "skipixl",
-      "fluxball-two",
-      "fluxball-four",
-      "quantman-stabilize",
-      "quantman",
+      "skipixl-feasible",
+      "skipixl-overloaded",
+      "quantman-hold",
+      "fluxball-global",
+      "fluxball-individual",
       "quarry",
     ]);
     expect(isArcadeCabinetId("enclose")).toBe(true);
@@ -45,23 +44,19 @@ describe("Quantum Box registry", () => {
   });
 
   it("maps paired stages and Quarry's reused QGraph formula coherently", () => {
-    expect(gameForStoryStage("fluxball-two").id).toBe("fluxball");
-    expect(gameForStoryStage("fluxball-four").id).toBe("fluxball");
+    expect(gameForStoryStage("fluxball-global").id).toBe("fluxball");
+    expect(gameForStoryStage("fluxball-individual").id).toBe("fluxball");
     expect(gameForStoryStage("quarry").id).toBe("fluxball");
     expect(chapterForStoryStage("quarry").id).toBe("quarry");
-    expect(nextStoryStage("skipixl-medium")).toBe("skipixl");
-    expect(nextStoryStage("fluxball-two")).toBe("fluxball-four");
-    expect(nextStoryStage("quantman")).toBe("quarry");
+    expect(nextStoryStage("skipixl-feasible")).toBe("skipixl-overloaded");
+    expect(nextStoryStage("quantman-hold")).toBe("fluxball-global");
     expect(nextStoryStage("quarry")).toBe("complete");
   });
 
   it("gives every Arcade cabinet one concise trial sheet", () => {
     for (const gameId of ARCADE_CABINET_IDS) {
       const brief = ARCADE_CABINET_DEFINITIONS[gameId].brief;
-      expect(brief.premise).toMatch(/\.$/);
-      expect(brief.object).toMatch(/\.$/);
-      expect(brief.condition).toMatch(/\.$/);
-      expect(brief.controls).toMatch(/\.$/);
+      for (const line of Object.values(brief)) expect(line).toMatch(/\.$/);
     }
   });
 });

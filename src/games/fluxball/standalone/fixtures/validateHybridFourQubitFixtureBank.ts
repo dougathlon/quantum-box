@@ -1,9 +1,9 @@
 import Ajv2020 from "ajv/dist/2020.js";
 import addFormats from "ajv-formats";
 
-import twoQubitSchema from "../../schemas/fluxball-fixture-bank-v1.schema.json";
-import legacyFourQubitSchema from "../../schemas/fluxball-four-qubit-fixture-bank-v1.schema.json";
-import hybridSchema from "../../schemas/fluxball-four-qubit-hybrid-fixture-bank-v1.schema.json";
+import twoQubitSchema from "../../schemas/fluxball-fixture-bank-v1.schema.json" with { type: "json" };
+import legacyFourQubitSchema from "../../schemas/fluxball-four-qubit-fixture-bank-v1.schema.json" with { type: "json" };
+import hybridSchema from "../../schemas/fluxball-four-qubit-hybrid-fixture-bank-v1.schema.json" with { type: "json" };
 import type { Context, ProbabilityVector } from "./types";
 import {
   FOUR_OUTCOME_ORDER,

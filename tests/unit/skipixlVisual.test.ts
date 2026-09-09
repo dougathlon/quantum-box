@@ -23,7 +23,7 @@ describe("SkiPixl Atari-lineage sprite states", () => {
 
     const manifest = JSON.parse(
       readFileSync(
-        "src/assets/canonical-runtime-assets-v2/manifests/runtime-handoff.json",
+        "src/assets/canonical-runtime-assets-v2/manifests/shipped-runtime-handoff.json",
         "utf8",
       ),
     );

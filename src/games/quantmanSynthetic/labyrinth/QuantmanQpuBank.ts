@@ -1,4 +1,4 @@
-import installedBankArtifact from "../data/quantman-labyrinth-ibm-fez-bank-v3.json";
+import installedBankArtifact from "../data/quantman-labyrinth-ibm-fez-bank-v3.json" with { type: "json" };
 
 import { sha256CanonicalJson } from "../../../core/canonicalJson";
 import { asUint32Seed, deriveSeed } from "../../../core/determinism";

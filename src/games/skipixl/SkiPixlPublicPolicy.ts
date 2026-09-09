@@ -210,6 +210,6 @@ function steerToward(
   return Object.freeze({
     steer:
       desiredAngle === currentAngle ? 0 : desiredAngle < currentAngle ? -1 : 1,
-    throttle: 0,
+    throttle: 1,
   });
 }

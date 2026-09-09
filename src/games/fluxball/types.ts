@@ -8,9 +8,10 @@ import type { ScoreBoard } from "./standalone/simulation";
 import type { PackSource } from "../../packs/types";
 import type { RuleAcquisitionSource } from "./standalone/rules/types";
 
-export const FLUXBALL_RULES_VERSION = "fluxball-rules-v4";
-export const FLUXBALL_LEGACY_RULES_VERSION = "fluxball-rules-v3";
-export const FLUXBALL_OLDER_RULES_VERSION = "fluxball-rules-v2";
+export const FLUXBALL_RULES_VERSION = "fluxball-rules-v5";
+export const FLUXBALL_LEGACY_RULES_VERSION = "fluxball-rules-v4";
+export const FLUXBALL_OLDER_RULES_VERSION = "fluxball-rules-v3";
+export const FLUXBALL_OLDEST_RULES_VERSION = "fluxball-rules-v2";
 export const FLUXBALL_TOTAL_ROUNDS = 4;
 export const FLUXBALL_TICKS_PER_SECOND = 20;
 

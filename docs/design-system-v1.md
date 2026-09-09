@@ -1,161 +1,104 @@
-# Quantum Box design system v1
+# Quantum Box design system
 
-**Status:** binding browser implementation contract, revised 2026-09-07
-**Logical screen:** 320 × 180  
-**Reference authority:** `docs/visual-reference-contract.md`
+**Status:** binding browser implementation contract, revised 2026-09-09
+
+**Logical screen:** `320×180`
 
 ## Visual grammar
 
-Quantum Box is a handmade early-1970s game anthology, not a universal Fluxball
-skin, a green-phosphor oscilloscope, or a modern CRT shader demo. Every internal
-surface is registered to a 320 × 180 Brown Box display. The field uses a
-preserved QPixl-derived two-colour distribution; sharp local geometry, sprites,
-type, focus, and controls are drawn above it. The fixed internal palette is:
+Quantum Box is a handmade early electronic game system, not a generic CRT
+shader. Every surface uses one native logical framebuffer with three colours:
 
-| Role         | Value     | Use                                                     |
-| ------------ | --------- | ------------------------------------------------------- |
-| dark tobacco | `#2B1C14` | deepest field, negative space, outlines                 |
-| muted tan    | `#564330` | second background value and subordinate surfaces        |
-| warm cream   | `#D6BD8B` | type, court, maze, course structure, players, and focus |
+| Role         | Value     | Use                                               |
+| ------------ | --------- | ------------------------------------------------- |
+| dark tobacco | `#2B1C14` | negative space, outlines, and deepest field       |
+| muted tan    | `#564330` | the second field value and subordinate structure  |
+| warm cream   | `#D6BD8B` | text, focus, sprites, courts, walls, and controls |
 
-Screens preserve sparse peripheral counters and a clear central playfield. Text-heavy settings, Workshop, formulae, and source records remain DOM-authored for keyboard and assistive-technology access. Gameplay authority stays outside DOM and rendering.
+The Brown Box background uses dark tobacco and muted tan. Warm cream is local
+interface/game geometry, not provider output. Do not add antialiasing, blur,
+gradient, glow, bloom, opacity-derived shades, generic CRT damage, or fractional
+placement.
 
-## Reference-to-surface rules
+## Surface hierarchy
 
-- **Launch:** show only STORY, ARCADE, WORKSHOP, and SETTINGS as four quiet
-  primary rows. Credits belongs under Settings. Do not place game thumbnails on
-  the launch surface.
-- **Story and Arcade:** each begins with a non-scrolling five-cabinet index for
-  Qong, SkiPixl, Fluxball, Quantman, and Quarry, and both reuse the same
-  canonical preview marks. Enclose is not shipped. Story shows preview,
-  number, title, chapter status, and compact paired-stage progress. Arcade
-  shows preview, number, title, and `OPEN`; selecting a row opens that game’s
-  separate trial sheet. The sheet gives one premise plus `OBJECT`, `CONDITION`,
-  `CONTROLS`, and `SELECT TRIAL`, then the existing modes and score access.
-  Neither index repeats its page heading. Provider identifiers and dense
-  authority metadata remain in the accessible/source structure rather than
-  competing with first-play comprehension. Preview marks use only the
-  three-colour palette.
-- **Arcade labels:** describe the actual playable choice. Qong uses
-  `PLAYER / CPU` and `PLAYER / PLAYER`; SkiPixl uses `EASY`, `MEDIUM`, and
-  `HARD`; Quantman uses `HOLD` and `INVERT`; Fluxball uses `2P SHARED`,
-  `2P SPLIT`, `4P SHARED`, and `4P SPLIT`; and Quarry uses `1 PLAYER` through
-  `4 PLAYER`. `LOCAL` is not a visible rule label because it ambiguously names
-  both same-device multiplayer and locally decoded rule variation. Every mode
-  target reserves the same logical height so short labels cannot trigger a
-  larger bitmap-text scale.
-- **SkiPixl:** use the compact seven-state runtime skier family derived from the
-  posture, scale, and rotation logic of Atari _Skiing_ (1980) without copying
-  its sprite. The earlier Candidate B sheet is historical development evidence,
-  not current runtime authority. The skier faces down-screen in the upper third;
-  new rows enter below and move upward. Do not add tracks, corridor walls, or a
-  speed panel.
-- **Fluxball:** use Fluxball Classic's four recovered role silhouettes as the
-  sprite-language benchmark while preserving the existing physics, rule
-  sampling, controls, and court topology. Individual mode shows only each
-  side's round goals and round wins plus the shared `CHANGE RULES` availability;
-  it never exposes an individual or joint state. Global mode alone may show its
-  outgoing or final shared triplet. Do not add opaque rule cards or new colours.
-- **Quantman:** use continuous cream corridors, small fragments, the selected
-  notched player, and signal ghosts without copying a protected maze or
-  character. Both modes render intact admissible measured states from the
-  installed 10×10/100-bit IBM Fez Labyrinth corpus. The authored topology,
-  returned state, disclosed local filter, and parity-to-passage decoder remain
-  visually and semantically distinct.
-- **Quarry:** use the four silhouette-distinct duck families, directed relation
-  lines, open wraparound sides, and sparse arena architectures. Its relation
-  phases come from its own 24-record IBM Fez QGraph corpus. Do not visually or
-  semantically transfer Fluxball's separate 40-record QGraph provenance to it.
-- **Story:** the five chapters contain eight gameplay stages: Qong; SkiPixl
-  Medium then Hard; Fluxball 2P Global then 4P Individual; Quantman Stabilize
-  then Inverse; and Quarry. Morphs, doors, dismounts, and transports are shown
-  as actions, never described by captions. Compact in-world dialogue then gives
-  way to player-controlled top-down room traversal into the shared office, den,
-  cabin, and terminal grammar. The former four spatial tutorial rooms are
-  legacy QA surfaces, not current Story destinations.
-- **Workshop and Settings:** retain the ordinary Brown Box menu frame. Workshop
-  contains five Story records that unlock independently; the fifth Quarry
-  record reuses QGraph without pretending to be a fifth engine family. The
-  MOTH link remains gated by Quarry completion and appears within its final
-  Workshop/recovery material, never as an ungated menu shortcut. Settings
-  keeps stable DISPLAY, FIELD, CONTROLS, and DATA sections and reveals one
-  group at a time.
+- **Title:** animated selected field; centred `QUANTUM BOX`; centred
+  `PRESS START`; no photographic cabinet or secondary copy inside the display.
+- **Home:** four quiet rows—Story, Arcade, Terminal, Settings.
+- **Story:** no selector. Render the current terminal page directly.
+- **Arcade:** one five-cabinet overview. A cabinet opens a dedicated trial sheet
+  rather than crowding every mode into the overview.
+- **Terminal:** five transcript rows with a single right-aligned state:
+  unopened, retry required, transcript ready, or transcript read.
+- **Settings:** stable Display, Field, Controls, and Data sections; one group at
+  a time. Initials receive their own row.
+- **Games:** keep permanent text outside the central playfield where possible.
 
-Each mapping is tested with a served screenshot beside the exact reference. Similar palette alone is insufficient.
+The Arcade trial sheet shares the terminal frame: title and engine above one
+top rule, Tutorial at left, mode/player/score controls at right, and one bottom
+rule with nothing beneath it. Information appears immediately rather than
+typing.
 
-## Display field, scaling, and motion
+## Bitmap type and geometry
 
-- The interactive foreground plane is exactly 320 × 180. CSS preserves its 16:9 aspect ratio and uses nearest-neighbour scaling. The QPixl field alone continues beyond that foreground in non-16:9 viewports at the same integer pixel scale; it is not a second decorative field or a differently scaled copy.
-- Existing cabinet drawing code may use the exact 640 × 360 legacy authoring plane only through the single fixed 0.5 transform in `BrownBoxDisplay`; the resulting display model and content plane remain 320 × 180.
-- The installed state-1 field is one frozen local assembly using authentic
-  returned QPixl cell values from the B2/B3/B4 programme under a documented
-  fixed-midpoint two-colour presentation mapping. It is not a single
-  whole-screen QPU render and is not collision, rule, or gameplay authority.
-- `BrownBoxViewportField` keeps the exact 320 × 180 endpoint under the
-  foreground. Where a square or portrait viewport extends beyond that plane,
-  it fills only the extra area with a deterministic local stitch of exact
-  20 × 20 panels cropped from the same endpoint. That extension is local
-  presentation, remains explicitly labelled, and must never be described as a
-  provider-returned expanded frame.
-- One hard left-to-right replacement boundary changes the complete viewport
-  between the four approved endpoints. There is no separate CSS field, Phaser
-  field, authored scan line, opacity blend, or interpolation.
-- The photographed title CRT uses those same four endpoint images, state order,
-  100 ms frame schedule, and hard replacement boundary. Its reviewed
-  binary-alpha mask changes only the presentation geometry. The CRT crops the
-  native field at the internal foreground's current integer pixel scale; it
-  never fits or rescales the complete endpoint into the smaller photographed
-  screen. There is no static or differently scaled title-only background.
-- Court lines, maze walls, skier, hazards, players, ball, fragments, type, focus, and controls remain sharp local marks. No processed actor experiment is shipped.
-- Do not add generic CRT blur, bloom, chromatic halo, green phosphor, smoothing, animated QRT scans, damaged QPixl states, or invented provider noise.
-- Do not use opacity flicker or colour drift to imply quantum activity. Reduced
-  motion freezes both title and internal fields on `state-1`; presentation
-  state never consumes a cabinet PRNG or advances simulation.
+All visible type is painted by the bitmap layer. Semantic DOM text remains for
+accessibility but does not independently paint borders, icons, focus rings, or
+glyphs. DOM bounds are projected to integer logical rectangles.
 
-## Typography and spacing
+- Body text uses the native bitmap face with at least one logical tracking
+  column.
+- The title uses the 5×7 face at three-pixel cell scale.
+- `PRESS START` uses the 5×7 face at two-pixel cell scale.
+- Required punctuation and `™` are authored bitmap glyphs, never browser-font
+  fallbacks.
+- Public raster helpers reject fractional positions, sizes, widths, and scales.
 
-- Uppercase monospace is the default machine voice.
-- Internal semantic text retains the established 3 by 5 raster face. The
-  renderer reserves at least one blank logical column between glyphs and
-  aligns complete lines to integer positions inside their measured bounds;
-  zero-spacing compression and clipped edge columns are invalid.
-- The photographed title alone uses the locally authored 5 by 7 uppercase
-  `five-by-seven-original-v1` raster. It adopts period character-generator
-  constraints without copying a proprietary terminal ROM or typeface. A
-  broader 7 by 9 or 10 by 10-cell internal redesign requires separate approval
-  and complete screen-by-screen reflow testing.
-- Player-facing explanatory copy uses the Professor’s concise trial-sheet
-  register: premise, object, condition, controls, then trial choice. It should
-  sound formal and operational, not antiquarian or faux-technical.
-- Major titles occupy roughly 9–12% of screen height; cabinet counters 8–11%; labels 2–4%.
-- Primary structure aligns to an eight-pixel logical rhythm; fine raster marks may use two-pixel increments.
-- Surface texture comes from the committed static field rather than an animated raster filter. Reduced-motion mode keeps the same field and disables title/display movement.
-- At 1280×720 and 1920×1080, cream type, court lines, piste edges, hazards, fragments, and walls remain legible without smoothing.
-- Active play leaves at least 80% of the central field free of permanent prose.
-- Focus uses a small two-pixel cream cursor beside the active label. It never
-  outlines or fills the rectangular hit target.
-- Header labels reserve enough semantic width and line height for the bitmap
-  renderer's one-pixel inset. `QUANTUM BOX` and the right breadcrumb must paint
-  every glyph at panel, 1280 × 720, and 1920 × 1080 sizes.
-- Story recovery statuses occupy a fixed, centered column wide enough for the
-  bitmap renderer to paint complete `OPEN` and `CLOSED` words without wrapping.
-- Runtime announcements remain available to assistive technology but do not
-  paint a diagnostic strip over menus or playfields. Required failures render
-  inside their owning page instead.
+At viewport sizes that permit it, scale the complete framebuffer by an integer
+multiple using nearest-neighbour interpolation. Non-100% browser zoom cannot be
+guaranteed to align with physical device pixels.
 
-## Audio contract
+## Input and focus
 
-- Short oscillator envelopes provide interface and cabinet effects. Menu playback uses the exact approved local `fluxball-01-open-field-likeness-65-region-03-repeated.wav` asset (SHA-256 `e385a500ac98fb742633443ac1113085d1f097d6d59dd37e27e24c662b8498b5`) rather than reconstructing a shorter approximation in memory.
-- The menu loop begins only after `PRESS START`, remains confined to library/menu surfaces, and stops before any cabinet or Story presentation starts. Its source MIDI SHA-256 is `236dcd67c0388c59ae3977645253ebe3bdee7e0eb3f4e431dcfc8cd180a1b5e3`; this is QRC/Qiskit Aer-derived music, not quantum-hardware output.
-- Shared interface cues remain restrained. Qong uses dry Pong-like contact tones and a stepped observation cadence; Fluxball separates carry, strike, steal, rule shift, awarded goal, unawarded goal, round, and match feedback; Quarry uses clipped flap/landing sounds, comic capture honks, and a lower ominous graph-shift interval. SkiPixl retains its existing carve, tree, mogul, gate, and finish vocabulary.
-- Web Audio is created and resumed only from the player’s `PRESS START` gesture. Failure to unlock never blocks play and never produces an unhandled autoplay error.
-- Global mute and a separate 0–100% sound level persist in the versioned local save. `M` and standard gamepad Y toggle mute; standard gamepad X pauses.
-- Focus loss pauses an active cabinet, cancels active transient tails, and silences presentation audio. Resuming restores the configured gain without replaying a stale impact or cheer.
-- Audio cannot mutate simulation, consume gameplay PRNG, select a pack, or alter replay identity.
+Transparent native buttons and form controls own semantics, focus, pointer,
+keyboard, and screen-reader behavior. The bitmap layer paints their state.
+Selectors sit outside numerals and labels. D-pad/gamepad movement follows the
+same focus order as arrow keys.
 
-## Exceptions
+An action key is release-latched across transitions: a press used to reveal a
+terminal page or complete a game cannot also activate the next surface.
+Important instructions never exist only on canvas.
 
-The physical title uses the reviewed photographed device/table layer, the live
-background programme inside the CRT mask, and locally drawn 5 by 7 title copy
-behind an accessible `PRESS START` control. It is isolated from the internal UI.
-No other approved reference is shipped as a static gameplay image.
+## Cabinet presentation
+
+- **Qong:** cream paddles, ball, court, and compact score state. Rule state does
+  not cross the pitch.
+- **SkiPixl:** compact seven-angle skier, distinct trees/moguls/gates, no trail
+  or speed panel. Down acceleration is explained on the trial sheet.
+- **Quantman:** continuous raster maze rails, distinct player/ghost family, and
+  `HOLD` / `INVERT` labels. No maze selector.
+- **Fluxball:** role-distinct figures and readable pitch. A held ball appears
+  once at a hand socket with a short arm pose; never draw a possession beam.
+- **Quarry:** four distinct ducks, open horizontal wrap, human pursuit lines as
+  thin continuous cream and CPU lines as cream dashes, plus visible knockout
+  and respawn grace.
+
+## Terminal grammar
+
+A Story terminal page types header, top rule, then body. Actions appear at the
+bottom right only after completion. The block flashes unless Reduced Motion is
+active. One bottom framing rule appears with no text beneath it. See
+[Terminal Story](story-terminal.md).
+
+## Audio grammar
+
+Title hum, menu backing, and terminal music are mutually exclusive route cues.
+Games, their pauses, and results are effects-only. Cue transitions fade without
+overlap, same-cue navigation preserves transport position, and tab suspension
+resumes the latest request. See [Audio](audio.md).
+
+## Review gate
+
+Visible changes require native and enlarged pixel inspection, a served desktop
+view, keyboard/pointer/gamepad focus checks, and exact palette/binary-alpha
+audits. Screenshots and tests do not replace human judgment of legibility,
+comprehension, sound, or feel.

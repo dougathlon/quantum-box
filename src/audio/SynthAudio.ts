@@ -1,5 +1,56 @@
 import type { QuantumBoxSettings } from "../save/types";
-import MENU_TUNE_ASSET_URL from "./assets/fluxball-01-open-field-likeness-65-region-03-repeated.wav?url";
+import CABINET_HUM_ASSET_URL from "./assets/cabinet-hum-loop.wav?url";
+import KEY_IS_OPAQUE_ASSET_URL from "./assets/key-is-opaque-backing-loop.wav?url";
+import SPARE_KEY_ASSET_URL from "./assets/spare-key-loop.wav?url";
+
+export type BackgroundCueId = "cabinet-hum" | "key-is-opaque" | "spare-key";
+
+export interface BackgroundCueProfile {
+  readonly id: BackgroundCueId;
+  readonly assetFilename: string;
+  readonly assetSha256: string;
+  readonly durationSeconds: number;
+  readonly provenance: string;
+}
+
+const BACKGROUND_CUE_URLS: Readonly<Record<BackgroundCueId, string>> =
+  Object.freeze({
+    "cabinet-hum": CABINET_HUM_ASSET_URL,
+    "key-is-opaque": KEY_IS_OPAQUE_ASSET_URL,
+    "spare-key": SPARE_KEY_ASSET_URL,
+  });
+
+export const BACKGROUND_CUE_PROFILES: Readonly<
+  Record<BackgroundCueId, BackgroundCueProfile>
+> = Object.freeze({
+  "cabinet-hum": Object.freeze({
+    id: "cabinet-hum",
+    assetFilename: "cabinet-hum-loop.wav",
+    assetSha256:
+      "f9b1a71687987ba08b6f4009673addc280c57e96b4e15c9f718594279873f01b",
+    durationSeconds: 20,
+    provenance:
+      "Approved local cabinet-hum synthesis; source preserved outside the runtime tree.",
+  }),
+  "key-is-opaque": Object.freeze({
+    id: "key-is-opaque",
+    assetFilename: "key-is-opaque-backing-loop.wav",
+    assetSha256:
+      "feff452edce713f945139fae58469798b8d13aa1783e4683281688bfb7d43d02",
+    durationSeconds: 17.142857142857142,
+    provenance:
+      "Frame-exact beats 8–40 derivative of the approved lead-free bass, inner, and drum render at 112 BPM.",
+  }),
+  "spare-key": Object.freeze({
+    id: "spare-key",
+    assetFilename: "spare-key-loop.wav",
+    assetSha256:
+      "419e6ecb5bceeec1615b7a2843d2a9389f914f6399422304445f45d04d825a3a",
+    durationSeconds: 20,
+    provenance:
+      "Approved local A Spare Key terminal loop; source preserved outside the runtime tree.",
+  }),
+});
 
 export type SynthCue =
   | "boot"
@@ -18,10 +69,6 @@ export type SynthCue =
   | "reveal"
   | "recover"
   | "failure"
-  | "story-morph"
-  | "story-door"
-  | "story-step"
-  | "story-transport"
   | "qong-paddle"
   | "qong-wall"
   | "qong-observe"
@@ -65,26 +112,6 @@ export interface SkiCarveProfile {
   readonly q: number;
 }
 
-export interface MenuTuneEvent {
-  readonly token: "A" | "B" | "C" | "D";
-  readonly beat: number;
-  readonly velocity: number;
-}
-
-export interface MenuTuneProfile {
-  readonly id: "fluxball-open-field-65-r03-menu-v1";
-  readonly sourceMidiSha256: string;
-  readonly providerResponseSha256: string;
-  readonly sourceRenderSha256: string;
-  readonly playbackAssetSha256: string;
-  readonly playbackAssetFilename: string;
-  readonly playbackDurationSeconds: number;
-  readonly bpm: 126;
-  readonly beats: 8;
-  readonly durationSeconds: number;
-  readonly events: readonly MenuTuneEvent[];
-}
-
 interface SkiCarveVoice {
   readonly source: AudioBufferSourceNode;
   readonly filter: BiquadFilterNode;
@@ -92,66 +119,14 @@ interface SkiCarveVoice {
 }
 
 type AudioContextFactory = () => AudioContext;
-type MenuAudioFactory = () => HTMLAudioElement;
+type BackgroundAudioFactory = (
+  cue: BackgroundCueId,
+  assetUrl: string,
+) => HTMLAudioElement;
 
-const MENU_TUNE_EVENTS: readonly MenuTuneEvent[] = Object.freeze([
-  menuEvent("B", 0, 88),
-  menuEvent("D", 1, 72),
-  menuEvent("A", 2, 72),
-  menuEvent("D", 2.5, 72),
-  menuEvent("A", 3.5, 72),
-  menuEvent("B", 4, 88),
-  menuEvent("C", 5, 72),
-  menuEvent("D", 6, 72),
-  menuEvent("A", 6.5, 72),
-  menuEvent("C", 7.5, 72),
-]);
-
-const MENU_TUNE: MenuTuneProfile = Object.freeze({
-  id: "fluxball-open-field-65-r03-menu-v1",
-  sourceMidiSha256:
-    "236dcd67c0388c59ae3977645253ebe3bdee7e0eb3f4e431dcfc8cd180a1b5e3",
-  providerResponseSha256:
-    "fdf3286691be40e7f06c6471741032ed43a7ec91c67244e8bbf7e7f118032287",
-  sourceRenderSha256:
-    "1d078a300331f41939f6508460b017b0eb02352ac2852b03405d63d34979eb4c",
-  playbackAssetSha256:
-    "e385a500ac98fb742633443ac1113085d1f097d6d59dd37e27e24c662b8498b5",
-  playbackAssetFilename:
-    "fluxball-01-open-field-likeness-65-region-03-repeated.wav",
-  playbackDurationSeconds: 38.095238,
-  bpm: 126,
-  beats: 8,
-  durationSeconds: (8 * 60) / 126,
-  events: MENU_TUNE_EVENTS,
-});
-
-const MENU_SOUND_ROM = Object.freeze({
-  A: Object.freeze({
-    frequency: 146.832,
-    duration: 0.07,
-    duty: 0.125,
-    pulseMix: 0.82,
-  }),
-  B: Object.freeze({
-    frequency: 123.471,
-    duration: 0.09,
-    duty: 0.25,
-    pulseMix: 0.7,
-  }),
-  C: Object.freeze({
-    frequency: 110,
-    duration: 0.11,
-    duty: 0.5,
-    pulseMix: 0.62,
-  }),
-  D: Object.freeze({
-    frequency: 82.407,
-    duration: 0.145,
-    duty: 0.5,
-    pulseMix: 0.34,
-  }),
-});
+const BACKGROUND_GAIN = 0.42;
+const BACKGROUND_FADE_SECONDS = 0.096;
+const BACKGROUND_FADE_STEPS = 6;
 
 const VOICES: Readonly<Record<SynthCue, readonly SynthVoiceProfile[]>> =
   Object.freeze({
@@ -213,25 +188,6 @@ const VOICES: Readonly<Record<SynthCue, readonly SynthVoiceProfile[]>> =
     failure: Object.freeze([
       voice(0, 0.11, 164, 0.11, "sawtooth", 130),
       voice(0.1, 0.15, 116, 0.1, "square", 76),
-    ]),
-    "story-morph": Object.freeze([
-      voice(0, 0.06, 98, 0.055, "square", 196),
-      voice(0.045, 0.08, 196, 0.05, "triangle", 392),
-      voice(0.11, 0.12, 392, 0.045, "square", 147),
-    ]),
-    "story-door": Object.freeze([
-      voice(0, 0.045, 74, 0.06, "square", 64),
-      voice(0.06, 0.055, 92, 0.055, "square", 82),
-      voice(0.135, 0.1, 123, 0.04, "triangle", 185),
-    ]),
-    "story-step": Object.freeze([
-      voice(0, 0.028, 104, 0.035, "square", 82),
-      voice(0.022, 0.025, 208, 0.018, "triangle", 164),
-    ]),
-    "story-transport": Object.freeze([
-      voice(0, 0.08, 92, 0.045, "triangle", 184),
-      voice(0.055, 0.1, 184, 0.045, "triangle", 368),
-      voice(0.125, 0.12, 368, 0.04, "square", 736),
     ]),
     "qong-paddle": Object.freeze([voice(0, 0.032, 520, 0.07, "square", 438)]),
     "qong-wall": Object.freeze([voice(0, 0.026, 286, 0.06, "square", 246)]),
@@ -349,29 +305,34 @@ export class SynthAudio {
   private unavailable = false;
   private skiCarveVoice: SkiCarveVoice | null = null;
   private skiCarveReleaseTimer: ReturnType<typeof setTimeout> | null = null;
-  private menuMusicRequested = false;
-  private menuMusicDelaySeconds = 0;
-  private menuMusicElement: HTMLAudioElement | null = null;
-  private menuMusicPlayPending: Promise<void> | null = null;
-  private menuMusicDelayTimer: ReturnType<typeof setTimeout> | null = null;
-  private menuMusicDelayActive = false;
+  private requestedBackgroundCue: BackgroundCueId | null = null;
+  private activeBackgroundCue: BackgroundCueId | null = null;
+  private backgroundElement: HTMLAudioElement | null = null;
+  private backgroundPlayPending: Promise<void> | null = null;
+  private backgroundFadeTimer: ReturnType<typeof setInterval> | null = null;
+  private backgroundFadeFactor = 0;
+  private backgroundGeneration = 0;
+  private backgroundAutoplayPending = false;
+  private documentVisible = true;
   private readonly transientSources = new Set<OscillatorNode>();
   private readonly onContextStateChange = (): void => {
     const context = this.context;
     if (!context || context.state === "closed") return;
     if (context.state === "running") {
-      if (this.menuMusicRequested) this.startMenuMusic();
+      this.retryBackgroundPlayback();
       return;
     }
-    if (this.menuMusicRequested) void this.resumeExistingContext(context);
+    if (this.requestedBackgroundCue) void this.resumeExistingContext(context);
   };
 
   public constructor(
     settings: Pick<QuantumBoxSettings, "soundMuted" | "soundVolume">,
     private readonly createContext: AudioContextFactory = () =>
       new AudioContext({ latencyHint: "interactive" }),
-    private readonly createMenuAudio: MenuAudioFactory = () =>
-      new Audio(MENU_TUNE_ASSET_URL),
+    private readonly createBackgroundAudio: BackgroundAudioFactory = (
+      _cue,
+      assetUrl,
+    ) => new Audio(assetUrl),
   ) {
     this.muted = settings.soundMuted;
     this.volume = normalizeSoundVolume(settings.soundVolume);
@@ -383,7 +344,7 @@ export class SynthAudio {
    * error outside the console.
    */
   public async unlock(): Promise<boolean> {
-    if (this.menuMusicRequested) this.startMenuMusic();
+    this.retryBackgroundPlayback();
     if (this.unavailable) return false;
     if (!this.context) {
       try {
@@ -399,7 +360,7 @@ export class SynthAudio {
     }
     const context = this.context;
     if (context.state !== "running") await this.resumeExistingContext(context);
-    if (this.menuMusicRequested) this.startMenuMusic();
+    this.retryBackgroundPlayback();
     return context.state === "running";
   }
 
@@ -408,7 +369,7 @@ export class SynthAudio {
    * unlocked context when the page becomes active or receives another gesture.
    */
   public recoverFromBrowserInterruption(): void {
-    if (this.menuMusicRequested) this.startMenuMusic();
+    this.retryBackgroundPlayback();
     const context = this.context;
     if (!context || context.state === "closed") return;
     if (context.state === "running") return;
@@ -424,16 +385,55 @@ export class SynthAudio {
   }
 
   public setPaused(paused: boolean): void {
+    if (this.paused === paused) return;
     this.paused = paused;
-    if (paused) this.stopTransientSources();
+    if (paused) {
+      this.stopTransientSources();
+      this.backgroundElement?.pause();
+    } else {
+      this.retryBackgroundPlayback();
+    }
     this.applyGain();
   }
 
-  public setMenuMusic(active: boolean, delaySeconds = 0): void {
-    this.menuMusicRequested = active;
-    this.menuMusicDelaySeconds = Math.max(0, delaySeconds);
-    if (active) this.startMenuMusic();
-    else this.stopMenuMusic();
+  public requestBackgroundCue(cue: BackgroundCueId | null): void {
+    if (this.requestedBackgroundCue === cue) return;
+    this.requestedBackgroundCue = cue;
+    this.backgroundAutoplayPending = false;
+    const generation = ++this.backgroundGeneration;
+    this.clearBackgroundFade();
+    if (!this.backgroundElement) {
+      this.commitBackgroundCue(generation);
+      return;
+    }
+    this.fadeBackgroundTo(0, generation, () => {
+      if (generation !== this.backgroundGeneration) return;
+      this.releaseBackgroundElement();
+      this.commitBackgroundCue(generation);
+    });
+  }
+
+  public setDocumentVisible(visible: boolean): void {
+    if (this.documentVisible === visible) return;
+    this.documentVisible = visible;
+    if (!visible) {
+      this.clearBackgroundFade();
+      this.backgroundElement?.pause();
+      return;
+    }
+    this.retryBackgroundPlayback();
+  }
+
+  public backgroundCueState(): Readonly<{
+    requested: BackgroundCueId | null;
+    active: BackgroundCueId | null;
+    autoplayPending: boolean;
+  }> {
+    return Object.freeze({
+      requested: this.requestedBackgroundCue,
+      active: this.activeBackgroundCue,
+      autoplayPending: this.backgroundAutoplayPending,
+    });
   }
 
   public play(cue: SynthCue): void {
@@ -531,25 +531,19 @@ export class SynthAudio {
     const carveVoice = this.skiCarveVoice;
     this.setSkiCarve(0);
     this.stopTransientSources();
-    this.stopMenuMusic();
+    this.requestedBackgroundCue = null;
+    this.backgroundGeneration += 1;
+    this.clearBackgroundFade();
+    this.releaseBackgroundElement();
     if (this.skiCarveReleaseTimer !== null) {
       clearTimeout(this.skiCarveReleaseTimer);
       this.skiCarveReleaseTimer = null;
     }
-    const menuMusicElement = this.menuMusicElement;
     if (carveVoice) disposeSkiCarveVoice(carveVoice);
-    this.menuMusicElement = null;
-    this.menuMusicPlayPending = null;
     this.skiCarveVoice = null;
     this.context = null;
     this.master = null;
     context?.removeEventListener("statechange", this.onContextStateChange);
-    if (menuMusicElement) {
-      menuMusicElement.removeEventListener("ended", this.onMenuMusicEnded);
-      menuMusicElement.removeEventListener("canplay", this.onMenuMusicCanPlay);
-      menuMusicElement.removeAttribute("src");
-      menuMusicElement.load();
-    }
     if (context && context.state !== "closed")
       void context.close().catch(() => {});
   }
@@ -559,7 +553,7 @@ export class SynthAudio {
     if (this.context && this.master) {
       this.master.gain.setTargetAtTime(gain, this.context.currentTime, 0.012);
     }
-    this.applyMenuMusicGain();
+    this.applyBackgroundGain();
   }
 
   private async resumeExistingContext(context: AudioContext): Promise<void> {
@@ -571,91 +565,177 @@ export class SynthAudio {
       // calls unlock() again; a transient denial must not disable all audio.
       return;
     }
-    if (
-      this.context === context &&
-      context.state === "running" &&
-      this.menuMusicRequested
-    ) {
-      this.startMenuMusic();
-    }
+    if (this.context === context && context.state === "running")
+      this.retryBackgroundPlayback();
   }
 
-  private startMenuMusic(): void {
-    if (!this.menuMusicRequested) return;
-    const element = this.ensureMenuMusicElement();
-    if (!element.paused || this.menuMusicPlayPending) return;
-    const delaySeconds = this.menuMusicDelaySeconds;
-    this.menuMusicDelaySeconds = 0;
-    this.menuMusicDelayActive = delaySeconds > 0;
-    this.applyMenuMusicGain();
-    const pending = element
-      .play()
-      .catch(() => {
-        // Autoplay policies can reject any individual attempt. A subsequent
-        // pointer, keyboard, focus, visibility, or canplay event retries it.
-      })
-      .finally(() => {
-        if (this.menuMusicPlayPending === pending) {
-          this.menuMusicPlayPending = null;
-        }
-      });
-    this.menuMusicPlayPending = pending;
-    if (this.menuMusicDelayActive) {
-      this.clearMenuMusicDelay();
-      this.menuMusicDelayActive = true;
-      this.menuMusicDelayTimer = setTimeout(() => {
-        this.menuMusicDelayTimer = null;
-        this.menuMusicDelayActive = false;
-        this.applyMenuMusicGain();
-      }, delaySeconds * 1_000);
+  private commitBackgroundCue(generation: number): void {
+    if (generation !== this.backgroundGeneration) return;
+    const cue = this.requestedBackgroundCue;
+    if (!cue) {
+      this.activeBackgroundCue = null;
+      this.backgroundFadeFactor = 0;
+      return;
     }
-  }
-
-  private ensureMenuMusicElement(): HTMLAudioElement {
-    if (this.menuMusicElement) return this.menuMusicElement;
-    const element = this.createMenuAudio();
+    const element = this.createBackgroundAudio(cue, BACKGROUND_CUE_URLS[cue]);
     element.preload = "auto";
     element.loop = true;
-    element.addEventListener("ended", this.onMenuMusicEnded);
-    element.addEventListener("canplay", this.onMenuMusicCanPlay);
-    this.menuMusicElement = element;
-    this.applyMenuMusicGain();
-    return element;
+    element.addEventListener("ended", this.onBackgroundEnded);
+    element.addEventListener("canplay", this.onBackgroundCanPlay);
+    this.backgroundElement = element;
+    this.activeBackgroundCue = cue;
+    this.backgroundFadeFactor = 0;
+    this.applyBackgroundGain();
+    this.retryBackgroundPlayback();
   }
 
-  private stopMenuMusic(): void {
-    this.clearMenuMusicDelay();
-    this.menuMusicDelayActive = false;
-    const element = this.menuMusicElement;
-    if (!element) return;
-    element.pause();
-    element.currentTime = 0;
-    this.applyMenuMusicGain();
-  }
-
-  private readonly onMenuMusicEnded = (): void => {
-    if (!this.menuMusicRequested || !this.menuMusicElement) return;
-    this.menuMusicElement.currentTime = 0;
-    this.startMenuMusic();
-  };
-
-  private readonly onMenuMusicCanPlay = (): void => {
-    if (this.menuMusicRequested) this.startMenuMusic();
-  };
-
-  private applyMenuMusicGain(): void {
-    if (!this.menuMusicElement) return;
-    this.menuMusicElement.muted = this.muted || this.paused;
-    this.menuMusicElement.volume = this.menuMusicDelayActive
-      ? 0
-      : Math.min(1, this.volume * 0.42);
-  }
-
-  private clearMenuMusicDelay(): void {
-    if (this.menuMusicDelayTimer !== null) {
-      clearTimeout(this.menuMusicDelayTimer);
-      this.menuMusicDelayTimer = null;
+  private retryBackgroundPlayback(): void {
+    const cue = this.requestedBackgroundCue;
+    const element = this.backgroundElement;
+    if (
+      !cue ||
+      cue !== this.activeBackgroundCue ||
+      !element ||
+      this.backgroundPlayPending ||
+      !this.documentVisible ||
+      this.paused
+    ) {
+      return;
     }
+    if (!element.paused) {
+      this.backgroundAutoplayPending = false;
+      this.fadeBackgroundTo(1, this.backgroundGeneration);
+      return;
+    }
+    const generation = this.backgroundGeneration;
+    let pending: Promise<void>;
+    try {
+      pending = element.play();
+    } catch {
+      this.backgroundAutoplayPending = true;
+      return;
+    }
+    this.backgroundPlayPending = pending;
+    void pending
+      .then(
+        () => {
+          if (
+            generation !== this.backgroundGeneration ||
+            element !== this.backgroundElement ||
+            cue !== this.requestedBackgroundCue
+          ) {
+            element.pause();
+            return;
+          }
+          this.backgroundAutoplayPending = false;
+          this.fadeBackgroundTo(1, generation);
+        },
+        () => {
+          if (
+            generation === this.backgroundGeneration &&
+            element === this.backgroundElement &&
+            cue === this.requestedBackgroundCue
+          ) {
+            this.backgroundAutoplayPending = true;
+          }
+        },
+      )
+      .finally(() => {
+        if (this.backgroundPlayPending === pending) {
+          this.backgroundPlayPending = null;
+          if (
+            !this.backgroundAutoplayPending &&
+            this.documentVisible &&
+            !this.paused &&
+            element === this.backgroundElement &&
+            element.paused
+          ) {
+            this.retryBackgroundPlayback();
+          }
+        }
+      });
+  }
+
+  private fadeBackgroundTo(
+    target: 0 | 1,
+    generation: number,
+    onComplete?: () => void,
+  ): void {
+    const element = this.backgroundElement;
+    if (!element) {
+      onComplete?.();
+      return;
+    }
+    this.clearBackgroundFade();
+    const start = this.backgroundFadeFactor;
+    if (start === target) {
+      onComplete?.();
+      return;
+    }
+    let step = 0;
+    const intervalMilliseconds =
+      (BACKGROUND_FADE_SECONDS * 1_000) / BACKGROUND_FADE_STEPS;
+    this.backgroundFadeTimer = setInterval(() => {
+      if (
+        generation !== this.backgroundGeneration ||
+        element !== this.backgroundElement
+      ) {
+        this.clearBackgroundFade();
+        return;
+      }
+      step += 1;
+      this.backgroundFadeFactor =
+        start + (target - start) * (step / BACKGROUND_FADE_STEPS);
+      this.applyBackgroundGain();
+      if (step < BACKGROUND_FADE_STEPS) return;
+      this.clearBackgroundFade();
+      this.backgroundFadeFactor = target;
+      this.applyBackgroundGain();
+      onComplete?.();
+    }, intervalMilliseconds);
+  }
+
+  private readonly onBackgroundEnded = (): void => {
+    const element = this.backgroundElement;
+    if (!element || !this.requestedBackgroundCue) return;
+    element.currentTime = 0;
+    this.retryBackgroundPlayback();
+  };
+
+  private readonly onBackgroundCanPlay = (): void => {
+    this.retryBackgroundPlayback();
+  };
+
+  private applyBackgroundGain(): void {
+    const element = this.backgroundElement;
+    if (!element) return;
+    element.muted = this.muted || this.paused;
+    element.volume = Math.min(
+      1,
+      this.volume * BACKGROUND_GAIN * this.backgroundFadeFactor,
+    );
+  }
+
+  private clearBackgroundFade(): void {
+    if (this.backgroundFadeTimer !== null) {
+      clearInterval(this.backgroundFadeTimer);
+      this.backgroundFadeTimer = null;
+    }
+  }
+
+  private releaseBackgroundElement(): void {
+    const element = this.backgroundElement;
+    this.clearBackgroundFade();
+    this.backgroundElement = null;
+    this.backgroundPlayPending = null;
+    this.activeBackgroundCue = null;
+    this.backgroundFadeFactor = 0;
+    if (!element) return;
+    element.removeEventListener("ended", this.onBackgroundEnded);
+    element.removeEventListener("canplay", this.onBackgroundCanPlay);
+    element.pause();
+    element.removeAttribute("src");
+    element.load();
   }
 
   private stopTransientSources(): void {
@@ -696,29 +776,10 @@ export function synthCueProfile(cue: SynthCue): readonly SynthVoiceProfile[] {
   return VOICES[cue];
 }
 
-export function menuTuneProfile(): MenuTuneProfile {
-  return MENU_TUNE;
-}
-
-/** Deterministic local derivative used by the menu and waveform QA. */
-export function renderMenuTuneSamples(sampleRate = 44_100): Float32Array {
-  if (!Number.isFinite(sampleRate) || sampleRate <= 0) {
-    throw new Error("Menu tune sample rate must be a positive finite number.");
-  }
-  const samples = new Float32Array(
-    Math.ceil(MENU_TUNE.durationSeconds * sampleRate),
-  );
-  const secondsPerBeat = 60 / MENU_TUNE.bpm;
-  for (const event of MENU_TUNE.events) {
-    addMenuToken(
-      samples,
-      sampleRate,
-      event.token,
-      event.beat * secondsPerBeat,
-      event.velocity / 127,
-    );
-  }
-  return samples;
+export function backgroundCueProfile(
+  cue: BackgroundCueId,
+): BackgroundCueProfile {
+  return BACKGROUND_CUE_PROFILES[cue];
 }
 
 function voice(
@@ -737,56 +798,6 @@ function voice(
     type,
     ...(endFrequency === undefined ? {} : { endFrequency }),
   });
-}
-
-function menuEvent(
-  token: MenuTuneEvent["token"],
-  beat: number,
-  velocity: number,
-): MenuTuneEvent {
-  return Object.freeze({ token, beat, velocity });
-}
-
-function createMenuTuneBuffer(context: AudioContext): AudioBuffer {
-  const sampleRate = context.sampleRate;
-  const samples = renderMenuTuneSamples(sampleRate);
-  const buffer = context.createBuffer(1, samples.length, sampleRate);
-  buffer.getChannelData(0).set(samples);
-  return buffer;
-}
-
-function addMenuToken(
-  target: Float32Array,
-  sampleRate: number,
-  tokenId: MenuTuneEvent["token"],
-  startSeconds: number,
-  velocityGain: number,
-): void {
-  const token = MENU_SOUND_ROM[tokenId];
-  const count = Math.max(1, Math.round(token.duration * sampleRate));
-  const start = Math.round(startSeconds * sampleRate);
-  const attack = Math.max(1, Math.round(0.003 * sampleRate));
-  const release = Math.max(
-    1,
-    Math.round(Math.min(0.055, token.duration * 0.62) * sampleRate),
-  );
-  let phase = 0;
-  const phaseIncrement = token.frequency / sampleRate;
-  for (let index = 0; index < count; index += 1) {
-    const destination = start + index;
-    if (destination >= target.length) break;
-    const pulse = phase % 1 < token.duty ? 1 : -1;
-    const triangle = 2 * Math.abs(2 * (phase - Math.floor(phase + 0.5))) - 1;
-    const raw = pulse * token.pulseMix + triangle * (1 - token.pulseMix);
-    let envelope = 1;
-    if (index < attack) envelope = index / attack;
-    else if (index >= count - release) {
-      envelope = Math.max(0, (count - index - 1) / release);
-    }
-    envelope *= Math.exp((-2.35 * index) / count);
-    target[destination]! += raw * envelope * 0.72 * velocityGain;
-    phase += phaseIncrement;
-  }
 }
 
 function createSkiCarveVoice(

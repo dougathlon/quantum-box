@@ -1,4 +1,4 @@
-import installedBankArtifact from "./packs/quarry-qgraph-ibm-fez-bank-v2.json";
+import installedBankArtifact from "./packs/quarry-qgraph-ibm-fez-bank-v2.json" with { type: "json" };
 
 import { sha256CanonicalJson } from "../../core/canonicalJson";
 import { asUint32Seed, deriveSeed } from "../../core/determinism";

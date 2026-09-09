@@ -51,17 +51,16 @@ button {
 .qb-title {
   position: absolute;
   inset: 0;
-  background: #2b1c14 var(--qb-title-image) center / contain no-repeat;
+  background: #2b1c14;
 }
 
 .qb-title-hit {
   position: absolute;
-  left: 35%;
-  top: 27%;
-  width: 35%;
-  height: 31%;
+  inset: 0;
+  width: 100%;
+  height: 100%;
   border: 0;
-  border-radius: 10%;
+  border-radius: 0;
   color: transparent;
   background: transparent;
   cursor: pointer;
@@ -875,46 +874,6 @@ button {
   background: var(--qb-avocado);
 }
 
-.qb-menu-thumb--workshop .qb-thumb-art::before,
-.qb-menu-thumb--workshop .qb-thumb-art::after {
-  top: 48%;
-  width: 34%;
-  border-top: 2px solid var(--qb-cream);
-}
-
-.qb-menu-thumb--workshop .qb-thumb-art::before {
-  left: 8%;
-}
-
-.qb-menu-thumb--workshop .qb-thumb-art::after {
-  right: 8%;
-}
-
-.qb-menu-thumb--workshop .qb-thumb-art i {
-  width: 9px;
-  height: 9px;
-  border: 2px solid var(--qb-mustard);
-  transform: rotate(45deg);
-}
-
-.qb-menu-thumb--workshop .qb-thumb-art i:nth-child(1) {
-  top: 38%;
-  left: 4%;
-  border-color: var(--qb-orange);
-}
-
-.qb-menu-thumb--workshop .qb-thumb-art i:nth-child(2) {
-  top: 38%;
-  left: 45%;
-  background: var(--qb-avocado);
-}
-
-.qb-menu-thumb--workshop .qb-thumb-art i:nth-child(3) {
-  top: 38%;
-  right: 4%;
-  border-color: var(--qb-blue);
-}
-
 .qb-menu-thumb--settings .qb-thumb-art i {
   left: 8%;
   right: 8%;
@@ -989,10 +948,6 @@ button {
 .qb-menu-row[data-page="arcade"] small,
 .qb-menu-row[data-page="credits"] small {
   color: var(--qb-orange);
-}
-
-.qb-menu-row[data-page="workshop"] small {
-  color: var(--qb-avocado);
 }
 
 .qb-menu-row[data-page="settings"] small {
@@ -1560,118 +1515,6 @@ button {
   width: 5px;
   height: 5px;
   background: var(--qb-mustard);
-}
-
-.qb-workshop {
-  display: grid;
-  grid-template-rows: repeat(5, minmax(0, 1fr));
-  gap: 0.2rem;
-  min-height: 0;
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
-
-.qb-shell[data-page="workshop"] .qb-page {
-  top: 14.5%;
-  bottom: 8.5%;
-}
-
-.qb-workshop-page {
-  display: grid;
-  grid-template-rows: auto minmax(0, 1fr);
-  gap: 0.25rem;
-  padding-block: 0.15rem;
-  overflow: hidden;
-}
-
-.qb-workshop-page > header {
-  display: grid;
-  grid-template-columns: auto 1fr;
-  align-items: baseline;
-  column-gap: 0.65rem;
-  border-bottom: 2px solid var(--qb-orange);
-  padding: 0 0.2rem 0.2rem;
-}
-
-.qb-workshop-page > header .qb-kicker {
-  grid-column: 1 / -1;
-  margin: 0;
-  font-size: clamp(0.4rem, 0.65vw, 0.55rem);
-}
-
-.qb-page .qb-workshop-page > header h1 {
-  margin: 0;
-  font-size: clamp(0.82rem, 2vw, 1.65rem);
-}
-
-.qb-page .qb-workshop-page > header > p:last-child {
-  justify-self: end;
-  margin: 0;
-  color: var(--qb-orange);
-  font-size: clamp(0.42rem, 0.72vw, 0.6rem);
-  letter-spacing: 0.1em;
-}
-
-.qb-bay {
-  display: grid;
-  grid-template-columns: 3.2em 1fr auto;
-  align-items: center;
-  min-height: 0;
-  border: 2px solid rgb(231 216 174 / 22%);
-  color: rgb(231 216 174 / 48%);
-  background: rgb(9 10 8 / 46%);
-}
-
-.qb-bay > span {
-  align-self: stretch;
-  display: grid;
-  place-items: center;
-  color: var(--qb-charcoal);
-  background: var(--qb-blue);
-  font-weight: 900;
-}
-
-.qb-bay div {
-  display: grid;
-  gap: 0.06rem;
-  min-width: 0;
-  padding: 0.16rem 0.5rem;
-  font-size: clamp(0.48rem, 0.84vw, 0.7rem);
-  line-height: 1.05;
-}
-
-.qb-bay.is-recovered {
-  color: var(--qb-cream);
-  border-color: var(--qb-avocado);
-}
-
-.qb-bay.is-recovered > span {
-  background: var(--qb-avocado);
-}
-
-.qb-bay.is-open {
-  border-style: dashed;
-}
-
-.qb-bay button {
-  margin-right: 0.55rem;
-  border: 0;
-  border-bottom: 2px solid var(--qb-mustard);
-  padding: 0.2rem 0.35rem;
-  color: var(--qb-mustard);
-  background: transparent;
-  font: inherit;
-  font-size: 0.7em;
-  letter-spacing: 0.08em;
-  cursor: pointer;
-}
-
-.qb-bay button:hover,
-.qb-bay button:focus-visible {
-  color: var(--qb-cream);
-  outline: 2px solid var(--qb-orange);
-  outline-offset: 2px;
 }
 
 .qb-formula-lead {
@@ -2318,7 +2161,6 @@ button {
   .qb-shell:not([data-view="cabinet"]) .qb-source-class,
   .qb-shell:not([data-view="cabinet"]) .qb-arcade-game button,
   .qb-shell:not([data-view="cabinet"]) .qb-arcade-setup,
-  .qb-shell:not([data-view="cabinet"]) .qb-bay,
   .qb-shell:not([data-view="cabinet"]) .qb-settings {
     font-size: 0.75rem;
   }
@@ -2475,27 +2317,6 @@ button {
 
   .qb-arcade-play {
     grid-template-columns: auto minmax(0, 1fr);
-  }
-
-  .qb-workshop-page {
-    overflow-y: auto;
-  }
-
-  .qb-workshop-page > header {
-    display: block;
-  }
-
-  .qb-page .qb-workshop-page > header > p:last-child {
-    margin-top: 0.2rem;
-  }
-
-  .qb-workshop {
-    display: block;
-  }
-
-  .qb-bay {
-    min-height: 3.25rem;
-    margin-bottom: 0.35rem;
   }
 
   .qb-settings-page {

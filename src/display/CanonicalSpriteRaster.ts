@@ -7,8 +7,8 @@ import {
   type PixelSpriteOptions,
 } from "./PixelSprites";
 
-/** One canonical asset pixel becomes one 320x180 framebuffer pixel. */
-export const CANONICAL_SPRITE_PIXEL_SCALE = 2;
+/** One canonical asset pixel is one native 320x180 framebuffer pixel. */
+export const CANONICAL_SPRITE_PIXEL_SCALE = 1;
 
 export function drawCanonicalSprite(
   graphics: Phaser.GameObjects.Graphics,
@@ -39,8 +39,10 @@ export function canonicalSpritePlacement(
 ): PixelSpriteOptions {
   return Object.freeze({
     ...options,
-    centerX: options.centerX + (width / 2 - anchorX) * options.pixel,
-    bottomY: options.bottomY + (height - anchorY) * options.pixel,
+    centerX: Math.round(
+      options.centerX + (width / 2 - anchorX) * options.pixel,
+    ),
+    bottomY: Math.round(options.bottomY + (height - anchorY) * options.pixel),
   });
 }
 

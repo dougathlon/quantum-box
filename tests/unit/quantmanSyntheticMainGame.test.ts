@@ -131,7 +131,7 @@ describe("Quantman synthetic main-game runtime", () => {
 });
 
 describe("Quantman synthetic cabinet presentation", () => {
-  it("uses an integer 640x360 plane for the exact 10x10 fixture", () => {
+  it("uses the native integer 320x180 plane for the exact 10x10 fixture", () => {
     const runtime = new QuantmanSyntheticRuntime({
       playMode: "arcade",
       runSeed: 61,
@@ -147,24 +147,24 @@ describe("Quantman synthetic cabinet presentation", () => {
       height: 10,
     });
     expect(QUANTMAN_SYNTHETIC_VIEWPORT).toEqual({
-      width: 640,
-      height: 360,
-      boardLeft: 180,
-      boardTop: 40,
-      cellSize: 28,
-      boardSize: 280,
+      width: 320,
+      height: 180,
+      boardLeft: 90,
+      boardTop: 20,
+      cellSize: 14,
+      boardSize: 140,
     });
     expect(segments.length).toBeGreaterThan(0);
     for (const segment of segments) {
       expect(Object.values(segment).every(Number.isInteger)).toBe(true);
-      expect(segment.x1).toBeGreaterThanOrEqual(180);
-      expect(segment.x2).toBeLessThanOrEqual(460);
-      expect(segment.y1).toBeGreaterThanOrEqual(40);
-      expect(segment.y2).toBeLessThanOrEqual(320);
+      expect(segment.x1).toBeGreaterThanOrEqual(90);
+      expect(segment.x2).toBeLessThanOrEqual(230);
+      expect(segment.y1).toBeGreaterThanOrEqual(20);
+      expect(segment.y2).toBeLessThanOrEqual(160);
     }
     expect(
       quantmanSyntheticActorScreenPosition(snapshot.simulation.player),
-    ).toEqual({ x: 334, y: 306 });
+    ).toEqual({ x: 167, y: 153 });
   });
 
   it("keeps terminal and provenance language concise and truthful", () => {

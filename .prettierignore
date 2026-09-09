@@ -21,3 +21,7 @@ src/assets/designer-professor/manifests/*.json
 
 # Deterministic audit output; formatting is owned by its generator.
 docs/qa/screenshots/2026-09-02-quag-enclose/regression/report.json
+
+# Local terminal mockups are review artifacts, not release source.
+scripts/render-terminal-story-opening-mockups.mjs
+terminal-story-mockups.html

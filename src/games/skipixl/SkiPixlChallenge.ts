@@ -6,13 +6,13 @@ import type {
 } from "./types";
 
 export const SKIPIXL_CHALLENGE_PROFILE = deepFreeze({
-  version: "skipixl-challenge-v5" as const,
+  version: "skipixl-challenge-v6" as const,
   fixedStepHz: 60,
   steeringAngles: [-3, -2, -1, 0, 1, 2, 3] as const,
   speed: {
     cruise: 72,
     minimum: 56,
-    maximum: 78,
+    maximum: 92,
   },
   lateral: {
     acceleration: 640,
@@ -26,13 +26,13 @@ export const SKIPIXL_CHALLENGE_PROFILE = deepFreeze({
     rock: 14,
   } satisfies Readonly<Record<SkiPixlObstacleKind, number>>,
   forwardMultipliers: {
-    [-3]: 0.68,
-    [-2]: 0.78,
-    [-1]: 0.9,
+    [-3]: 0.8,
+    [-2]: 0.86,
+    [-1]: 0.94,
     [0]: 1,
-    [1]: 0.9,
-    [2]: 0.78,
-    [3]: 0.68,
+    [1]: 0.94,
+    [2]: 0.86,
+    [3]: 0.8,
   } satisfies Readonly<Record<SkiPixlSteeringAngle, number>>,
   collisionPenaltyTicks: {
     tree: 72,
@@ -41,7 +41,8 @@ export const SKIPIXL_CHALLENGE_PROFILE = deepFreeze({
   collisionIndicatorTicks: 72,
   gateMissPenaltyTicks: 150,
   gateIndicatorTicks: 90,
-  downhillAccelerationPerSecond: 2.4,
+  boostAccelerationPerSecond: 36,
+  cruiseReturnPerSecond: 18,
   knockdownSpeedRecoveryPerSecond: 2.8,
 });
 

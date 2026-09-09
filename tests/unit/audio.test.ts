@@ -5,9 +5,9 @@ import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
 
 import {
-  menuTuneProfile,
+  BACKGROUND_CUE_PROFILES,
+  backgroundCueProfile,
   normalizeSoundVolume,
-  renderMenuTuneSamples,
   skiCarveProfile,
   synthCueProfile,
 } from "../../src/audio/SynthAudio";
@@ -71,81 +71,60 @@ describe("Quantum Box synth audio", () => {
     });
   });
 
-  it("preserves the exact approved Open Field QRC tune schedule", () => {
-    const tune = menuTuneProfile();
-
-    expect(tune.sourceMidiSha256).toBe(
-      "236dcd67c0388c59ae3977645253ebe3bdee7e0eb3f4e431dcfc8cd180a1b5e3",
-    );
-    expect(tune.providerResponseSha256).toBe(
-      "fdf3286691be40e7f06c6471741032ed43a7ec91c67244e8bbf7e7f118032287",
-    );
-    expect(tune.sourceRenderSha256).toBe(
-      "1d078a300331f41939f6508460b017b0eb02352ac2852b03405d63d34979eb4c",
-    );
-    expect(tune.playbackAssetFilename).toBe(
-      "fluxball-01-open-field-likeness-65-region-03-repeated.wav",
-    );
-    expect(tune.playbackAssetSha256).toBe(
-      "e385a500ac98fb742633443ac1113085d1f097d6d59dd37e27e24c662b8498b5",
-    );
-    expect(tune.playbackDurationSeconds).toBeCloseTo(38.095238);
-    expect(
-      createHash("sha256")
-        .update(
-          readFileSync(
-            fileURLToPath(
-              new URL(
-                "../../src/audio/assets/fluxball-01-open-field-likeness-65-region-03-repeated.wav",
-                import.meta.url,
-              ),
-            ),
+  it("pins the three approved background cues and excludes the retired tune", () => {
+    expect(Object.keys(BACKGROUND_CUE_PROFILES)).toEqual([
+      "cabinet-hum",
+      "key-is-opaque",
+      "spare-key",
+    ]);
+    for (const cue of Object.values(BACKGROUND_CUE_PROFILES)) {
+      const bytes = readFileSync(
+        fileURLToPath(
+          new URL(
+            `../../src/audio/assets/${cue.assetFilename}`,
+            import.meta.url,
           ),
-        )
-        .digest("hex"),
-    ).toBe(tune.playbackAssetSha256);
-    expect(tune.events.map((event) => event.token)).toEqual([
-      "B",
-      "D",
-      "A",
-      "D",
-      "A",
-      "B",
-      "C",
-      "D",
-      "A",
-      "C",
-    ]);
-    expect(tune.events.map((event) => event.beat)).toEqual([
-      0, 1, 2, 2.5, 3.5, 4, 5, 6, 6.5, 7.5,
-    ]);
-    expect(tune.bpm).toBe(126);
-    expect(tune.durationSeconds).toBeCloseTo(3.80952381);
-  });
-
-  it("renders one four-sound-ROM pulse per approved event in two bars", () => {
-    const samples = renderMenuTuneSamples(44_100);
-    let activeRegions = 0;
-    let wasActive = false;
-    for (const sample of samples) {
-      const active = Math.abs(sample) > 1e-7;
-      if (active && !wasActive) activeRegions += 1;
-      wasActive = active;
+        ),
+      );
+      expect(bytes.subarray(0, 4).toString("ascii")).toBe("RIFF");
+      expect(createHash("sha256").update(bytes).digest("hex")).toBe(
+        cue.assetSha256,
+      );
+      expect(backgroundCueProfile(cue.id)).toBe(cue);
     }
-
-    expect(samples).toHaveLength(168_000);
-    expect(activeRegions).toBe(10);
     expect(
-      samples.reduce((peak, sample) => Math.max(peak, sample), 0),
-    ).toBeLessThanOrEqual(1);
-    expect(
-      samples.reduce((peak, sample) => Math.min(peak, sample), 0),
-    ).toBeGreaterThanOrEqual(-1);
+      Object.values(BACKGROUND_CUE_PROFILES).some((cue) =>
+        cue.assetFilename.includes("fluxball-01-open-field"),
+      ),
+    ).toBe(false);
   });
 
-  it("rejects invalid menu sample rates", () => {
-    expect(() => renderMenuTuneSamples(0)).toThrow(/sample rate/i);
-    expect(() => renderMenuTuneSamples(Number.NaN)).toThrow(/sample rate/i);
+  it("records the exact lead-free eight-bar menu derivative", () => {
+    const provenance = JSON.parse(
+      readFileSync(
+        fileURLToPath(
+          new URL(
+            "../../src/audio/assets/key-is-opaque-backing-loop.provenance.json",
+            import.meta.url,
+          ),
+        ),
+        "utf8",
+      ),
+    ) as Record<string, unknown>;
+    expect(provenance["sourceSha256"]).toBe(
+      "76d5f660b125e61c7e67b212ab7b0a9a2a38c23266f8398e88b6ef3ed73526a8",
+    );
+    expect(provenance["keptRoles"]).toEqual(["bass", "inner", "drum"]);
+    expect(provenance["removedRoles"]).toEqual(["lead"]);
+    expect(provenance["bpm"]).toBe(112);
+    expect(provenance["startQuarterBeat"]).toBe(8);
+    expect(provenance["endQuarterBeatExclusive"]).toBe(40);
+    expect(provenance["frameCount"]).toBe(756_000);
+    expect(provenance["durationSeconds"]).toBeCloseTo(17.142857142857142);
+    expect(provenance["boundaryFramesAreZero"]).toBe(true);
+    expect(provenance["outputSha256"]).toBe(
+      BACKGROUND_CUE_PROFILES["key-is-opaque"].assetSha256,
+    );
   });
 
   it("gives Qong, Fluxball, and Quag distinct bounded cue families", () => {
@@ -181,25 +160,6 @@ describe("Quantum Box synth audio", () => {
           Math.max(...profile.map((item) => item.delay + item.duration)),
         ).toBeLessThanOrEqual(0.5);
       }
-    }
-  });
-
-  it("gives enacted Story actions distinct, short presentation cues", () => {
-    const cues = [
-      "story-morph",
-      "story-door",
-      "story-step",
-      "story-transport",
-    ] as const;
-    const serialized = cues.map((cue) => JSON.stringify(synthCueProfile(cue)));
-
-    expect(new Set(serialized).size).toBe(cues.length);
-    for (const cue of cues) {
-      const profile = synthCueProfile(cue);
-      expect(profile.length).toBeGreaterThan(0);
-      expect(
-        Math.max(...profile.map((item) => item.delay + item.duration)),
-      ).toBeLessThanOrEqual(0.25);
     }
   });
 });

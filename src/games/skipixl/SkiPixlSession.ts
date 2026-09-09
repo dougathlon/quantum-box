@@ -10,6 +10,7 @@ import {
   SKIPIXL_PRIOR_RULES_VERSION,
   SKIPIXL_RULES_VERSION,
   SKIPIXL_V5_RULES_VERSION,
+  SKIPIXL_V6_RULES_VERSION,
   type SkiPixlCollision,
   type SkiPixlGate,
   type SkiPixlGateResult,
@@ -51,6 +52,7 @@ export class SkiPixlSession {
       context.gameId !== "skipixl" ||
       (context.rulesVersion !== SKIPIXL_RULES_VERSION &&
         context.rulesVersion !== SKIPIXL_PREVIOUS_RULES_VERSION &&
+        context.rulesVersion !== SKIPIXL_V6_RULES_VERSION &&
         context.rulesVersion !== SKIPIXL_V5_RULES_VERSION &&
         context.rulesVersion !== SKIPIXL_PRIOR_RULES_VERSION &&
         context.rulesVersion !== SKIPIXL_LEGACY_RULES_VERSION)
@@ -90,13 +92,18 @@ export class SkiPixlSession {
     }
 
     this.applySteering(input.steer);
-    // Activision Skiing has no separate accelerator: the skis determine both
-    // direction and downhill speed. Keep the legacy throttle field in replay
-    // tapes, but do not let it alter the simulation.
-    this.speed +=
-      (this.payload.maxSpeed - this.speed) *
-      SKIPIXL_CHALLENGE_PROFILE.downhillAccelerationPerSecond *
-      STEP_SECONDS;
+    if (this.context.rulesVersion === SKIPIXL_RULES_VERSION) {
+      this.speed = approach(
+        this.speed,
+        input.throttle > 0 ? this.payload.maxSpeed : this.payload.cruiseSpeed,
+        (input.throttle > 0
+          ? SKIPIXL_CHALLENGE_PROFILE.boostAccelerationPerSecond
+          : SKIPIXL_CHALLENGE_PROFILE.cruiseReturnPerSecond) * STEP_SECONDS,
+      );
+    } else {
+      // Historical replay cohorts retain the pre-v8 autonomous descent.
+      this.speed += (this.payload.maxSpeed - this.speed) * 2.4 * STEP_SECONDS;
+    }
     const previousX = this.skierX;
     this.skierX = clamp(
       this.skierX + this.lateralVelocity * STEP_SECONDS,

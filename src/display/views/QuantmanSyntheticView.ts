@@ -17,14 +17,19 @@ import { BROWN_BOX_PALETTE } from "../BrownBoxTheme";
 import { drawCanonicalSprite } from "../CanonicalSpriteRaster";
 import { drawCenteredPixelPanel } from "../PixelHud";
 import { drawPixelText } from "../PixelText";
+import {
+  drawNativePixelFilledEllipse,
+  drawNativePixelLine,
+  drawNativePixelRect,
+} from "../NativePixelRaster";
 
 export const QUANTMAN_SYNTHETIC_VIEWPORT = Object.freeze({
-  width: 640,
-  height: 360,
-  boardLeft: 180,
-  boardTop: 40,
-  cellSize: 28,
-  boardSize: 280,
+  width: 320,
+  height: 180,
+  boardLeft: 90,
+  boardTop: 20,
+  cellSize: 14,
+  boardSize: 140,
 });
 
 export interface QuantmanSyntheticHudModel {
@@ -53,7 +58,7 @@ export interface QuantmanSyntheticWallSegment {
 
 const GRAPH = new RoomGraph(10, 10);
 
-/** Render-only adapter for the legacy 640x360 cabinet plane. */
+/** Native 320x180 renderer; simulation state remains resolution-independent. */
 export function renderQuantmanSynthetic(
   graphics: Phaser.GameObjects.Graphics,
   runtime: QuantmanSyntheticRuntimeSnapshot,
@@ -184,13 +189,17 @@ function drawTopology(
   const changed = new Set(state.changedEdgeIndices);
   for (const segment of quantmanSyntheticWallSegments(state.topologyWallMask)) {
     if (edgeTouchesGhostHome(GRAPH, segment.edgeIndex)) continue;
-    g.lineStyle(
-      changed.has(segment.edgeIndex) ? 4 : 2,
-      changed.has(segment.edgeIndex)
-        ? BROWN_BOX_PALETTE.mutedTan
-        : BROWN_BOX_PALETTE.cream,
-      1,
-    ).lineBetween(segment.x1, segment.y1, segment.x2, segment.y2);
+    drawNativePixelLine(
+      g,
+      { x: segment.x1, y: segment.y1 },
+      { x: segment.x2, y: segment.y2 },
+      {
+        colour: changed.has(segment.edgeIndex)
+          ? BROWN_BOX_PALETTE.mutedTan
+          : BROWN_BOX_PALETTE.cream,
+        thickness: changed.has(segment.edgeIndex) ? 2 : 1,
+      },
+    );
   }
   drawGhostHome(g);
   if (state.mechanic === "stabilize-gaze") drawGazeCone(g, state);
@@ -217,36 +226,40 @@ function drawCollectibles(
     if (collected.has(room)) return;
     const position = roomPosition(room);
     if (kind === "pellet") {
-      g.fillStyle(BROWN_BOX_PALETTE.cream, 1).fillRect(
-        position.x - 2,
-        position.y - 2,
-        4,
-        4,
+      drawNativePixelRect(
+        g,
+        position.x - 1,
+        position.y - 1,
+        2,
+        2,
+        BROWN_BOX_PALETTE.cream,
       );
     } else if (kind === "wall-pass") {
-      g.lineStyle(2, BROWN_BOX_PALETTE.cream, 1).strokeRect(
-        position.x - 7,
-        position.y - 7,
-        14,
-        14,
+      drawFrame(
+        g,
+        position.x - 4,
+        position.y - 4,
+        8,
+        8,
+        BROWN_BOX_PALETTE.cream,
       );
-      g.fillStyle(BROWN_BOX_PALETTE.mutedTan, 1).fillRect(
-        position.x - 2,
-        position.y - 5,
-        4,
-        10,
+      drawNativePixelRect(
+        g,
+        position.x - 1,
+        position.y - 3,
+        2,
+        6,
+        BROWN_BOX_PALETTE.mutedTan,
       );
     } else {
-      g.fillStyle(BROWN_BOX_PALETTE.cream, 1).fillCircle(
-        position.x,
-        position.y,
-        7,
-      );
-      g.fillStyle(BROWN_BOX_PALETTE.ink, 1).fillRect(
-        position.x - 2,
-        position.y - 4,
+      drawNativePixelFilledEllipse(g, position, 4, 4, BROWN_BOX_PALETTE.cream);
+      drawNativePixelRect(
+        g,
+        position.x - 1,
+        position.y - 2,
+        2,
         4,
-        8,
+        BROWN_BOX_PALETTE.ink,
       );
     }
   });
@@ -264,18 +277,20 @@ function drawActors(
       "quantman-ghost-directional-strip",
       ghost.mode === "waiting" ? "neutral" : ghost.facing,
       {
-        pixel: 2,
+        pixel: 1,
         centerX: position.x,
-        bottomY: position.y + 16,
+        bottomY: position.y + 8,
       },
     );
     drawGhostRole(g, position.x, position.y, ghost.role);
     if (ghost.mode === "frightened") {
-      g.lineStyle(2, BROWN_BOX_PALETTE.cream, 1).strokeRect(
-        position.x - 17,
-        position.y - 17,
-        34,
-        34,
+      drawFrame(
+        g,
+        position.x - 9,
+        position.y - 9,
+        18,
+        18,
+        BROWN_BOX_PALETTE.cream,
       );
     }
   }
@@ -286,9 +301,9 @@ function drawActors(
     "quantman-player-directional-strip",
     state.player.facing,
     {
-      pixel: 2,
+      pixel: 1,
       centerX: player.x,
-      bottomY: player.y + 16,
+      bottomY: player.y + 8,
     },
   );
 }
@@ -298,34 +313,34 @@ function drawHud(
   hud: QuantmanSyntheticHudModel,
 ): void {
   drawPixelText(g, hud.mode, {
-    x: 320,
-    y: 12,
-    pixel: 2,
+    x: 160,
+    y: 6,
+    pixel: 1,
     colour: BROWN_BOX_PALETTE.cream,
     align: "center",
   });
 
-  drawSideValue(g, "SCORE", hud.score, 20, 54, "left");
-  drawSideValue(g, "LIVES", hud.lives, 20, 112, "left");
-  drawSideValue(g, "LEFT", hud.remaining, 20, 170, "left");
-  drawSideValue(g, "PASS WALLS", hud.wallPass, 620, 54, "right");
-  drawSideValue(g, "EAT GHOSTS", hud.ghostEat, 620, 112, "right");
+  drawSideValue(g, "SCORE", hud.score, 10, 27, "left");
+  drawSideValue(g, "LIVES", hud.lives, 10, 56, "left");
+  drawSideValue(g, "LEFT", hud.remaining, 10, 85, "left");
+  drawSideValue(g, "PASS WALLS", hud.wallPass, 310, 27, "right");
+  drawSideValue(g, "EAT GHOSTS", hud.ghostEat, 310, 56, "right");
   drawPixelText(g, hud.gaze, {
-    x: 620,
-    y: 176,
-    pixel: 2,
+    x: 310,
+    y: 88,
+    pixel: 1,
     colour: BROWN_BOX_PALETTE.cream,
     align: "right",
   });
 
   if (hud.phase !== "ACTIVE") {
     drawCenteredPixelPanel(g, hud.phase, {
-      centerX: 320,
-      y: 169,
-      pixel: 3,
+      centerX: 160,
+      y: 85,
+      pixel: 1,
       border: true,
-      paddingX: 10,
-      paddingY: 7,
+      paddingX: 5,
+      paddingY: 4,
     });
   }
 }
@@ -341,14 +356,14 @@ function drawSideValue(
   drawPixelText(g, label, {
     x,
     y,
-    pixel: 2,
+    pixel: 1,
     colour: BROWN_BOX_PALETTE.mutedTan,
     align,
   });
   drawPixelText(g, value, {
     x,
-    y: y + 17,
-    pixel: 3,
+    y: y + 9,
+    pixel: 1,
     colour: BROWN_BOX_PALETTE.cream,
     align,
   });
@@ -361,10 +376,10 @@ function drawGazeCone(
   const origin = quantmanSyntheticActorScreenPosition(state.player);
   const vector = directionVector(state.player.facing);
   const perpendicular = { x: -vector.y, y: vector.x };
-  const startDistance = 13;
+  const startDistance = 7;
   const endDistance = QUANTMAN_SYNTHETIC_VIEWPORT.cellSize * 2;
-  const nearHalfWidth = 4;
-  const farHalfWidth = 14;
+  const nearHalfWidth = 2;
+  const farHalfWidth = 7;
   const start = {
     x: origin.x + vector.x * startDistance,
     y: origin.y + vector.y * startDistance,
@@ -373,25 +388,42 @@ function drawGazeCone(
     x: origin.x + vector.x * endDistance,
     y: origin.y + vector.y * endDistance,
   };
-  g.lineStyle(2, BROWN_BOX_PALETTE.cream, 1)
-    .lineBetween(
+  drawNativePixelLine(
+    g,
+    nativePoint(
       start.x + perpendicular.x * nearHalfWidth,
       start.y + perpendicular.y * nearHalfWidth,
+    ),
+    nativePoint(
       end.x + perpendicular.x * farHalfWidth,
       end.y + perpendicular.y * farHalfWidth,
-    )
-    .lineBetween(
+    ),
+    { colour: BROWN_BOX_PALETTE.cream },
+  );
+  drawNativePixelLine(
+    g,
+    nativePoint(
       start.x - perpendicular.x * nearHalfWidth,
       start.y - perpendicular.y * nearHalfWidth,
+    ),
+    nativePoint(
       end.x - perpendicular.x * farHalfWidth,
       end.y - perpendicular.y * farHalfWidth,
-    )
-    .lineBetween(
+    ),
+    { colour: BROWN_BOX_PALETTE.cream },
+  );
+  drawNativePixelLine(
+    g,
+    nativePoint(
       end.x + perpendicular.x * farHalfWidth,
       end.y + perpendicular.y * farHalfWidth,
+    ),
+    nativePoint(
       end.x - perpendicular.x * farHalfWidth,
       end.y - perpendicular.y * farHalfWidth,
-    );
+    ),
+    { colour: BROWN_BOX_PALETTE.cream },
+  );
 }
 
 function drawTargetCorners(
@@ -401,17 +433,9 @@ function drawTargetCorners(
 ): void {
   const x = Math.round((segment.x1 + segment.x2) / 2);
   const y = Math.round((segment.y1 + segment.y2) / 2);
-  const radius = 10;
-  const corner = 5;
-  g.lineStyle(2, colour, 1)
-    .lineBetween(x - radius, y - radius, x - radius + corner, y - radius)
-    .lineBetween(x - radius, y - radius, x - radius, y - radius + corner)
-    .lineBetween(x + radius, y - radius, x + radius - corner, y - radius)
-    .lineBetween(x + radius, y - radius, x + radius, y - radius + corner)
-    .lineBetween(x - radius, y + radius, x - radius + corner, y + radius)
-    .lineBetween(x - radius, y + radius, x - radius, y + radius - corner)
-    .lineBetween(x + radius, y + radius, x + radius - corner, y + radius)
-    .lineBetween(x + radius, y + radius, x + radius, y + radius - corner);
+  const radius = 5;
+  const corner = 3;
+  drawCorners(g, x, y, radius, corner, colour);
 }
 
 function drawPerimeterWithTunnel(g: Phaser.GameObjects.Graphics): void {
@@ -425,17 +449,50 @@ function drawPerimeterWithTunnel(g: Phaser.GameObjects.Graphics): void {
   const bottom = top + size;
   const tunnelTop = top + TUNNEL_ROW * cellSize;
   const tunnelBottom = tunnelTop + cellSize;
-  g.lineStyle(2, BROWN_BOX_PALETTE.cream, 1)
-    .lineBetween(left, top, right, top)
-    .lineBetween(left, bottom, right, bottom)
-    .lineBetween(left, top, left, tunnelTop)
-    .lineBetween(left, tunnelBottom, left, bottom)
-    .lineBetween(right, top, right, tunnelTop)
-    .lineBetween(right, tunnelBottom, right, bottom)
-    .lineBetween(left - 14, tunnelTop, left, tunnelTop)
-    .lineBetween(left - 14, tunnelBottom, left, tunnelBottom)
-    .lineBetween(right, tunnelTop, right + 14, tunnelTop)
-    .lineBetween(right, tunnelBottom, right + 14, tunnelBottom);
+  const colour = BROWN_BOX_PALETTE.cream;
+  for (const [start, end] of [
+    [
+      { x: left, y: top },
+      { x: right, y: top },
+    ],
+    [
+      { x: left, y: bottom },
+      { x: right, y: bottom },
+    ],
+    [
+      { x: left, y: top },
+      { x: left, y: tunnelTop },
+    ],
+    [
+      { x: left, y: tunnelBottom },
+      { x: left, y: bottom },
+    ],
+    [
+      { x: right, y: top },
+      { x: right, y: tunnelTop },
+    ],
+    [
+      { x: right, y: tunnelBottom },
+      { x: right, y: bottom },
+    ],
+    [
+      { x: left - 7, y: tunnelTop },
+      { x: left, y: tunnelTop },
+    ],
+    [
+      { x: left - 7, y: tunnelBottom },
+      { x: left, y: tunnelBottom },
+    ],
+    [
+      { x: right, y: tunnelTop },
+      { x: right + 7, y: tunnelTop },
+    ],
+    [
+      { x: right, y: tunnelBottom },
+      { x: right + 7, y: tunnelBottom },
+    ],
+  ] as const)
+    drawNativePixelLine(g, start, end, { colour });
 }
 
 function drawGhostHome(g: Phaser.GameObjects.Graphics): void {
@@ -447,24 +504,51 @@ function drawGhostHome(g: Phaser.GameObjects.Graphics): void {
   const top = boardTop + row * cellSize;
   const size = cellSize * 2;
   const center = left + size / 2;
-  const gateHalfWidth = 8;
-  g.fillStyle(BROWN_BOX_PALETTE.ink, 1).fillRect(
-    left + 2,
-    top + 2,
-    size - 4,
-    size - 4,
+  const gateHalfWidth = 4;
+  drawNativePixelRect(
+    g,
+    left + 1,
+    top + 1,
+    size - 2,
+    size - 2,
+    BROWN_BOX_PALETTE.ink,
   );
-  g.lineStyle(2, BROWN_BOX_PALETTE.cream, 1)
-    .lineBetween(left, top, center - gateHalfWidth, top)
-    .lineBetween(center + gateHalfWidth, top, left + size, top)
-    .lineBetween(left, top, left, top + size)
-    .lineBetween(left + size, top, left + size, top + size)
-    .lineBetween(left, top + size, left + size, top + size);
-  g.lineStyle(2, BROWN_BOX_PALETTE.mutedTan, 1).lineBetween(
-    center - gateHalfWidth,
-    top,
-    center + gateHalfWidth,
-    top,
+  const cream = BROWN_BOX_PALETTE.cream;
+  drawNativePixelLine(
+    g,
+    { x: left, y: top },
+    { x: center - gateHalfWidth, y: top },
+    { colour: cream },
+  );
+  drawNativePixelLine(
+    g,
+    { x: center + gateHalfWidth, y: top },
+    { x: left + size, y: top },
+    { colour: cream },
+  );
+  drawNativePixelLine(
+    g,
+    { x: left, y: top },
+    { x: left, y: top + size },
+    { colour: cream },
+  );
+  drawNativePixelLine(
+    g,
+    { x: left + size, y: top },
+    { x: left + size, y: top + size },
+    { colour: cream },
+  );
+  drawNativePixelLine(
+    g,
+    { x: left, y: top + size },
+    { x: left + size, y: top + size },
+    { colour: cream },
+  );
+  drawNativePixelLine(
+    g,
+    { x: center - gateHalfWidth, y: top },
+    { x: center + gateHalfWidth, y: top },
+    { colour: BROWN_BOX_PALETTE.mutedTan },
   );
 }
 
@@ -475,15 +559,88 @@ function drawGhostRole(
   role: GhostRole,
 ): void {
   g.fillStyle(BROWN_BOX_PALETTE.ink, 1);
-  if (role === "direct") g.fillRect(x - 2, y - 11, 4, 4);
-  else if (role === "ambush") g.fillRect(x - 7, y - 11, 14, 3);
+  if (role === "direct") g.fillRect(x - 1, y - 6, 2, 2);
+  else if (role === "ambush") g.fillRect(x - 4, y - 6, 8, 2);
   else if (role === "flank") {
-    g.fillRect(x - 7, y - 11, 4, 4);
-    g.fillRect(x + 3, y - 11, 4, 4);
+    g.fillRect(x - 4, y - 6, 2, 2);
+    g.fillRect(x + 2, y - 6, 2, 2);
   } else {
-    g.fillRect(x - 2, y - 14, 4, 12);
-    g.fillRect(x - 7, y - 9, 14, 4);
+    g.fillRect(x - 1, y - 7, 2, 6);
+    g.fillRect(x - 4, y - 5, 8, 2);
   }
+}
+
+function nativePoint(x: number, y: number): Readonly<{ x: number; y: number }> {
+  return Object.freeze({ x: Math.round(x), y: Math.round(y) });
+}
+
+function drawFrame(
+  g: Phaser.GameObjects.Graphics,
+  x: number,
+  y: number,
+  width: number,
+  height: number,
+  colour: number,
+): void {
+  drawNativePixelLine(g, { x, y }, { x: x + width, y }, { colour });
+  drawNativePixelLine(g, { x, y }, { x, y: y + height }, { colour });
+  drawNativePixelLine(
+    g,
+    { x: x + width, y },
+    { x: x + width, y: y + height },
+    { colour },
+  );
+  drawNativePixelLine(
+    g,
+    { x, y: y + height },
+    { x: x + width, y: y + height },
+    { colour },
+  );
+}
+
+function drawCorners(
+  g: Phaser.GameObjects.Graphics,
+  x: number,
+  y: number,
+  radius: number,
+  corner: number,
+  colour: number,
+): void {
+  for (const [start, end] of [
+    [
+      { x: x - radius, y: y - radius },
+      { x: x - radius + corner, y: y - radius },
+    ],
+    [
+      { x: x - radius, y: y - radius },
+      { x: x - radius, y: y - radius + corner },
+    ],
+    [
+      { x: x + radius, y: y - radius },
+      { x: x + radius - corner, y: y - radius },
+    ],
+    [
+      { x: x + radius, y: y - radius },
+      { x: x + radius, y: y - radius + corner },
+    ],
+    [
+      { x: x - radius, y: y + radius },
+      { x: x - radius + corner, y: y + radius },
+    ],
+    [
+      { x: x - radius, y: y + radius },
+      { x: x - radius, y: y + radius - corner },
+    ],
+    [
+      { x: x + radius, y: y + radius },
+      { x: x + radius - corner, y: y + radius },
+    ],
+    [
+      { x: x + radius, y: y + radius },
+      { x: x + radius, y: y + radius - corner },
+    ],
+  ] as const)
+    drawNativePixelLine(g, start, end, { colour });
 }
 
 function quantmanSyntheticWallSegmentsForEdge(

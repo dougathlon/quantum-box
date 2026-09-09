@@ -1,4 +1,4 @@
-import ruleBankInput from "./data/fluxball-qgraph-rule-bank-v1.json";
+import ruleBankInput from "./data/fluxball-qgraph-rule-bank-v1.json" with { type: "json" };
 import type { SignedOutcome } from "./standalone/fixtures";
 import type { FixtureCatalog } from "./standalone/fixtures";
 import type { Context } from "./standalone/fixtures/types";

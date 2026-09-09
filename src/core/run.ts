@@ -1,5 +1,5 @@
 import { asUint32Seed, fnv1a32, type Uint32Seed } from "./determinism";
-import type { ArcadeCabinetId, StoryStageId } from "../games/registry";
+import type { ArcadeCabinetId, StoryRunStageId } from "../games/registry";
 
 export type PlayMode = "story" | "arcade";
 
@@ -32,7 +32,7 @@ export interface FrozenPackSelectionReceipt {
 export interface RunContext {
   readonly runId: string;
   readonly gameId: ArcadeCabinetId;
-  readonly storyStage: StoryStageId | null;
+  readonly storyStage: StoryRunStageId | null;
   readonly playMode: PlayMode;
   readonly rulesVersion: string;
   readonly runSeed: Uint32Seed;
@@ -44,7 +44,7 @@ const SHA256_PATTERN = /^[0-9a-f]{64}$/;
 
 export function createRunContext(input: {
   readonly gameId: ArcadeCabinetId;
-  readonly storyStage?: StoryStageId | null;
+  readonly storyStage?: StoryRunStageId | null;
   readonly playMode: PlayMode;
   readonly rulesVersion: string;
   readonly runSeed: number;

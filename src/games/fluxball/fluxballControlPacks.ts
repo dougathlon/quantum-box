@@ -4,8 +4,8 @@ import type {
   HybridFourQubitFixtureBank,
   FixtureBank,
 } from "./standalone/fixtures";
-import twoQubitFixture from "./standalone/data/fluxball-aer-v1.json";
-import fourQubitFixture from "./standalone/data/fluxball-aer-four-qubit-hybrid-v1.json";
+import twoQubitFixture from "./standalone/data/fluxball-aer-v1.json" with { type: "json" };
+import fourQubitFixture from "./standalone/data/fluxball-aer-four-qubit-hybrid-v1.json" with { type: "json" };
 import { FLUXBALL_QGRAPH_RULE_BANK } from "./FluxballRuleBank";
 import { FLUXBALL_RULES_VERSION } from "./types";
 
@@ -62,7 +62,7 @@ export const FLUXBALL_PLAYABLE_RULE_BANK = freezePack({
     "e5564fcb5d229c766505fa4e8db5965945afeec214119517bc30c109187d4f45",
   rulesVersion: FLUXBALL_RULES_VERSION,
   warnings: [
-    "Playable-first frozen bank: valid QPU records are preferred per round, but missing or invalid QPU coverage does not lock Story play.",
+    "Runtime authority is the validated IBM Fez record corpus; an incomplete recorded schedule locks play rather than silently installing a local substitute.",
     "The validated IBM Fez bank contains 16 two-player and 24 four-player records, with eligible QPU distributions for all eight acquisition buckets in both formats.",
     "Each API capture is committed with transport and content hashes. No record includes provider credentials, and active play makes no provider request.",
   ],

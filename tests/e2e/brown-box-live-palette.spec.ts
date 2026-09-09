@@ -86,30 +86,6 @@ test("the live menu and every Arcade cabinet render inside the exact Brown Box p
   }
 });
 
-for (const route of [
-  "qong-designer",
-  "designer-skipixl",
-  "designer-fluxball",
-  "designer-quantman",
-] as const) {
-  test.skip(`${route} keeps its in-world recovery encounter inside the exact Brown Box palette`, async ({
-    page,
-  }) => {
-    await page.goto(`/?qa=${route}&palette=1`);
-    await expect(
-      page.getByRole("region", { name: "Spatial recovery tutorial" }),
-    ).toBeVisible({ timeout: 10_000 });
-    const cabinet = "tutorial-world";
-    await assertCurrentSurface(page, {
-      page: "main",
-      cabinet,
-    });
-    await expect(page.locator("[data-tutorial='evidence']")).toContainText(
-      "DEVELOPMENT FIXTURE · NO STORY PROGRESS",
-    );
-  });
-}
-
 async function assertCurrentSurface(
   page: Page,
   expected: { readonly page: string; readonly cabinet: string | null },

@@ -1,7 +1,6 @@
 /**
- * Formula ids remain the four engine families recovered in the Workshop.
- * Quarry deliberately reuses the QGraph formula rather than inventing a fifth
- * engine record.
+ * Engine-family ids remain four because Fluxball and Quarry both use QGraph.
+ * The Terminal archive nevertheless exposes five distinct game programs.
  */
 export const GAME_IDS = ["qong", "skipixl", "fluxball", "quantman"] as const;
 export type GameId = (typeof GAME_IDS)[number];
@@ -22,6 +21,21 @@ export type ArcadeCabinetId = ShippedArcadeCabinetId | LegacyArcadeCabinetId;
 
 export const STORY_SEQUENCE = [
   "qong",
+  "skipixl-feasible",
+  "skipixl-overloaded",
+  "quantman-hold",
+  "fluxball-global",
+  "fluxball-individual",
+  "quarry",
+] as const;
+export type StoryStageId = (typeof STORY_SEQUENCE)[number];
+
+/**
+ * V5 run evidence retains these identifiers verbatim. They remain accepted by
+ * the replay/migration boundary, but are never emitted by the v6 Story.
+ */
+export const LEGACY_STORY_SEQUENCE = [
+  "qong",
   "skipixl-medium",
   "skipixl",
   "fluxball-two",
@@ -30,13 +44,14 @@ export const STORY_SEQUENCE = [
   "quantman",
   "quarry",
 ] as const;
-export type StoryStageId = (typeof STORY_SEQUENCE)[number];
+export type LegacyStoryStageId = (typeof LEGACY_STORY_SEQUENCE)[number];
+export type StoryRunStageId = StoryStageId | LegacyStoryStageId;
 
 export const STORY_CHAPTER_IDS = [
   "qong",
   "skipixl",
-  "fluxball",
   "quantman",
+  "fluxball",
   "quarry",
 ] as const;
 export type StoryChapterId = (typeof STORY_CHAPTER_IDS)[number];
@@ -70,33 +85,33 @@ export const GAME_DEFINITIONS = Object.freeze({
     engineId: "qpixl-v1",
     formulaTitle: "RESIDUAL DESCENT",
     archiveGlyph: "╲◇╱",
-    storyStages: ["skipixl-medium", "skipixl"],
+    storyStages: ["skipixl-feasible", "skipixl-overloaded"],
     arcadeModes: ["EASY", "MEDIUM", "HARD"],
+  },
+  quantman: {
+    id: "quantman",
+    title: "QUANTMAN",
+    model: "QB-03",
+    engineId: "labyrinth-v1",
+    formulaTitle: "CORRELATED MAZE",
+    archiveGlyph: "▦●",
+    storyStages: ["quantman-hold"],
+    arcadeModes: ["HOLD", "INVERT"],
   },
   fluxball: {
     id: "fluxball",
     title: "FLUXBALL",
-    model: "QB-03",
+    model: "QB-04",
     engineId: "graph-v1",
     formulaTitle: "RELATIONAL RULEFIELD",
     archiveGlyph: "◇—◇",
-    storyStages: ["fluxball-two", "fluxball-four"],
+    storyStages: ["fluxball-global", "fluxball-individual"],
     arcadeModes: [
       "2 PLAYER / GLOBAL",
       "2 PLAYER / INDIVIDUAL",
       "4 PLAYER / GLOBAL",
       "4 PLAYER / INDIVIDUAL",
     ],
-  },
-  quantman: {
-    id: "quantman",
-    title: "QUANTMAN",
-    model: "QB-04",
-    engineId: "labyrinth-v1",
-    formulaTitle: "CORRELATED MAZE",
-    archiveGlyph: "▦●",
-    storyStages: ["quantman-stabilize", "quantman"],
-    arcadeModes: ["STABILIZE GAZE", "INVERSE GAZE"],
   },
 } as const satisfies Readonly<Record<GameId, GameDefinition>>);
 
@@ -146,13 +161,13 @@ export const ARCADE_CABINET_DEFINITIONS = Object.freeze({
       premise: "A DOWNHILL COURSE CUT FROM A RECORDED QPIXL FIELD.",
       object: "REACH THE FINISH BEFORE THE LIMIT.",
       condition: "PASS BETWEEN THE GATE FLAGS. MISSES AND COLLISIONS ADD TIME.",
-      controls: "LEFT / RIGHT CARVES. RELEASE TO CENTRE.",
+      controls: "LEFT / RIGHT CARVES. DOWN ACCELERATES. RELEASE TO CENTRE.",
     },
   },
   fluxball: {
     ...GAME_DEFINITIONS.fluxball,
     sourceLabel: "QPU-FIRST RULE BANK",
-    bitmapSourceLabel: "QB-03 QPU RULES",
+    bitmapSourceLabel: "QB-04 QPU RULES",
     brief: {
       premise: "FOUR ROUNDS OF BALL PLAY. THE RULES MAY CHANGE.",
       object: "LEAD ON ROUND WINS AFTER FOUR ROUNDS.",
@@ -165,7 +180,7 @@ export const ARCADE_CABINET_DEFINITIONS = Object.freeze({
   quantman: {
     ...GAME_DEFINITIONS.quantman,
     sourceLabel: "IBM FEZ LABYRINTH BANK",
-    bitmapSourceLabel: "QB-04 QPU MAZE",
+    bitmapSourceLabel: "QB-03 QPU MAZE",
     brief: {
       premise: "A MAZE THAT CHANGES WITH THE DIRECTION YOU LOOK.",
       object: "CLEAR EVERY FRAGMENT BEFORE YOUR LIVES ARE SPENT.",
@@ -213,19 +228,19 @@ export const STORY_CHAPTER_DEFINITIONS = Object.freeze({
     id: "skipixl",
     title: "SKIPIXL",
     model: "QB-02",
-    storyStages: ["skipixl-medium", "skipixl"],
+    storyStages: ["skipixl-feasible", "skipixl-overloaded"],
   },
   fluxball: {
     id: "fluxball",
     title: "FLUXBALL",
-    model: "QB-03",
-    storyStages: ["fluxball-two", "fluxball-four"],
+    model: "QB-04",
+    storyStages: ["fluxball-global", "fluxball-individual"],
   },
   quantman: {
     id: "quantman",
     title: "QUANTMAN",
-    model: "QB-04",
-    storyStages: ["quantman-stabilize", "quantman"],
+    model: "QB-03",
+    storyStages: ["quantman-hold"],
   },
   quarry: {
     id: "quarry",

@@ -5,8 +5,8 @@ const sceneSource = readFileSync("src/game/ScreenScene.ts", "utf8");
 const shellSource = readFileSync("src/ui/QuantumBoxShell.ts", "utf8");
 const appSource = readFileSync("src/app/QuantumBoxApp.ts", "utf8");
 const recoverySource = readFileSync("src/tutorials/recovery.ts", "utf8");
-const legacyLessonSource = readFileSync(
-  "src/story/QongDesignerLesson.ts",
+const legacyEvidenceSource = readFileSync(
+  "src/tutorials/legacyQongDesignerEvidence.ts",
   "utf8",
 );
 
@@ -49,22 +49,20 @@ describe("legacy tutorial production boundary", () => {
     }
   });
 
-  it("keeps a no-save-mutation Story v2 presentation QA route", () => {
-    expect(appSource).toContain('route?.startsWith("story-v2-")');
-    expect(appSource).toContain("openStoryV2PresentationForQa(");
-    const qaMethod = appSource.slice(
-      appSource.indexOf("private async openStoryV2PresentationForQa("),
-      appSource.indexOf("private handleCabinetAction("),
+  it("removes the obsolete Story v2 presentation route in favour of the terminal graph", () => {
+    expect(appSource).not.toContain('route?.startsWith("story-v2-")');
+    expect(appSource).not.toContain("openStoryV2PresentationForQa(");
+    expect(appSource).toContain("presentCurrentStoryNode(");
+    expect(shellSource).toContain('data-action="story-terminal-action"');
+    expect(shellSource).toContain(
+      'data-terminal-page="${escapeHtml(page.id)}"',
     );
-    expect(qaMethod).toContain("new StoryV2PresentationMachine(");
-    expect(qaMethod).toContain("stageId, null, evidence");
-    expect(qaMethod).toContain("this.shell.showStoryPresentation(");
-    expect(qaMethod).not.toContain("saveRepository");
   });
 
-  it("retains historical recovery and legacy lesson source for migration", () => {
+  it("retains historical recovery evidence without requiring the retired scene", () => {
     expect(recoverySource).toContain("TUTORIAL_RECOVERY_SCHEMA_VERSION");
     expect(recoverySource).toContain("validateTutorialRecoveryRecord");
-    expect(legacyLessonSource).toContain("export class QongDesignerLesson");
+    expect(legacyEvidenceSource).toContain("interface QongDesignerState");
+    expect(legacyEvidenceSource).not.toContain("class QongDesignerLesson");
   });
 });

@@ -69,7 +69,6 @@ export async function createArcadeSkiPixlBrowserPlan(
     const session = new sessionModule.SkiPixlSession(context, pack.payload);
     const transitions: SkiPixlSteeringTransition[] = [];
     const fixedStepMs = 1_000 / 60;
-    const neutral = Object.freeze({ steer: 0 as const, throttle: 0 as const });
     let snapshot = session.snapshot();
     let previousSteer: -1 | 0 | 1 = 0;
     let ticks = 0;
@@ -78,9 +77,8 @@ export async function createArcadeSkiPixlBrowserPlan(
         pack.payload,
         snapshot,
       );
-      const steer = policyModule.skiPixlLookaheadInput(observation).steer;
-      const input =
-        steer === 0 ? neutral : Object.freeze({ steer, throttle: 0 });
+      const input = policyModule.skiPixlLookaheadInput(observation);
+      const steer = input.steer;
       if (steer !== previousSteer) {
         transitions.push(
           Object.freeze({

@@ -1,4 +1,4 @@
-import runtimeHandoffJson from "./qgraph-cabinet-assets-v1/manifests/shipped-runtime-handoff.json";
+import runtimeHandoffJson from "./qgraph-cabinet-assets-v1/manifests/shipped-runtime-handoff.json" with { type: "json" };
 
 export interface QGraphCabinetFrame {
   readonly frameId: string;

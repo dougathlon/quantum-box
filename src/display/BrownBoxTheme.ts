@@ -3,15 +3,6 @@ export const BROWN_BOX_LOGICAL_SCREEN = Object.freeze({
   height: 180,
 });
 
-// Existing cabinet renderers use the original 640x360 coordinate plane. The
-// shared display scales that plane exactly by one half while each cabinet is
-// moved onto the native 320x180 grid in later slices.
-export const LEGACY_CABINET_PLANE = Object.freeze({
-  width: 640,
-  height: 360,
-  scale: 0.5,
-});
-
 export const BROWN_BOX_PALETTE = Object.freeze({
   ink: 0x2b1c14,
   tobacco: 0x564330,

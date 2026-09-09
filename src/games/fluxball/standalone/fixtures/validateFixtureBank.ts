@@ -1,7 +1,7 @@
 import Ajv2020 from "ajv/dist/2020.js";
 import addFormats from "ajv-formats";
 
-import fixtureSchema from "../../schemas/fluxball-fixture-bank-v1.schema.json";
+import fixtureSchema from "../../schemas/fluxball-fixture-bank-v1.schema.json" with { type: "json" };
 import {
   CONTEXTS,
   OUTCOME_ORDER,

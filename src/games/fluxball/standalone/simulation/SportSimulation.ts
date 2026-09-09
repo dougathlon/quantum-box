@@ -95,6 +95,10 @@ function distanceSquared(
   return dx * dx + dy * dy;
 }
 
+function contactPairKey(left: PlayerId, right: PlayerId): string {
+  return left < right ? `${left}:${right}` : `${right}:${left}`;
+}
+
 function moveAxisTowards(
   current: Axis,
   target: Axis,
@@ -182,6 +186,7 @@ export class SportSimulation {
   private latestContact: BallContactEvent | null = null;
   private ruleStateIndex: number;
   private goalFreezeTicksRemaining = 0;
+  private readonly carrierPairLastContactTick = new Map<string, number>();
 
   public constructor(options: SportSimulationOptions) {
     if (!Number.isInteger(options.roundNumber) || options.roundNumber < 1) {
@@ -472,6 +477,9 @@ export class SportSimulation {
 
   private resolveBallContact(ballStart: Readonly<Axis>): void {
     const contactDistance = TUNING.playerRadius + TUNING.ballRadius;
+    const carrier = this.ball.carrierId
+      ? this.requirePlayer(this.ball.carrierId)
+      : null;
     const candidates = this.activePlayerIds
       .filter((playerId) => {
         if (this.ball.carrierId === playerId) return false;
@@ -481,9 +489,22 @@ export class SportSimulation {
           TUNING.contactCooldownTicks
         )
           return false;
-        return (
+        const touchesBall =
           pointSegmentDistanceSquared(player, ballStart, this.ball) <=
-          contactDistance ** 2
+          contactDistance ** 2;
+        if (!carrier) return touchesBall;
+        const pairLastContact =
+          this.carrierPairLastContactTick.get(
+            contactPairKey(player.id, carrier.id),
+          ) ?? -TUNING.carrierPairCooldownTicks;
+        if (this.roundTick - pairLastContact < TUNING.carrierPairCooldownTicks)
+          return false;
+        const touchesCarrierRegion =
+          distanceSquared(player, carrier) <=
+          TUNING.carrierChallengeDistance ** 2;
+        return (
+          (touchesBall || touchesCarrierRegion) &&
+          this.hasCarrierContactIntent(player, carrier)
         );
       })
       .sort((leftId, rightId) => {
@@ -500,7 +521,13 @@ export class SportSimulation {
     const previousCarrierId = this.ball.carrierId;
     player.lastContactTick = this.roundTick;
     if (previousCarrierId && previousCarrierId !== player.id) {
-      this.requirePlayer(previousCarrierId).lastContactTick = this.roundTick;
+      const previousCarrier = this.requirePlayer(previousCarrierId);
+      previousCarrier.lastContactTick = this.roundTick;
+      this.carrierPairLastContactTick.set(
+        contactPairKey(player.id, previousCarrierId),
+        this.roundTick,
+      );
+      this.separateCarrierChallenge(player, previousCarrier);
     }
     let consequence: BallContactConsequence;
     if (player.rules.interaction === "CARRY") {
@@ -549,6 +576,71 @@ export class SportSimulation {
       ballVelocityAfter: { x: this.ball.vx, y: this.ball.vy },
     };
     this.latestContact = this.record(event);
+  }
+
+  private hasCarrierContactIntent(
+    challenger: RuntimePlayer,
+    carrier: RuntimePlayer,
+  ): boolean {
+    const towardCarrier = normalizeAxis({
+      x: carrier.x - challenger.x,
+      y: carrier.y - challenger.y,
+    });
+    const relativeClosingSpeed =
+      challenger.resolvedMotion.x * towardCarrier.x +
+      challenger.resolvedMotion.y * towardCarrier.y -
+      (carrier.resolvedMotion.x * towardCarrier.x +
+        carrier.resolvedMotion.y * towardCarrier.y);
+    const facingIntent =
+      challenger.resolvedFacing.x * towardCarrier.x +
+      challenger.resolvedFacing.y * towardCarrier.y;
+    return (
+      relativeClosingSpeed >= TUNING.carrierChallengeMinimumClosingSpeed ||
+      (Math.hypot(challenger.resolvedMotion.x, challenger.resolvedMotion.y) >=
+        TUNING.playerInitialSpeed &&
+        facingIntent >= 0.35)
+    );
+  }
+
+  private separateCarrierChallenge(
+    challenger: RuntimePlayer,
+    carrier: RuntimePlayer,
+  ): void {
+    let dx = challenger.x - carrier.x;
+    let dy = challenger.y - carrier.y;
+    let distance = Math.hypot(dx, dy);
+    if (distance <= Number.EPSILON) {
+      dx = challenger.id.localeCompare(carrier.id) < 0 ? -1 : 1;
+      dy = 0;
+      distance = 1;
+    }
+    const nx = dx / distance;
+    const ny = dy / distance;
+    const separation = Math.max(0, TUNING.carrierSeparationDistance - distance);
+    challenger.x = clamp(
+      challenger.x + (nx * separation) / 2,
+      TUNING.courtPadding,
+      TUNING.courtWidth - TUNING.courtPadding,
+    );
+    challenger.y = clamp(
+      challenger.y + (ny * separation) / 2,
+      TUNING.courtPadding,
+      TUNING.courtHeight - TUNING.courtPadding,
+    );
+    carrier.x = clamp(
+      carrier.x - (nx * separation) / 2,
+      TUNING.courtPadding,
+      TUNING.courtWidth - TUNING.courtPadding,
+    );
+    carrier.y = clamp(
+      carrier.y - (ny * separation) / 2,
+      TUNING.courtPadding,
+      TUNING.courtHeight - TUNING.courtPadding,
+    );
+    challenger.resolvedMotion.x *= 0.55;
+    challenger.resolvedMotion.y *= 0.55;
+    carrier.resolvedMotion.x *= 0.35;
+    carrier.resolvedMotion.y *= 0.35;
   }
 
   private attachBallToCarrier(): void {

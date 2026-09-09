@@ -113,7 +113,7 @@ describe("SkiPixl QPixl course bank", () => {
       expect(pack.payload.obstacles.length).toBeGreaterThanOrEqual(120);
       expect(pack.payload.obstacles.length).toBeLessThanOrEqual(265);
       expect(pack.payload.receipt.schemaVersion).toBe(
-        "skipixl-course-receipt-v7",
+        "skipixl-course-receipt-v8",
       );
       expect(pack.payload.receipt.segments).toHaveLength(3);
       expect(
@@ -140,11 +140,9 @@ describe("SkiPixl QPixl course bank", () => {
       );
       expect(pack.payload.receipt.selectionThreshold).toBeGreaterThan(0);
       expect(pack.payload.receipt.denseRowCount).toBeGreaterThan(0);
-      expect(pack.payload.winSeconds).toBe(
-        pack.payload.cutId === "P90" ? 60 : 75,
-      );
-      if (pack.payload.receipt.schemaVersion !== "skipixl-course-receipt-v7") {
-        throw new Error("Current SkiPixl pack did not expose a v7 receipt.");
+      expect(pack.payload.winSeconds).toBe(60);
+      if (pack.payload.receipt.schemaVersion !== "skipixl-course-receipt-v8") {
+        throw new Error("Current SkiPixl pack did not expose a v8 receipt.");
       }
       expect(pack.payload.difficulty).toBe(
         { P90: "easy", P84: "medium", P78: "hard" }[pack.payload.receipt.cutId],
@@ -154,13 +152,13 @@ describe("SkiPixl QPixl course bank", () => {
       );
       expect(pack.payload.receipt.gateCount).toBe(pack.payload.gates?.length);
       expect(pack.payload.rowSpacing).toBe(
-        pack.payload.receipt.cutId === "P90" ? 47 : 70,
+        pack.payload.receipt.cutId === "P90" ? 47 : 63,
       );
       expect(pack.payload.courseLength).toBe(
-        pack.payload.receipt.cutId === "P90" ? 2_867 : 4_270,
+        pack.payload.receipt.cutId === "P90" ? 2_867 : 3_843,
       );
       expect(pack.payload.receipt.courseLengthRule).toContain(
-        pack.payload.receipt.cutId === "P90" ? "shorter hill" : "retain",
+        pack.payload.receipt.cutId === "P90" ? "shorter hill" : "preserve",
       );
       pack.payload.gates?.forEach((gate) => {
         const source = pack.payload.obstacles.find(
@@ -310,19 +308,30 @@ describe("SkiPixl QPixl course bank", () => {
     expect(snapshot.distance).toBe(0);
   });
 
-  it("derives downhill speed from ski angle and ignores the legacy throttle field", () => {
+  it("accelerates with Down and returns deterministically to cruise on release", () => {
     const pack = selectStorySkiPixlPack(0);
-    const accelerating = new SkiPixlSession(context(pack), pack.payload);
-    const braking = new SkiPixlSession(context(pack), pack.payload);
+    const clearPayload = {
+      ...pack.payload,
+      courseLength: 100_000,
+      obstacles: [],
+      gates: [],
+    };
+    const accelerating = new SkiPixlSession(context(pack), clearPayload);
+    const cruising = new SkiPixlSession(context(pack), clearPayload);
     activate(accelerating);
-    activate(braking);
+    activate(cruising);
 
-    for (let tick = 0; tick < 120; tick += 1) {
+    for (let tick = 0; tick < 60; tick += 1) {
       accelerating.step({ steer: 0, throttle: 1 });
-      braking.step({ steer: 0, throttle: -1 });
+      cruising.step({ steer: 0, throttle: 0 });
     }
+    expect(accelerating.snapshot().speed).toBe(92);
+    expect(cruising.snapshot().speed).toBe(72);
 
-    expect(accelerating.snapshot()).toEqual(braking.snapshot());
+    for (let tick = 0; tick < 30; tick += 1) {
+      accelerating.step({ steer: 0, throttle: 0 });
+    }
+    expect(accelerating.snapshot().speed).toBeCloseTo(83, 8);
   });
 
   it("slows a traverse as repeated steering rotates the skis toward horizontal", () => {
@@ -499,7 +508,7 @@ describe("SkiPixl QPixl course bank", () => {
     expect(snapshot.storyQualified).toBe(false);
   });
 
-  it("uses nested terrain cuts with a shorter Easy qualification time", () => {
+  it("uses nested terrain cuts with one 60-second qualification limit", () => {
     for (let seed = 0; seed < 20; seed += 1) {
       const cuts = selectArcadeSkiPixlCuts(seed);
       const p90 = new Set(
@@ -520,7 +529,7 @@ describe("SkiPixl QPixl course bank", () => {
         [cuts.packs.P90, cuts.packs.P84, cuts.packs.P78].map(
           (pack) => pack.payload.winSeconds,
         ),
-      ).toEqual([60, 75, 75]);
+      ).toEqual([60, 60, 60]);
     }
   });
 

@@ -1,5 +1,5 @@
-import archiveMazePayload from "./packs/archive-maze-v1.json";
-import labyrinthPreview from "./packs/moth-labyrinth-emu-4x5-preview-v1.json";
+import archiveMazePayload from "./packs/archive-maze-v1.json" with { type: "json" };
+import labyrinthPreview from "./packs/moth-labyrinth-emu-4x5-preview-v1.json" with { type: "json" };
 import { PACK_SCHEMA_VERSION, type CommittedPack } from "../../packs/types";
 import { validateCommittedPack } from "../../packs/validatePack";
 import {

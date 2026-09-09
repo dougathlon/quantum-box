@@ -1,4 +1,4 @@
-"""Compile SkiPixl v7 residual-slalom course identities.
+"""Compile SkiPixl v8 residual-slalom course identities.
 
 The QPixl segment bank is immutable provider evidence. This local compiler
 derives three nested cuts, full-row spatial phases, and slalom gates from each
@@ -17,18 +17,18 @@ from typing import Any
 
 ROOT = Path(__file__).resolve().parents[1]
 SOURCE_PATH = ROOT / "src/games/skipixl/data/qpixl-b3-segments-v1.json"
-OUTPUT_PATH = ROOT / "src/games/skipixl/data/skipixl-residual-cuts-v7.json"
+OUTPUT_PATH = ROOT / "src/games/skipixl/data/skipixl-residual-cuts-v8.json"
 EXPECTED_BANK_SHA256 = (
     "f09d509dd4f6980c0ac5146466e32c736f0688d13156334216720fa52dc8bffb"
 )
-DECODER_VERSION = "skipixl-triplet-residual-slalom-v7"
+DECODER_VERSION = "skipixl-triplet-residual-slalom-v8"
 CUTS = (("P90", 0.90), ("P84", 0.84), ("P78", 0.78))
 CORRIDOR_MIN_X = 96
 CORRIDOR_MAX_X = 544
 ROW_SPACING = 70
 EASY_ROW_SPACING = 47
-EASY_TARGET_SECONDS = 60
-TARGET_SECONDS = 75
+CURRENT_ADVANCED_ROW_SPACING = 63
+TARGET_SECONDS = 60
 DENSE_ROW_HAZARD_COUNT = 8
 SKIER_RADIUS = 9
 OBSTACLE_RADII = {"tree": 17, "rock": 14}
@@ -104,8 +104,8 @@ def difficulty_for_cut(cut_id: str) -> str:
     return {"P90": "easy", "P84": "medium", "P78": "hard"}[cut_id]
 
 
-def target_seconds_for_cut(cut_id: str) -> int:
-    return EASY_TARGET_SECONDS if cut_id == "P90" else TARGET_SECONDS
+def target_seconds_for_cut(_cut_id: str) -> int:
+    return TARGET_SECONDS
 
 
 def decode_gates(
@@ -183,7 +183,9 @@ def receipt_segment(segment: dict[str, Any], order: int) -> dict[str, Any]:
 def decode_course(
     bank: dict[str, Any], schedule: dict[str, Any], cut_id: str, percentile: float
 ) -> dict[str, Any]:
-    row_spacing = EASY_ROW_SPACING if cut_id == "P90" else ROW_SPACING
+    row_spacing = (
+        EASY_ROW_SPACING if cut_id == "P90" else CURRENT_ADVANCED_ROW_SPACING
+    )
     course_length = row_spacing * 61
     segments = [bank["segments"][index] for index in schedule["segmentIndexes"]]
     segment_residuals = [residuals(segment) for segment in segments]
@@ -252,7 +254,7 @@ def decode_course(
     difficulty = difficulty_for_cut(cut_id)
     gates = decode_gates(obstacles, cut_id, course_length)
     receipt = {
-        "schemaVersion": "skipixl-course-receipt-v7",
+        "schemaVersion": "skipixl-course-receipt-v8",
         "bankId": bank["bankId"],
         "bankContentSha256": bank["bankContentSha256"],
         "decoderVersion": DECODER_VERSION,
@@ -266,7 +268,7 @@ def decode_course(
         "courseLengthRule": (
             "Easy compresses all sixty QPixl-derived rows to 47 distance units per row for a shorter hill"
             if cut_id == "P90"
-            else "Medium and Hard retain all sixty QPixl-derived rows at 70 distance units per row"
+            else "Medium and Hard preserve all sixty QPixl-derived rows at 63 distance units per row for the common 60-second trial"
         ),
         "gateRule": (
             "Easy is a gate-free downhill descent"
@@ -283,7 +285,7 @@ def decode_course(
         "saturatedRowCount": saturated_rows,
         "difficultyScore": difficulty_score,
         "timeRule": (
-            "60-second qualification limit for Easy; Medium and Hard retain 75 seconds"
+            "fixed 60-second qualification limit for every residual cut"
         ),
         "segments": [receipt_segment(segment, index) for index, segment in enumerate(segments)],
     }
@@ -299,7 +301,7 @@ def decode_course(
         "corridorMaxX": CORRIDOR_MAX_X,
         "cruiseSpeed": 72,
         "minSpeed": 56,
-        "maxSpeed": 78,
+        "maxSpeed": 92,
         "parSeconds": 65,
         "winSeconds": target_seconds_for_cut(cut_id),
         "difficultyScore": difficulty_score,

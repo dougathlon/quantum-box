@@ -9,6 +9,13 @@ import { CANONICAL_SPRITE_PIXEL_SCALE } from "../CanonicalSpriteRaster";
 import { drawQGraphCabinetSprite } from "../QGraphCabinetSpriteRaster";
 import { drawPixelSprite, FLUXBALL_V2_BALL } from "../PixelSprites";
 import { fluxballDisplayView } from "./CabinetDisplayViews";
+import {
+  drawNativePixelEllipse,
+  drawNativePixelLine,
+  drawNativePixelPolyline,
+  drawNativePixelRect,
+  snapNativePixel,
+} from "../NativePixelRaster";
 
 const PALETTE = {
   ink: BROWN_BOX_PALETTE.ink,
@@ -30,12 +37,12 @@ export function renderFluxball(
   }
 
   const court = {
-    farY: 88,
-    nearY: 286,
-    farLeft: 170,
-    farRight: 470,
-    nearLeft: 62,
-    nearRight: 578,
+    farY: 44,
+    nearY: 143,
+    farLeft: 85,
+    farRight: 235,
+    nearLeft: 31,
+    nearRight: 289,
   } as const;
   const project = (x: number, y: number) => {
     const depth = Phaser.Math.Clamp(y / sport.court.height, 0, 1);
@@ -49,19 +56,27 @@ export function renderFluxball(
     };
   };
 
-  g.lineStyle(3, PALETTE.cream, 1)
-    .beginPath()
-    .moveTo(court.farLeft, court.farY)
-    .lineTo(court.farRight, court.farY)
-    .lineTo(court.nearRight, court.nearY)
-    .lineTo(court.nearLeft, court.nearY)
-    .closePath()
-    .strokePath();
-  g.lineStyle(2, PALETTE.cream, 1)
-    .lineBetween(320, court.farY, 320, court.nearY)
-    .strokeEllipse(320, 192, 84, 48)
-    .fillStyle(PALETTE.cream, 1)
-    .fillRect(317, 189, 6, 6);
+  drawNativePixelPolyline(
+    g,
+    [
+      { x: court.farLeft, y: court.farY },
+      { x: court.farRight, y: court.farY },
+      { x: court.nearRight, y: court.nearY },
+      { x: court.nearLeft, y: court.nearY },
+    ],
+    { colour: PALETTE.cream, thickness: 2 },
+    true,
+  );
+  drawNativePixelLine(
+    g,
+    { x: 160, y: court.farY },
+    { x: 160, y: court.nearY },
+    { colour: PALETTE.cream },
+  );
+  drawNativePixelEllipse(g, { x: 160, y: 96 }, 21, 12, {
+    colour: PALETTE.cream,
+  });
+  drawNativePixelRect(g, 159, 95, 3, 3, PALETTE.cream);
 
   drawGoal(g, "A", court, sport.court.goalHalfExtent, sport.court.height);
   drawGoal(g, "B", court, sport.court.goalHalfExtent, sport.court.height);
@@ -115,15 +130,19 @@ export function renderFluxball(
       speed,
       sport.latestContact?.playerId === playerId &&
         sport.roundTick - sport.latestContact.tick <= 2,
-      sport.ball.carrierId === playerId ? ballPoint : null,
+      sport.ball.carrierId === playerId
+        ? normalizeScreenMotion(player.resolvedMotion)
+        : null,
     );
   }
 
-  drawPixelSprite(g, FLUXBALL_V2_BALL, {
-    pixel: CANONICAL_SPRITE_PIXEL_SCALE,
-    centerX: Math.round(ballPoint.x),
-    bottomY: Math.round(ballPoint.y + 8),
-  });
+  if (sport.ball.carrierId === null) {
+    drawPixelSprite(g, FLUXBALL_V2_BALL, {
+      pixel: CANONICAL_SPRITE_PIXEL_SCALE,
+      centerX: Math.round(ballPoint.x),
+      bottomY: Math.round(ballPoint.y + 4),
+    });
+  }
 
   if (view.paused) {
     drawPause(g);
@@ -148,7 +167,6 @@ function drawGoal(
   goalHalfExtent: number,
   courtAxisLength: number,
 ): void {
-  g.lineStyle(3, PALETTE.cream, 1);
   if (playerId === "A" || playerId === "B") {
     const left = playerId === "A";
     const upperDepth = 0.5 - goalHalfExtent / courtAxisLength;
@@ -167,13 +185,17 @@ function drawGoal(
       x: edgeAt(lowerDepth),
       y: Phaser.Math.Linear(court.farY, court.nearY, lowerDepth),
     };
-    const outward = left ? -18 : 18;
-    g.beginPath()
-      .moveTo(upper.x, upper.y)
-      .lineTo(upper.x + outward, upper.y + 4)
-      .lineTo(lower.x + outward, lower.y - 4)
-      .lineTo(lower.x, lower.y)
-      .strokePath();
+    const outward = left ? -9 : 9;
+    drawNativePixelPolyline(
+      g,
+      [
+        nativePoint(upper.x, upper.y),
+        nativePoint(upper.x + outward, upper.y + 2),
+        nativePoint(lower.x + outward, lower.y - 2),
+        nativePoint(lower.x, lower.y),
+      ],
+      { colour: PALETTE.cream, thickness: 2 },
+    );
     return;
   }
   const top = playerId === "C";
@@ -182,13 +204,17 @@ function drawGoal(
     ? court.farRight - court.farLeft
     : court.nearRight - court.nearLeft;
   const half = (goalHalfExtent / courtAxisLength) * edgeWidth;
-  const outward = top ? -19 : 21;
-  g.beginPath()
-    .moveTo(320 - half, y)
-    .lineTo(320 - half + 6, y + outward)
-    .lineTo(320 + half - 6, y + outward)
-    .lineTo(320 + half, y)
-    .strokePath();
+  const outward = top ? -10 : 11;
+  drawNativePixelPolyline(
+    g,
+    [
+      nativePoint(160 - half, y),
+      nativePoint(160 - half + 3, y + outward),
+      nativePoint(160 + half - 3, y + outward),
+      nativePoint(160 + half, y),
+    ],
+    { colour: PALETTE.cream, thickness: 2 },
+  );
 }
 
 function drawFigure(
@@ -200,7 +226,7 @@ function drawFigure(
   roundTick: number,
   speed: number,
   contacting: boolean,
-  heldBall: Readonly<{ x: number; y: number }> | null,
+  heldDirection: Readonly<{ x: number; y: number }> | null,
 ): void {
   const motionFrame =
     speed < 24
@@ -218,14 +244,34 @@ function drawFigure(
       bottomY: y,
     },
   );
-  if (carrying && heldBall) drawCarryingPose(g, x, y, heldBall, roundTick);
+  if (carrying && heldDirection)
+    drawCarryingPose(g, x, y, heldDirection, roundTick);
   if (contacting) {
-    const radius = 26 + (roundTick % 2) * 3;
-    g.lineStyle(2, PALETTE.cream, 1);
-    g.lineBetween(x - radius, y - 19, x - radius + 6, y - 19);
-    g.lineBetween(x + radius - 6, y - 19, x + radius, y - 19);
-    g.lineBetween(x, y - 19 - radius, x, y - 13 - radius);
-    g.lineBetween(x, y - 25 + radius, x, y - 19 + radius);
+    const radius = 13 + (roundTick % 2);
+    drawNativePixelLine(
+      g,
+      { x: x - radius, y: y - 10 },
+      { x: x - radius + 3, y: y - 10 },
+      { colour: PALETTE.cream },
+    );
+    drawNativePixelLine(
+      g,
+      { x: x + radius - 3, y: y - 10 },
+      { x: x + radius, y: y - 10 },
+      { colour: PALETTE.cream },
+    );
+    drawNativePixelLine(
+      g,
+      { x, y: y - 10 - radius },
+      { x, y: y - 7 - radius },
+      { colour: PALETTE.cream },
+    );
+    drawNativePixelLine(
+      g,
+      { x, y: y - 13 + radius },
+      { x, y: y - 10 + radius },
+      { colour: PALETTE.cream },
+    );
   }
 }
 
@@ -233,41 +279,45 @@ function drawCarryingPose(
   g: Phaser.GameObjects.Graphics,
   x: number,
   y: number,
-  ball: Readonly<{ x: number; y: number }>,
+  heldDirection: Readonly<{ x: number; y: number }>,
   roundTick: number,
 ): void {
-  const torso = { x, y: y - 19 };
-  const dx = ball.x - torso.x;
-  const dy = ball.y - torso.y;
-  const magnitude = Math.max(1, Math.hypot(dx, dy));
-  const nx = dx / magnitude;
-  const ny = dy / magnitude;
+  const torso = { x, y: y - 10 };
+  const directionMagnitude = Math.hypot(heldDirection.x, heldDirection.y);
+  const nx = directionMagnitude > 0 ? heldDirection.x / directionMagnitude : 1;
+  const ny = directionMagnitude > 0 ? heldDirection.y / directionMagnitude : 0;
   const px = -ny;
   const py = nx;
-  const waddle = roundTick % 6 < 3 ? 1 : -1;
-  const elbow = {
-    x: Math.round(torso.x + nx * 7 + px * waddle * 3),
-    y: Math.round(torso.y + ny * 7 + py * waddle * 3),
-  };
-  const hand = {
-    x: Math.round(ball.x - nx * 6),
-    y: Math.round(ball.y - ny * 6),
+  const handPhase = roundTick % 6 < 3 ? 1 : 0;
+  const socket = {
+    x: Math.round(torso.x + nx * (8 + handPhase)),
+    y: Math.round(torso.y + ny * (7 + handPhase)),
   };
 
-  g.lineStyle(3, PALETTE.cream, 1)
-    .beginPath()
-    .moveTo(Math.round(torso.x + px * 3), Math.round(torso.y + py * 3))
-    .lineTo(elbow.x, elbow.y)
-    .lineTo(Math.round(hand.x + px * 2), Math.round(hand.y + py * 2))
-    .strokePath()
-    .beginPath()
-    .moveTo(Math.round(torso.x - px * 3), Math.round(torso.y - py * 3))
-    .lineTo(
-      Math.round(elbow.x - px * waddle * 4),
-      Math.round(elbow.y - py * waddle * 4),
-    )
-    .lineTo(Math.round(hand.x - px * 2), Math.round(hand.y - py * 2))
-    .strokePath();
+  drawPixelSprite(g, FLUXBALL_V2_BALL, {
+    pixel: CANONICAL_SPRITE_PIXEL_SCALE,
+    centerX: socket.x,
+    bottomY: socket.y + 4,
+  });
+
+  drawNativePixelPolyline(
+    g,
+    [
+      nativePoint(torso.x + px * 2, torso.y + py * 2),
+      nativePoint(torso.x + nx * 3 + px * 3, torso.y + ny * 3 + py * 3),
+      nativePoint(socket.x - nx * 3 + px, socket.y - ny * 3 + py),
+    ],
+    { colour: PALETTE.cream },
+  );
+  drawNativePixelPolyline(
+    g,
+    [
+      nativePoint(torso.x - px * 2, torso.y - py * 2),
+      nativePoint(torso.x + nx * 3 - px * 3, torso.y + ny * 3 - py * 3),
+      nativePoint(socket.x - nx * 3 - px, socket.y - ny * 3 - py),
+    ],
+    { colour: PALETTE.cream },
+  );
 }
 
 function normalizeScreenMotion(
@@ -292,29 +342,40 @@ function drawMotionAccents(
   const flicker = phase % 3;
   const tailX = -direction.x;
   const tailY = -direction.y;
-  g.lineStyle(2, PALETTE.cream, 1);
-  const firstDistance = 15 + flicker * 2;
-  g.lineBetween(
-    Math.round(x + tailX * firstDistance - direction.y * 3),
-    Math.round(y - 4 + tailY * firstDistance + direction.x * 3),
-    Math.round(x + tailX * (firstDistance + 6) - direction.y * 3),
-    Math.round(y - 4 + tailY * (firstDistance + 6) + direction.x * 3),
+  const firstDistance = 8 + flicker;
+  drawNativePixelLine(
+    g,
+    nativePoint(
+      Math.round(x + tailX * firstDistance - direction.y * 2),
+      Math.round(y - 2 + tailY * firstDistance + direction.x * 2),
+    ),
+    nativePoint(
+      Math.round(x + tailX * (firstDistance + 3) - direction.y * 2),
+      Math.round(y - 2 + tailY * (firstDistance + 3) + direction.x * 2),
+    ),
+    { colour: PALETTE.cream },
   );
   if (speed < 145) return;
-  const secondDistance = 22 + ((flicker + 1) % 3) * 2;
-  g.lineBetween(
-    Math.round(x + tailX * secondDistance + direction.y * 4),
-    Math.round(y + 3 + tailY * secondDistance - direction.x * 4),
-    Math.round(x + tailX * (secondDistance + 5) + direction.y * 4),
-    Math.round(y + 3 + tailY * (secondDistance + 5) - direction.x * 4),
+  const secondDistance = 11 + ((flicker + 1) % 3);
+  drawNativePixelLine(
+    g,
+    nativePoint(
+      Math.round(x + tailX * secondDistance + direction.y * 4),
+      Math.round(y + 2 + tailY * secondDistance - direction.x * 2),
+    ),
+    nativePoint(
+      Math.round(x + tailX * (secondDistance + 5) + direction.y * 4),
+      Math.round(y + 2 + tailY * (secondDistance + 3) - direction.x * 2),
+    ),
+    { colour: PALETTE.cream },
   );
 }
 
 function drawPause(g: Phaser.GameObjects.Graphics): void {
   drawCenteredPixelPanel(g, "PAUSED", {
-    centerX: 320,
-    y: 26,
-    pixel: 4,
+    centerX: 160,
+    y: 13,
+    pixel: 2,
     border: true,
   });
 }
@@ -324,43 +385,48 @@ function drawHud(
   snapshot: FluxballSnapshot,
 ): void {
   const hud = fluxballHudModel(snapshot, false);
-  g.lineStyle(1, PALETTE.cream, 1).lineBetween(238, 68, 402, 68);
+  drawNativePixelLine(
+    g,
+    { x: 119, y: 34 },
+    { x: 201, y: 34 },
+    { colour: PALETTE.cream },
+  );
   drawPixelText(g, hud.round, {
-    x: 320,
-    y: 7,
-    pixel: 2,
+    x: 160,
+    y: 4,
+    pixel: 1,
     colour: PALETTE.cream,
     align: "center",
   });
   drawPixelText(g, hud.time, {
-    x: 320,
-    y: 20,
-    pixel: 4,
+    x: 160,
+    y: 10,
+    pixel: 2,
     colour: PALETTE.cream,
     align: "center",
   });
   if (hud.ruleChange)
     drawPixelText(g, hud.ruleChange, {
-      x: 518,
-      y: 24,
-      pixel: 2,
+      x: 259,
+      y: 12,
+      pixel: 1,
       colour: PALETTE.cream,
       align: "center",
     });
 
-  drawScore(g, "A", hud.goals.A, hud.roundWins.A, 22, 154, "left");
-  drawScore(g, "B", hud.goals.B, hud.roundWins.B, 618, 154, "right");
+  drawScore(g, "A", hud.goals.A, hud.roundWins.A, 11, 77, "left");
+  drawScore(g, "B", hud.goals.B, hud.roundWins.B, 309, 77, "right");
   if (hud.activePlayerIds.includes("C")) {
-    drawScore(g, "C", hud.goals.C, hud.roundWins.C, 126, 18, "center");
+    drawScore(g, "C", hud.goals.C, hud.roundWins.C, 63, 9, "center");
   }
   if (hud.activePlayerIds.includes("D")) {
-    drawScore(g, "D", hud.goals.D, hud.roundWins.D, 514, 316, "center");
+    drawScore(g, "D", hud.goals.D, hud.roundWins.D, 257, 158, "center");
   }
   if (hud.notice)
     drawPixelText(g, hud.notice, {
-      x: 320,
-      y: 52,
-      pixel: 2,
+      x: 160,
+      y: 26,
+      pixel: 1,
       colour: PALETTE.cream,
       align: "center",
     });
@@ -378,15 +444,19 @@ function drawScore(
   drawPixelText(g, `${playerId} G${goals}`, {
     x,
     y,
-    pixel: 2,
+    pixel: 1,
     colour: PALETTE.cream,
     align,
   });
   drawPixelText(g, `W${roundWins}`, {
     x,
-    y: y + 12,
-    pixel: 2,
+    y: y + 6,
+    pixel: 1,
     colour: PALETTE.cream,
     align,
   });
+}
+
+function nativePoint(x: number, y: number): Readonly<{ x: number; y: number }> {
+  return Object.freeze({ x: snapNativePixel(x), y: snapNativePixel(y) });
 }

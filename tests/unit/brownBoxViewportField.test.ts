@@ -1,11 +1,21 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  resolveBrownBoxDisplayPixelScale,
   resolveBrownBoxViewportFieldLayout,
   resolveBrownBoxViewportReplacementBoundary,
 } from "../../src/display/BrownBoxViewportField";
 
 describe("Brown Box continuous viewport field", () => {
+  it("matches the internal display scale at every supported viewport", () => {
+    expect(resolveBrownBoxDisplayPixelScale(320, 180)).toBe(1);
+    expect(resolveBrownBoxDisplayPixelScale(713, 736)).toBe(2);
+    expect(resolveBrownBoxDisplayPixelScale(1024, 720)).toBe(3);
+    expect(resolveBrownBoxDisplayPixelScale(1280, 720)).toBe(4);
+    expect(resolveBrownBoxDisplayPixelScale(1920, 1080)).toBe(6);
+    expect(resolveBrownBoxDisplayPixelScale(2560, 1440)).toBe(6);
+  });
+
   it("keeps the square browser panel and centred foreground on one pixel scale", () => {
     expect(resolveBrownBoxViewportFieldLayout(713, 736, 640)).toEqual({
       width: 713,

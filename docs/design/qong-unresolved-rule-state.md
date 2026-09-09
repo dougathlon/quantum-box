@@ -75,30 +75,15 @@ recorded provider result, local selection, scoring, physics, observation
 staging, CPU inference, and replay must remain distinguishable. No live Coin
 Toss call occurs during a rally.
 
-## Story debrief
+## Story terminal
 
-Qong is the reference transition for the rest of Story. The completed game
-screen is not replaced by a generic illustration. Its exact court, HUD, ball,
-scores, and final paddle locations remain visible while both paddles transform
-simultaneously and in place: the player's paddle becomes the walking avatar and
-the opposing paddle becomes the Designer. The Designer opens a doorway in the
-court. The player then walks across that same space and through it.
+Qong returns from the completed result to the persisted terminal graph. No
+physical avatar, Designer figure, morph, doorway, office, or walk-around scene
+is part of production. The approved terminal corpus owns the player-facing
+explanation and its page divisions; this design note does not paraphrase or
+extend that copy.
 
-The doorway leads to a recognizable top-down office. The player walks to its
-computer, sits, and enters an in-fiction terminal. The default lesson advances
-in seven short conceptual steps:
-
-1. submit a one-qubit Coin Toss request;
-2. begin in the definite state 0;
-3. apply a Hadamard gate;
-4. understand the ideal 50/50 measurement probabilities;
-5. measure one classical result, 0 or 1;
-6. inspect one actual stored result and the fixed `0/HEADS -> OPPOSITE`,
-   `1/TAILS -> OWN` mapping;
-7. distinguish the pre-acquired hardware result from the unresolved rule-state
-   enacted by Qong during play.
-
-Provider job IDs, backend identity, hashes, selector traces, and qualification
-receipts remain available under an optional `TECHNICAL RECORD`. They are not
-the default lesson. Automated morph, door, and threshold actions are continuous
-and do not use slideshow-style continue prompts.
+The terminal distinguishes the physical crossing, unresolved gameplay rule,
+stored one-shot provider result, and local own/opposite mapping. Exact provider
+job IDs, backend identity, hashes, selector trace, and qualified `RunContext`
+remain in provenance rather than crowding the default reading path.

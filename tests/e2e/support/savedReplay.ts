@@ -52,7 +52,6 @@ export async function openSkiPixlSavedReplay(page: Page): Promise<unknown> {
       },
     });
     const session = new sessionModule.SkiPixlSession(context, pack.payload);
-    const neutral = Object.freeze({ steer: 0 as const, throttle: 0 as const });
     let snapshot = session.snapshot();
     for (
       let tick = 0;
@@ -63,10 +62,7 @@ export async function openSkiPixlSavedReplay(page: Page): Promise<unknown> {
         pack.payload,
         snapshot,
       );
-      const steer = policyModule.skiPixlLookaheadInput(observation).steer;
-      snapshot = session.step(
-        steer === 0 ? neutral : Object.freeze({ steer, throttle: 0 as const }),
-      );
+      snapshot = session.step(policyModule.skiPixlLookaheadInput(observation));
     }
     if (snapshot.phase !== "complete" || !snapshot.storyQualified) {
       throw new Error(

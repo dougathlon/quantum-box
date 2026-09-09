@@ -57,6 +57,13 @@ describe("Brown Box rectangle pixel text", () => {
     );
   });
 
+  it("draws the terminal trademark mark without a fallback glyph", () => {
+    expect(pixelTextWidth("™", 1)).toBe(7);
+    expect(pixelTextRects("™", { x: 0, y: 0, pixel: 1 })).not.toEqual(
+      pixelTextRects("?", { x: 0, y: 0, pixel: 1 }),
+    );
+  });
+
   it("shares the same integer rectangle raster with the DOM bitmap plane", () => {
     const rectangles: number[][] = [];
     const context = {
@@ -76,5 +83,11 @@ describe("Brown Box rectangle pixel text", () => {
     expect(rectangles.length).toBeGreaterThan(20);
     expect(rectangles.flat().every(Number.isInteger)).toBe(true);
     expect(bounds.left + bounds.width / 2).toBe(80);
+  });
+
+  it("rejects fractional foreground placement", () => {
+    expect(() => pixelTextRects("GRID", { x: 1.5, y: 0, pixel: 1 })).toThrow(
+      "native integer",
+    );
   });
 });

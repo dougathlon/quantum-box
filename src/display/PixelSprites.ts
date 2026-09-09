@@ -321,6 +321,16 @@ export function drawPixelSprite(
   pattern: PixelSprite,
   options: PixelSpriteOptions,
 ): void {
+  if (
+    !Number.isInteger(options.pixel) ||
+    options.pixel <= 0 ||
+    !Number.isInteger(options.centerX) ||
+    !Number.isInteger(options.bottomY)
+  ) {
+    throw new Error(
+      "Pixel sprites require integer positions and a positive integer scale.",
+    );
+  }
   const width = pattern.reduce(
     (maximum, row) => Math.max(maximum, row.length),
     0,

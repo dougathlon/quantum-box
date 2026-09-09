@@ -1,6 +1,6 @@
 # Source lineage and preservation boundaries
 
-**Recorded:** 2026-08-23; demo-release presentation record revised 2026-09-07.
+**Recorded:** 2026-08-23; release presentation record revised 2026-09-09.
 See `demo-release-contract.md` for the current player-flow and publication
 contract; older QA notes remain historical observations.
 
@@ -18,26 +18,18 @@ The six recovered direction files remain read-only under
 | Fluxball          | `fluxball-early-color-tv-restyle-v3.png`                 | `10a3076e8e1ec5a4d2f267ed41c9ffb36fcc151fad9013654335a90a3c9efcf4` |
 | Quantman          | `labyrinth-maze-chase-early-color-tv-mockup-v1.png`      | `845145fb89c9f894c5794a9400a4218205ef00a392d0ff130d84cd668d783adc` |
 
-The physical title source is shipped through the decomposed layers in
-`src/assets/brown-box/`: `title-formica-device.png`,
-`title-b3-s3-screen-layer.png`, and the preserved
-`title-sharp-local-layer.png`. The RGB values in
-`title-b3-s3-screen-layer.png` are not rendered; its reviewed binary-alpha
-silhouette is used only as the photographed CRT mask.
-`BrownBoxTitleField` maps the same four native 320 × 180 endpoints and the same
-hard 22.8-second replacement schedule used by the internal display into that
-mask. The title CRT is a cropped window onto that field at the internal
-foreground's exact integer pixel scale; it does not resize the complete field
-to fit the photographed screen. Runtime `QUANTUM BOX` and `PRESS START` copy is
-now a locally authored 5 by 7 uppercase raster drawn by
-`src/display/TitleLettering.ts`; it follows period matrix constraints but does
-not copy a DEC, IBM, HP, OCR-B, or other proprietary glyph set. The old
-`title-sharp-local-layer.png` remains byte-preserved and manifested as
-historical presentation evidence, but its copy pixels are no longer a runtime
-layer. No title-only field derivative, enlarged-cell substitute, provider
-return, or new hardware result is introduced. This photographic room/device
-composition is the sole approved exception to the internal three-colour
-display. The other five files are historical design references, not production
+The former physical title source remains preserved through the decomposed
+layers in `src/assets/brown-box/`: `title-formica-device.png`,
+`title-b3-s3-screen-layer.png`, and `title-sharp-local-layer.png`. Their hashes
+and historical manifest are retained, but no production module imports them
+and Vite does not emit them. `BrownBoxTitleField` now renders the selected
+native 320 × 180 background programme across the complete opening surface.
+`src/display/TitleLettering.ts` adds centred 5 by 7 `QUANTUM BOX` and
+`PRESS START` raster lettering on that same logical grid. It follows period
+matrix constraints but does not copy a DEC, IBM, HP, OCR-B, or other
+proprietary glyph set. No title-only field derivative, provider return, or new
+hardware result is introduced. The six
+recovered direction files remain historical design references, not production
 sprites or evidence that the games exist.
 
 The reviewed source package is
@@ -50,34 +42,41 @@ direction; the confirmed Story game is skiing.
 ## Canonical runtime asset handoff
 
 The visual branch imported the approved selections as a manifest-driven,
-read-only package. Its two manifest files are pinned as follows:
+read-only archive. Production now loads a strict subset rather than eagerly
+importing every archived physical-Story family. The manifests are pinned as
+follows:
 
-| Manifest                                                     | SHA-256                                                            |
-| ------------------------------------------------------------ | ------------------------------------------------------------------ |
-| `canonical-runtime-assets-v2/manifests/source-manifest.json` | `ba0ff61d315690adcdac094ff4b810f411a01be1f30810b6b0d660c4c5c958d5` |
-| `canonical-runtime-assets-v2/manifests/runtime-handoff.json` | `469b9474866522f919a57b18df30e7c06c272ed0e27cbe8198ec513fb16c3638` |
+| Manifest                                                             | SHA-256                                                            |
+| -------------------------------------------------------------------- | ------------------------------------------------------------------ |
+| `canonical-runtime-assets-v2/manifests/source-manifest.json`         | `aa12069a34edd3b60585b476bac6f73d01dfd503fbbbac6f9808b7e30ebdb842` |
+| `canonical-runtime-assets-v2/manifests/runtime-handoff.json`         | `1ffdb24e076cb10c51402523c7b66ef462a8a8ba9a492d29bc1560d32b43e9ae` |
+| `canonical-runtime-assets-v2/manifests/shipped-runtime-handoff.json` | `51311236eaaec3cc6627ae987c94891a7d043043e630ffb8765a2bc64e3cd83e` |
 
-The source manifest records 26 immutable inputs. The runtime handoff covers all
-45 PNGs under its `assets/` tree and 98 ordered frame records. Its contract is
+The source manifest records 26 immutable inputs. The archive handoff covers 45
+PNGs and 98 ordered frame records. The shipping handoff selects 31 of those
+PNGs; the generated runtime registry exposes 52 ordered frames. Its contract is
 native `320×180`, integer nearest-neighbour scaling, binary alpha only, and the
 exact palette `#2B1C14`, `#564330`, and `#D6BD8B` (plus fully transparent
 pixels in the sprite files). The audit rejects unmanifested files, hash drift,
 hidden RGB beneath transparency, fractional anchors, missing lineage, and any
 off-palette pixel.
 
-The older true-morph strips `qong-paddle-to-wizard`,
-`fluxball-player-a-to-wizard`, and `quantman-ghost-c-to-wizard` remain preserved
-inside this immutable v2 package. They are historical runtime sources, not the
-canonical Story v2 Designer presentation.
+The older true-morph strips remain preserved in private development history.
+They are absent from the shipped manifest and public production tree.
 
-## Designer Professor v1
+## Designer Professor v1 — retired historical source
 
-Story v2 uses the exact user-selected source
+The physical Designer, player avatar, morphs, and walk-around rooms are not part
+of production. The following record explains private historical lineage only;
+those files are excluded from the public release tree and cannot be used as
+authority for new art. The implemented Story replacement is the terminal graph
+under `src/story/terminal/`.
+
+The superseded Story v2 presentation used the exact user-selected source
 `drafts/visual-development/quantum-box/core-asset-language-v1/assets/designer-candidate-professor-20x20.png`,
 SHA-256
 `68329f1f921110b76151f5d3fe8eaf02c234518c9c6ac11e64bcbb48d3ecf745`.
-The source is copied byte-for-byte to
-`src/assets/designer-professor/assets/professor-source-locked-20x20.png` and is
+The source was copied byte-for-byte into the retired private package and is
 never overwritten.
 
 The deterministic local generator adds spectacles and a pipe, alternating
@@ -89,10 +88,10 @@ Manhattan signed-distance morph strips:
 - Quantman Ghost C to professor;
 - current crested Quarry Duck D frame to professor.
 
-The package uses only `#2B1C14`, `#564330`, `#D6BD8B`, and fully transparent
-pixels; alpha is binary and runtime scaling is integer nearest-neighbour. These
-are local presentation derivatives, not QPixl output, QPU output, or evidence
-of a provider operation. Its pinned manifests are:
+The retired package used only `#2B1C14`, `#564330`, `#D6BD8B`, and fully
+transparent pixels. These were local presentation derivatives, not QPixl
+output, QPU output, or evidence of a provider operation. Its historical pinned
+manifest hashes were:
 
 | Manifest                                                 | SHA-256                                                            |
 | -------------------------------------------------------- | ------------------------------------------------------------------ |
@@ -100,14 +99,13 @@ of a provider operation. Its pinned manifests are:
 | `designer-professor/manifests/morph-descriptors-v1.json` | `50595463b981fd6f8f00cf5a33341059bd5003acb6784ffb6ab7448df0edef25` |
 | `designer-professor/manifests/runtime-handoff.json`      | `33c199f294e60b222f8b956da86ea10abed7efac5f14f097199dfd12474cce9c` |
 
-The morph audit checks both endpoints against the currently pinned sources.
-If the Quarry Duck D runtime frame changes, its morph must be deliberately
-regenerated and re-reviewed; it may not silently retain an obsolete endpoint.
+These hashes preserve identification only. Public builds do not carry or audit
+the retired morph endpoints.
 
 The canonical Designer fiction is **DRAFTED PROSE**, not evidence about MOTH:
-he is an experimenter who was given an opaque key and access to MOTH, not the
-inventor of the platform or its engines. His terminal must bind its narration
-to the completed run and keep `INPUT`, `RETURN`, and `GAME MAPPING` distinct.
+he is an experimenter given access to MOTH, not the inventor of the platform or
+its engines. Terminal claims must bind to the completed run and keep `INPUT`,
+`RETURN`, and `GAME MAPPING` distinct.
 Where there is no provider return, the `RETURN` layer is explicitly absent or
 non-authoritative rather than filled by fiction.
 
@@ -121,8 +119,8 @@ Story v2 terminal source status is fixed as follows:
 | Quantman | eight independent 10×10/100-bit Moth Labyrinth IBM Fez distributions grouped beneath seven authored maze topologies | authored topologies, admissibility filter, and local decoder |
 | Quarry   | one of 24 recorded 12-qubit Moth QGraph IBM Fez distributions                                                       | separate Fluxball 40-return bank as comparison               |
 
-Every terminal page records `activePlayNetwork: none`. Presentation never
-changes the authority of the underlying evidence.
+The release network boundary records active play as provider-free. Terminal
+presentation never changes the authority of the underlying run evidence.
 
 ## Fluxball
 
@@ -141,7 +139,12 @@ The anthology retains exact local copies of the two fixture controls:
 | Two-player pairwise tomography          | `src/games/fluxball/standalone/data/fluxball-aer-v1.json`                   | `af91a70fc633ef4808e658268309ad67d7b808b1d10d77e5e36fcf35090feedb` |
 | Four-player hybrid joint-count gameplay | `src/games/fluxball/standalone/data/fluxball-aer-four-qubit-hybrid-v1.json` | `ba9afa9d257d9a2f6e11d1b23cb3a21bf1a10f87e2c9ea6d54cde92873fe0db3` |
 
-Tests compare those bytes against the standalone files and compare the copied rule sampler, interpreter, scoring, RNG, fixture catalog, and fixture resolver source byte-for-byte. Current Fluxball v4 uses 1,200 fixed 20 Hz ticks/60 seconds in every format; retained v2/v3 recovery evidence preserves the earlier 2P 800-tick/40-second and 4P 1,200-tick/60-second contract. Story fixes 2P as Global and 4P as Individual. The separate anthology CPU receives only a public sport projection.
+Tests compare those bytes against the standalone files and compare the copied
+rule sampler, interpreter, scoring, RNG, fixture catalog, and fixture resolver
+source byte-for-byte. Current Fluxball v5 uses 800 fixed 20 Hz ticks/40 seconds
+in every format. Retained v2–v4 recovery evidence keeps its original timings
+and hashes. Story fixes 2P Global followed by 2P Individual. The anthology CPU
+receives only a public sport projection.
 
 Fluxball's clean runtime figures and ball are local sprite derivatives admitted
 through `canonical-runtime-assets-v2`; they do not alter or replace the two
@@ -174,15 +177,15 @@ assembly are local presentation operations, not additional provider output.
 The assembled field is not a whole-screen hardware render and supplies no
 gameplay authority.
 
-As of 2026-09-01, `src/display/BrownBoxViewportField.ts` is the sole internal
+As of 2026-09-08, `src/display/BrownBoxViewportField.ts` is the sole field
 substrate renderer, and `src/display/BrownBoxTitleField.ts` presents the same
-field programme inside the physical title CRT. The exact centred 320 × 180
+programme across the complete opening surface. The exact centred 320 × 180
 endpoint remains unmodified. On a non-16:9 internal viewport, the internal
 renderer extends only the surrounding area by cropping and deterministically
 reordering exact 20 × 20 panels from each corresponding endpoint at the same
 integer pixel scale. The four source PNGs, hashes, state order, timing, and hard
-replacement boundary are shared with the title. The title mask and viewport
-extension are local presentation geometry, not new QPixl jobs, provider
+replacement boundary are shared with the opening. The viewport extension is
+local presentation geometry, not a new QPixl job, provider
 returns, or gameplay evidence. Phaser renders only transparent-backed cream
 foreground geometry above the field.
 
@@ -276,7 +279,7 @@ topology, then chooses a runtime-eligible capture belonging to it, then samples
 proportionally from that capture's original weights conditioned on its explicit
 admissibility index.
 Equal endpoint bits open a passage and unequal endpoint bits close it.
-`STABILIZE GAZE` and `INVERSE GAZE` modify the local selection constraint.
+`HOLD` and `INVERT` modify the local selection constraint.
 Story advances through distinct topologies in stable order without exposing a
 selector and persists both topology and capture identity. Arcade uses the same
 automatic course rotation rather than exposing a course menu; its score cohorts
@@ -306,29 +309,28 @@ each of six relational recipes without duplicating the original pack data.
 The canonical corpus SHA-256 is
 `c5fc0b3372f80757668ba21bdd5e3b475b8c917dcb1c9e34649038b3ed56a8b6`;
 its source index retains the original v1 bank hash as well as both capture-set
-hashes.
-Each record is a 12-qubit `graph-v1` IBM Fez result whose ordered bits represent the directed
-A→B, A→C, A→D, B→A, B→C, B→D, C→A, C→B, C→D, D→A, D→B, and D→C edges. The API
+hashes. Each record is a 12-qubit `graph-v1` IBM Fez result whose ordered bits
+represent the directed A→B, A→C, A→D, B→A, B→C, B→D, C→A, C→B, C→D, D→A,
+D→B, and D→C edges. The API
 returned its ranked top twenty outcomes rather than all 4,096 requested shots;
 the bank preserves that projection, its returned probability mass, and exact
 Moth/IBM job and raw-result identity. Complete relation phases are sampled
 locally from only those returned weights and frozen before play. The release
-uses three approximately 60-second rounds and an approximately twelve-second
+uses three 60-second rounds and a twelve-second
 relation cadence. Both are local game timing, not evidence that the provider
 circuit was remeasured at that cadence.
 
 The old synthetic pack remains test and recovery infrastructure, not current
 runtime authority. Fluxball's forty committed IBM Fez QGraph returns remain a
-separate bank. The final Story terminal may compare the relational mappings,
+separate bank. Future approved Story terminal copy may compare the relational mappings,
 but it must not transfer either game's hardware provenance to the other.
 
 ## Retired Enclose prototype
 
 Enclose is not part of the shipped cabinet roster, Story, Source Record, or
-Workshop. Its source, manifests, and historical QA captures remain in the
-repository as unreferenced development history so removal from the product does
-not become destruction of provenance. Their presence on disk is not evidence
-that Enclose remains a production route or playable cabinet.
+Terminal. Its source, manifests, and historical QA captures remain in private
+development history rather than the public release tree. Their preservation is
+not evidence that Enclose remains a production route or playable cabinet.
 
 ## Moth contract snapshot
 

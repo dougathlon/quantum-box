@@ -1,7 +1,7 @@
 import type { RunContext } from "../core/run";
 import { qualifiesQongStory } from "../games/qong/storyQualification";
 import type { QongSnapshot } from "../games/qong/types";
-import type { QongDesignerState } from "../story/QongDesignerLesson";
+import type { QongDesignerState } from "./legacyQongDesignerEvidence";
 import {
   CONTINUE_ACTION,
   deepFreeze,

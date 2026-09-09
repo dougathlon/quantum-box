@@ -1,5 +1,6 @@
-export const SKIPIXL_RULES_VERSION = "skipixl-rules-v7";
-export const SKIPIXL_PREVIOUS_RULES_VERSION = "skipixl-rules-v6";
+export const SKIPIXL_RULES_VERSION = "skipixl-rules-v8";
+export const SKIPIXL_PREVIOUS_RULES_VERSION = "skipixl-rules-v7";
+export const SKIPIXL_V6_RULES_VERSION = "skipixl-rules-v6";
 export const SKIPIXL_V5_RULES_VERSION = "skipixl-rules-v5";
 export const SKIPIXL_PRIOR_RULES_VERSION = "skipixl-rules-v4";
 export const SKIPIXL_LEGACY_RULES_VERSION = "skipixl-rules-v3";
@@ -68,6 +69,11 @@ export interface SkiPixlCourseReceiptV7
   readonly schemaVersion: "skipixl-course-receipt-v7";
 }
 
+export interface SkiPixlCourseReceiptV8
+  extends Omit<SkiPixlCourseReceiptV7, "schemaVersion"> {
+  readonly schemaVersion: "skipixl-course-receipt-v8";
+}
+
 export interface SkiPixlSegmentReceipt {
   readonly order: number;
   readonly segmentId: string;
@@ -124,6 +130,7 @@ export interface SkiPixlCourseReceiptV3 {
 }
 
 export type SkiPixlCourseReceipt =
+  | SkiPixlCourseReceiptV8
   | SkiPixlCourseReceiptV7
   | SkiPixlCourseReceiptV6
   | SkiPixlCourseReceiptV5

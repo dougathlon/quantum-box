@@ -1,5 +1,4 @@
 import Phaser from "phaser";
-import { LEGACY_CABINET_PLANE } from "./BrownBoxTheme";
 import { CANONICAL_RUNTIME_ASSETS } from "../assets/CanonicalRuntimeAssets";
 import { QGRAPH_CABINET_RUNTIME_ASSETS } from "../assets/QGraphCabinetAssets";
 
@@ -17,10 +16,11 @@ export class BrownBoxDisplay {
     }
   }
 
-  public createLegacyCabinetPlane(): Phaser.GameObjects.Graphics {
-    return this.scene.add
-      .graphics()
-      .setScale(LEGACY_CABINET_PLANE.scale)
-      .setDepth(0);
+  public createNativePixelPlane(): Phaser.GameObjects.Graphics {
+    const graphics = this.scene.add.graphics().setDepth(0);
+    graphics.setDataEnabled();
+    graphics.setData("nativeResolution", "320x180");
+    graphics.setData("integerPixelContract", true);
+    return graphics;
   }
 }

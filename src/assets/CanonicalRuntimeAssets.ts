@@ -1,4 +1,4 @@
-import runtimeHandoffJson from "./canonical-runtime-assets-v2/manifests/runtime-handoff.json";
+import runtimeHandoffJson from "./canonical-runtime-assets-v2/manifests/shipped-runtime-handoff.json" with { type: "json" };
 
 export interface CanonicalFrameRect {
   readonly x: number;
@@ -48,16 +48,15 @@ interface RuntimeHandoffJson {
   }>;
   readonly alphaContract: string;
   readonly scalingContract: string;
+  readonly lineage: string;
+  readonly archiveHandoff: Readonly<{
+    relativePath: string;
+    sha256: string;
+  }>;
   readonly runtimeFiles: readonly Omit<
     CanonicalRuntimeAsset,
     "textureKey" | "url"
   >[];
-  readonly skipixlDesignerEncounter: Readonly<{
-    morphAsset: null;
-    behavior: string;
-    waitingAssetId: string;
-    reason: string;
-  }>;
 }
 
 const runtimeHandoff = runtimeHandoffJson as RuntimeHandoffJson;
@@ -65,11 +64,18 @@ const runtimeHandoff = runtimeHandoffJson as RuntimeHandoffJson;
 export const CANONICAL_MANIFEST_HASHES = Object.freeze({
   sourceManifest:
     "aa12069a34edd3b60585b476bac6f73d01dfd503fbbbac6f9808b7e30ebdb842",
-  runtimeHandoff:
+  archiveRuntimeHandoff:
     "1ffdb24e076cb10c51402523c7b66ef462a8a8ba9a492d29bc1560d32b43e9ae",
+  shippedRuntimeHandoff:
+    "51311236eaaec3cc6627ae987c94891a7d043043e630ffb8765a2bc64e3cd83e",
 });
 const assetUrls = import.meta.glob<string>(
-  "./canonical-runtime-assets-v2/assets/**/*.png",
+  [
+    "./canonical-runtime-assets-v2/assets/fluxball/*.png",
+    "./canonical-runtime-assets-v2/assets/qong/*.png",
+    "./canonical-runtime-assets-v2/assets/quantman/*.png",
+    "./canonical-runtime-assets-v2/assets/skipixl/*.png",
+  ],
   { eager: true, query: "?url", import: "default" },
 );
 
@@ -80,8 +86,8 @@ function textureKey(fileId: string): string {
 function buildRuntimeAssets(): readonly CanonicalRuntimeAsset[] {
   if (
     runtimeHandoff.schemaVersion !==
-      "quantum-box-canonical-runtime-handoff-v2" ||
-    runtimeHandoff.status !== "immutable-canonical-handoff"
+      "quantum-box-canonical-shipped-runtime-handoff-v1" ||
+    runtimeHandoff.status !== "immutable-canonical-production-subset"
   ) {
     throw new Error(
       "Canonical runtime asset handoff is not the approved v2 package.",
@@ -95,7 +101,9 @@ function buildRuntimeAssets(): readonly CanonicalRuntimeAsset[] {
     runtimeHandoff.palette.warmCream !== "#D6BD8B" ||
     runtimeHandoff.alphaContract !== "binary-only-0-or-255" ||
     runtimeHandoff.scalingContract !== "integer-nearest-neighbour-only" ||
-    runtimeHandoff.runtimeFiles.length !== 45
+    runtimeHandoff.archiveHandoff.sha256 !==
+      CANONICAL_MANIFEST_HASHES.archiveRuntimeHandoff ||
+    runtimeHandoff.runtimeFiles.length !== 31
   ) {
     throw new Error("Canonical runtime asset display contract drifted.");
   }
@@ -130,13 +138,19 @@ export const CANONICAL_RUNTIME_ASSET_MANIFEST = Object.freeze({
   palette: runtimeHandoff.palette,
   alphaContract: runtimeHandoff.alphaContract,
   scalingContract: runtimeHandoff.scalingContract,
+  lineage: runtimeHandoff.lineage,
+  archiveHandoff: runtimeHandoff.archiveHandoff,
   sourceManifest: Object.freeze({
     relativePath:
       "src/assets/canonical-runtime-assets-v2/manifests/source-manifest.json",
     sha256: CANONICAL_MANIFEST_HASHES.sourceManifest,
   }),
+  shippedHandoff: Object.freeze({
+    relativePath:
+      "src/assets/canonical-runtime-assets-v2/manifests/shipped-runtime-handoff.json",
+    sha256: CANONICAL_MANIFEST_HASHES.shippedRuntimeHandoff,
+  }),
   assets: CANONICAL_RUNTIME_ASSETS,
-  skipixlDesignerEncounter: runtimeHandoff.skipixlDesignerEncounter,
 });
 
 export function requireCanonicalAsset(fileId: string): CanonicalRuntimeAsset {

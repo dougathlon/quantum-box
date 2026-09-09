@@ -1,0 +1,1404 @@
+{
+  "schemaVersion": "quantum-box-canonical-shipped-runtime-handoff-v1",
+  "date": "2026-09-09",
+  "status": "immutable-canonical-production-subset",
+  "logicalResolution": {
+    "width": 320,
+    "height": 180
+  },
+  "palette": {
+    "darkTobacco": "#2B1C14",
+    "mutedTan": "#564330",
+    "warmCream": "#D6BD8B"
+  },
+  "alphaContract": "binary-only-0-or-255",
+  "scalingContract": "integer-nearest-neighbour-only",
+  "lineage": "Production-only subset copied byte-for-byte from the immutable v2 runtime handoff. Retired physical Designer, player-walk, and morph families remain only in local source history.",
+  "archiveHandoff": {
+    "relativePath": "src/assets/canonical-runtime-assets-v2/manifests/runtime-handoff.json",
+    "sha256": "1ffdb24e076cb10c51402523c7b66ef462a8a8ba9a492d29bc1560d32b43e9ae"
+  },
+  "runtimeFiles": [
+    {
+      "fileId": "fluxball-player-a",
+      "relativePath": "assets/fluxball/fluxball-classic-player-a-20x20.png",
+      "sha256": "3e4f0e138f12ab6d5a308f379faf68c7cac3a59fb9fc0dd820a4ebc16b20f673",
+      "dimensions": {
+        "width": 20,
+        "height": 20
+      },
+      "kind": "single-frame-runtime-sprite",
+      "frames": [
+        {
+          "frameId": "fluxball-player-a",
+          "order": 0,
+          "rect": {
+            "x": 0,
+            "y": 0,
+            "width": 20,
+            "height": 20
+          },
+          "anchor": {
+            "x": 10,
+            "y": 20,
+            "convention": "frame-local-integer"
+          },
+          "derivationMethod": "binary-luminance-mask-to-cream-alpha-v1",
+          "parents": [
+            "fluxball-player-a"
+          ]
+        }
+      ]
+    },
+    {
+      "fileId": "fluxball-player-b",
+      "relativePath": "assets/fluxball/fluxball-classic-player-b-20x20.png",
+      "sha256": "133ff6957d74f9deb1109292c8dbaf1d396183c6c28f16d14639e73f328be157",
+      "dimensions": {
+        "width": 20,
+        "height": 20
+      },
+      "kind": "single-frame-runtime-sprite",
+      "frames": [
+        {
+          "frameId": "fluxball-player-b",
+          "order": 0,
+          "rect": {
+            "x": 0,
+            "y": 0,
+            "width": 20,
+            "height": 20
+          },
+          "anchor": {
+            "x": 10,
+            "y": 20,
+            "convention": "frame-local-integer"
+          },
+          "derivationMethod": "binary-luminance-mask-to-cream-alpha-v1",
+          "parents": [
+            "fluxball-player-b"
+          ]
+        }
+      ]
+    },
+    {
+      "fileId": "fluxball-player-c",
+      "relativePath": "assets/fluxball/fluxball-classic-player-c-20x20.png",
+      "sha256": "b5894837ebd61d5c6dce25ce730be473ff22f3abd74dfef2da3d66da1f2fcec6",
+      "dimensions": {
+        "width": 20,
+        "height": 20
+      },
+      "kind": "single-frame-runtime-sprite",
+      "frames": [
+        {
+          "frameId": "fluxball-player-c",
+          "order": 0,
+          "rect": {
+            "x": 0,
+            "y": 0,
+            "width": 20,
+            "height": 20
+          },
+          "anchor": {
+            "x": 10,
+            "y": 20,
+            "convention": "frame-local-integer"
+          },
+          "derivationMethod": "binary-luminance-mask-to-cream-alpha-v1",
+          "parents": [
+            "fluxball-player-c"
+          ]
+        }
+      ]
+    },
+    {
+      "fileId": "fluxball-player-d",
+      "relativePath": "assets/fluxball/fluxball-classic-player-d-20x20.png",
+      "sha256": "0a87cd1bcf4433ac86bd54e57ae7a08c6137597b30fc4b299ed48e3e07fc60ed",
+      "dimensions": {
+        "width": 20,
+        "height": 20
+      },
+      "kind": "single-frame-runtime-sprite",
+      "frames": [
+        {
+          "frameId": "fluxball-player-d",
+          "order": 0,
+          "rect": {
+            "x": 0,
+            "y": 0,
+            "width": 20,
+            "height": 20
+          },
+          "anchor": {
+            "x": 10,
+            "y": 20,
+            "convention": "frame-local-integer"
+          },
+          "derivationMethod": "binary-luminance-mask-to-cream-alpha-v1",
+          "parents": [
+            "fluxball-player-d"
+          ]
+        }
+      ]
+    },
+    {
+      "fileId": "fluxball-ball",
+      "relativePath": "assets/fluxball/fluxball-classic-ball-20x20.png",
+      "sha256": "44129bf6672ec675640ba74426f44cd6fee77a70a389b90621d297da973fd68a",
+      "dimensions": {
+        "width": 20,
+        "height": 20
+      },
+      "kind": "single-frame-runtime-sprite",
+      "frames": [
+        {
+          "frameId": "fluxball-ball",
+          "order": 0,
+          "rect": {
+            "x": 0,
+            "y": 0,
+            "width": 20,
+            "height": 20
+          },
+          "anchor": {
+            "x": 10,
+            "y": 10,
+            "convention": "frame-local-integer"
+          },
+          "derivationMethod": "binary-luminance-mask-to-cream-alpha-v1",
+          "parents": [
+            "fluxball-ball"
+          ]
+        }
+      ]
+    },
+    {
+      "fileId": "fluxball-family-strip",
+      "relativePath": "assets/fluxball/fluxball-classic-family-strip-20x20.png",
+      "sha256": "d9fa932153e3dc7f7fddcda60757e4423c15c8d379a3305633e05e341fc9d83b",
+      "dimensions": {
+        "width": 100,
+        "height": 20
+      },
+      "kind": "runtime-sprite-strip",
+      "frames": [
+        {
+          "frameId": "fluxball-player-a",
+          "order": 0,
+          "rect": {
+            "x": 0,
+            "y": 0,
+            "width": 20,
+            "height": 20
+          },
+          "anchor": {
+            "x": 10,
+            "y": 20,
+            "convention": "frame-local-integer"
+          },
+          "derivationMethod": "exact-canonical-frame-concatenation-v1",
+          "parents": [
+            "fluxball-player-a"
+          ]
+        },
+        {
+          "frameId": "fluxball-player-b",
+          "order": 1,
+          "rect": {
+            "x": 20,
+            "y": 0,
+            "width": 20,
+            "height": 20
+          },
+          "anchor": {
+            "x": 10,
+            "y": 20,
+            "convention": "frame-local-integer"
+          },
+          "derivationMethod": "exact-canonical-frame-concatenation-v1",
+          "parents": [
+            "fluxball-player-b"
+          ]
+        },
+        {
+          "frameId": "fluxball-player-c",
+          "order": 2,
+          "rect": {
+            "x": 40,
+            "y": 0,
+            "width": 20,
+            "height": 20
+          },
+          "anchor": {
+            "x": 10,
+            "y": 20,
+            "convention": "frame-local-integer"
+          },
+          "derivationMethod": "exact-canonical-frame-concatenation-v1",
+          "parents": [
+            "fluxball-player-c"
+          ]
+        },
+        {
+          "frameId": "fluxball-player-d",
+          "order": 3,
+          "rect": {
+            "x": 60,
+            "y": 0,
+            "width": 20,
+            "height": 20
+          },
+          "anchor": {
+            "x": 10,
+            "y": 20,
+            "convention": "frame-local-integer"
+          },
+          "derivationMethod": "exact-canonical-frame-concatenation-v1",
+          "parents": [
+            "fluxball-player-d"
+          ]
+        },
+        {
+          "frameId": "fluxball-ball",
+          "order": 4,
+          "rect": {
+            "x": 80,
+            "y": 0,
+            "width": 20,
+            "height": 20
+          },
+          "anchor": {
+            "x": 10,
+            "y": 10,
+            "convention": "frame-local-integer"
+          },
+          "derivationMethod": "exact-canonical-frame-concatenation-v1",
+          "parents": [
+            "fluxball-ball"
+          ]
+        }
+      ]
+    },
+    {
+      "fileId": "skipixl-neutral",
+      "relativePath": "assets/skipixl/skipixl-neutral-20x20.png",
+      "sha256": "b7cf7750a0055f9df454d1f724eba8176418546c36fda646f20574d2e2a48ced",
+      "dimensions": {
+        "width": 20,
+        "height": 20
+      },
+      "kind": "single-frame-runtime-sprite",
+      "frames": [
+        {
+          "frameId": "neutral",
+          "order": 0,
+          "rect": {
+            "x": 0,
+            "y": 0,
+            "width": 20,
+            "height": 20
+          },
+          "anchor": {
+            "x": 10,
+            "y": 20,
+            "convention": "frame-local-integer"
+          },
+          "derivationMethod": "byte-for-byte-copy",
+          "parents": [
+            "skipixl-neutral"
+          ]
+        }
+      ]
+    },
+    {
+      "fileId": "skipixl-hard-left",
+      "relativePath": "assets/skipixl/skipixl-hard-left-20x20.png",
+      "sha256": "0a1f27a86cb0f55ca1f3ead2c3eadde10b7cdf412f0096d34c3d33ea8b7cab50",
+      "dimensions": {
+        "width": 20,
+        "height": 20
+      },
+      "kind": "single-frame-runtime-sprite",
+      "frames": [
+        {
+          "frameId": "hard-left",
+          "order": 0,
+          "rect": {
+            "x": 0,
+            "y": 0,
+            "width": 20,
+            "height": 20
+          },
+          "anchor": {
+            "x": 10,
+            "y": 20,
+            "convention": "frame-local-integer"
+          },
+          "derivationMethod": "byte-for-byte-copy",
+          "parents": [
+            "skipixl-left"
+          ]
+        }
+      ]
+    },
+    {
+      "fileId": "skipixl-hard-right",
+      "relativePath": "assets/skipixl/skipixl-hard-right-20x20.png",
+      "sha256": "95f84652414c8dbb22b59035c1dbb6ed99b4c2b1e6328fb60d52d6e3520e135c",
+      "dimensions": {
+        "width": 20,
+        "height": 20
+      },
+      "kind": "single-frame-runtime-sprite",
+      "frames": [
+        {
+          "frameId": "hard-right",
+          "order": 0,
+          "rect": {
+            "x": 0,
+            "y": 0,
+            "width": 20,
+            "height": 20
+          },
+          "anchor": {
+            "x": 10,
+            "y": 20,
+            "convention": "frame-local-integer"
+          },
+          "derivationMethod": "byte-for-byte-copy",
+          "parents": [
+            "skipixl-right"
+          ]
+        }
+      ]
+    },
+    {
+      "fileId": "skipixl-fall",
+      "relativePath": "assets/skipixl/skipixl-fall-20x20.png",
+      "sha256": "ac7aef290e7f4a424cbd77f874462b687efc1b68ce89ce16d0eb6d8bfe9c43ae",
+      "dimensions": {
+        "width": 20,
+        "height": 20
+      },
+      "kind": "single-frame-runtime-sprite",
+      "frames": [
+        {
+          "frameId": "fall",
+          "order": 0,
+          "rect": {
+            "x": 0,
+            "y": 0,
+            "width": 20,
+            "height": 20
+          },
+          "anchor": {
+            "x": 10,
+            "y": 20,
+            "convention": "frame-local-integer"
+          },
+          "derivationMethod": "byte-for-byte-copy",
+          "parents": [
+            "skipixl-fall"
+          ]
+        }
+      ]
+    },
+    {
+      "fileId": "skipixl-recovery",
+      "relativePath": "assets/skipixl/skipixl-recovery-20x20.png",
+      "sha256": "e7b9517799fbcc023e4a2c1abc574be473750b831a73029b6d731ebac1832c2a",
+      "dimensions": {
+        "width": 20,
+        "height": 20
+      },
+      "kind": "single-frame-runtime-sprite",
+      "frames": [
+        {
+          "frameId": "recovery",
+          "order": 0,
+          "rect": {
+            "x": 0,
+            "y": 0,
+            "width": 20,
+            "height": 20
+          },
+          "anchor": {
+            "x": 10,
+            "y": 20,
+            "convention": "frame-local-integer"
+          },
+          "derivationMethod": "byte-for-byte-copy",
+          "parents": [
+            "skipixl-recovery"
+          ]
+        }
+      ]
+    },
+    {
+      "fileId": "skipixl-mid-left",
+      "relativePath": "assets/skipixl/skipixl-mid-left-20x20.png",
+      "sha256": "97dba98c61375370468600c14b39ed9878020cab6ea63b074d0894ecb30aa094",
+      "dimensions": {
+        "width": 20,
+        "height": 20
+      },
+      "kind": "single-frame-runtime-sprite",
+      "frames": [
+        {
+          "frameId": "mid-left",
+          "order": 0,
+          "rect": {
+            "x": 0,
+            "y": 0,
+            "width": 20,
+            "height": 20
+          },
+          "anchor": {
+            "x": 10,
+            "y": 20,
+            "convention": "frame-local-integer"
+          },
+          "derivationMethod": "manhattan-signed-distance-threshold-v1:t=2/3",
+          "parents": [
+            "skipixl-neutral",
+            "skipixl-left"
+          ]
+        }
+      ]
+    },
+    {
+      "fileId": "skipixl-soft-left",
+      "relativePath": "assets/skipixl/skipixl-soft-left-20x20.png",
+      "sha256": "3b907527f104d88c9aeb0a7b696d3fab15bdeafdd538df5d93f5f08800d5d5bd",
+      "dimensions": {
+        "width": 20,
+        "height": 20
+      },
+      "kind": "single-frame-runtime-sprite",
+      "frames": [
+        {
+          "frameId": "soft-left",
+          "order": 0,
+          "rect": {
+            "x": 0,
+            "y": 0,
+            "width": 20,
+            "height": 20
+          },
+          "anchor": {
+            "x": 10,
+            "y": 20,
+            "convention": "frame-local-integer"
+          },
+          "derivationMethod": "manhattan-signed-distance-threshold-v1:t=1/3",
+          "parents": [
+            "skipixl-neutral",
+            "skipixl-left"
+          ]
+        }
+      ]
+    },
+    {
+      "fileId": "skipixl-soft-right",
+      "relativePath": "assets/skipixl/skipixl-soft-right-20x20.png",
+      "sha256": "70b5004e03fb7fdb14cf5845357f4be729d9fe05ac1f02d76a8030af7d6e5e49",
+      "dimensions": {
+        "width": 20,
+        "height": 20
+      },
+      "kind": "single-frame-runtime-sprite",
+      "frames": [
+        {
+          "frameId": "soft-right",
+          "order": 0,
+          "rect": {
+            "x": 0,
+            "y": 0,
+            "width": 20,
+            "height": 20
+          },
+          "anchor": {
+            "x": 10,
+            "y": 20,
+            "convention": "frame-local-integer"
+          },
+          "derivationMethod": "manhattan-signed-distance-threshold-v1:t=1/3",
+          "parents": [
+            "skipixl-neutral",
+            "skipixl-right"
+          ]
+        }
+      ]
+    },
+    {
+      "fileId": "skipixl-mid-right",
+      "relativePath": "assets/skipixl/skipixl-mid-right-20x20.png",
+      "sha256": "e84cb468e1401b32052c58642531a41b8f3c883f39b550f0b7256cafcbe7ff6d",
+      "dimensions": {
+        "width": 20,
+        "height": 20
+      },
+      "kind": "single-frame-runtime-sprite",
+      "frames": [
+        {
+          "frameId": "mid-right",
+          "order": 0,
+          "rect": {
+            "x": 0,
+            "y": 0,
+            "width": 20,
+            "height": 20
+          },
+          "anchor": {
+            "x": 10,
+            "y": 20,
+            "convention": "frame-local-integer"
+          },
+          "derivationMethod": "manhattan-signed-distance-threshold-v1:t=2/3",
+          "parents": [
+            "skipixl-neutral",
+            "skipixl-right"
+          ]
+        }
+      ]
+    },
+    {
+      "fileId": "skipixl-steering-seven-angle-strip",
+      "relativePath": "assets/skipixl/skipixl-steering-seven-angle-strip-20x20.png",
+      "sha256": "e7f94fe9fafe81ee2c2aad5b646a72702ff5e8819566295ce3764c2acd0b0f09",
+      "dimensions": {
+        "width": 140,
+        "height": 20
+      },
+      "kind": "runtime-sprite-strip",
+      "frames": [
+        {
+          "frameId": "hard-left",
+          "order": 0,
+          "rect": {
+            "x": 0,
+            "y": 0,
+            "width": 20,
+            "height": 20
+          },
+          "anchor": {
+            "x": 10,
+            "y": 20,
+            "convention": "frame-local-integer"
+          },
+          "derivationMethod": "byte-for-byte-copy",
+          "parents": [
+            "skipixl-left"
+          ],
+          "runtimeAngle": -3
+        },
+        {
+          "frameId": "mid-left",
+          "order": 1,
+          "rect": {
+            "x": 20,
+            "y": 0,
+            "width": 20,
+            "height": 20
+          },
+          "anchor": {
+            "x": 10,
+            "y": 20,
+            "convention": "frame-local-integer"
+          },
+          "derivationMethod": "manhattan-signed-distance-threshold-v1:t=2/3",
+          "parents": [
+            "skipixl-neutral",
+            "skipixl-left"
+          ],
+          "runtimeAngle": -2
+        },
+        {
+          "frameId": "soft-left",
+          "order": 2,
+          "rect": {
+            "x": 40,
+            "y": 0,
+            "width": 20,
+            "height": 20
+          },
+          "anchor": {
+            "x": 10,
+            "y": 20,
+            "convention": "frame-local-integer"
+          },
+          "derivationMethod": "manhattan-signed-distance-threshold-v1:t=1/3",
+          "parents": [
+            "skipixl-neutral",
+            "skipixl-left"
+          ],
+          "runtimeAngle": -1
+        },
+        {
+          "frameId": "neutral",
+          "order": 3,
+          "rect": {
+            "x": 60,
+            "y": 0,
+            "width": 20,
+            "height": 20
+          },
+          "anchor": {
+            "x": 10,
+            "y": 20,
+            "convention": "frame-local-integer"
+          },
+          "derivationMethod": "byte-for-byte-copy",
+          "parents": [
+            "skipixl-neutral"
+          ],
+          "runtimeAngle": 0
+        },
+        {
+          "frameId": "soft-right",
+          "order": 4,
+          "rect": {
+            "x": 80,
+            "y": 0,
+            "width": 20,
+            "height": 20
+          },
+          "anchor": {
+            "x": 10,
+            "y": 20,
+            "convention": "frame-local-integer"
+          },
+          "derivationMethod": "manhattan-signed-distance-threshold-v1:t=1/3",
+          "parents": [
+            "skipixl-neutral",
+            "skipixl-right"
+          ],
+          "runtimeAngle": 1
+        },
+        {
+          "frameId": "mid-right",
+          "order": 5,
+          "rect": {
+            "x": 100,
+            "y": 0,
+            "width": 20,
+            "height": 20
+          },
+          "anchor": {
+            "x": 10,
+            "y": 20,
+            "convention": "frame-local-integer"
+          },
+          "derivationMethod": "manhattan-signed-distance-threshold-v1:t=2/3",
+          "parents": [
+            "skipixl-neutral",
+            "skipixl-right"
+          ],
+          "runtimeAngle": 2
+        },
+        {
+          "frameId": "hard-right",
+          "order": 6,
+          "rect": {
+            "x": 120,
+            "y": 0,
+            "width": 20,
+            "height": 20
+          },
+          "anchor": {
+            "x": 10,
+            "y": 20,
+            "convention": "frame-local-integer"
+          },
+          "derivationMethod": "byte-for-byte-copy",
+          "parents": [
+            "skipixl-right"
+          ],
+          "runtimeAngle": 3
+        }
+      ]
+    },
+    {
+      "fileId": "skipixl-approved-five-state-strip",
+      "relativePath": "assets/skipixl/skipixl-approved-five-state-strip-exact.png",
+      "sha256": "16cfb9962f48282e4b747f702eb820ae6fd0fafb947b2c074618c41e898f4fdd",
+      "dimensions": {
+        "width": 108,
+        "height": 20
+      },
+      "kind": "reference-and-runtime-action-strip",
+      "frames": [
+        {
+          "frameId": "neutral",
+          "order": 0,
+          "rect": {
+            "x": 0,
+            "y": 0,
+            "width": 20,
+            "height": 20
+          },
+          "anchor": {
+            "x": 10,
+            "y": 20,
+            "convention": "frame-local-integer"
+          },
+          "derivationMethod": "byte-for-byte-source-strip-frame",
+          "parents": [
+            "skipixl-neutral",
+            "skipixl-b-strip"
+          ]
+        },
+        {
+          "frameId": "hard-left",
+          "order": 1,
+          "rect": {
+            "x": 22,
+            "y": 0,
+            "width": 20,
+            "height": 20
+          },
+          "anchor": {
+            "x": 10,
+            "y": 20,
+            "convention": "frame-local-integer"
+          },
+          "derivationMethod": "byte-for-byte-source-strip-frame",
+          "parents": [
+            "skipixl-left",
+            "skipixl-b-strip"
+          ]
+        },
+        {
+          "frameId": "hard-right",
+          "order": 2,
+          "rect": {
+            "x": 44,
+            "y": 0,
+            "width": 20,
+            "height": 20
+          },
+          "anchor": {
+            "x": 10,
+            "y": 20,
+            "convention": "frame-local-integer"
+          },
+          "derivationMethod": "byte-for-byte-source-strip-frame",
+          "parents": [
+            "skipixl-right",
+            "skipixl-b-strip"
+          ]
+        },
+        {
+          "frameId": "fall",
+          "order": 3,
+          "rect": {
+            "x": 66,
+            "y": 0,
+            "width": 20,
+            "height": 20
+          },
+          "anchor": {
+            "x": 10,
+            "y": 20,
+            "convention": "frame-local-integer"
+          },
+          "derivationMethod": "byte-for-byte-source-strip-frame",
+          "parents": [
+            "skipixl-fall",
+            "skipixl-b-strip"
+          ]
+        },
+        {
+          "frameId": "recovery",
+          "order": 4,
+          "rect": {
+            "x": 88,
+            "y": 0,
+            "width": 20,
+            "height": 20
+          },
+          "anchor": {
+            "x": 10,
+            "y": 20,
+            "convention": "frame-local-integer"
+          },
+          "derivationMethod": "byte-for-byte-source-strip-frame",
+          "parents": [
+            "skipixl-recovery",
+            "skipixl-b-strip"
+          ]
+        }
+      ]
+    },
+    {
+      "fileId": "quantman-player-right",
+      "relativePath": "assets/quantman/quantman-player-c-right-16x16.png",
+      "sha256": "092e15d8e3282417d1ef06cc56de895229f1fec7fe7c63a00409e06d01203e22",
+      "dimensions": {
+        "width": 16,
+        "height": 16
+      },
+      "kind": "single-frame-runtime-sprite",
+      "frames": [
+        {
+          "frameId": "right",
+          "order": 0,
+          "rect": {
+            "x": 0,
+            "y": 0,
+            "width": 16,
+            "height": 16
+          },
+          "anchor": {
+            "x": 8,
+            "y": 16,
+            "convention": "frame-local-integer"
+          },
+          "derivationMethod": "byte-for-byte-copy",
+          "parents": [
+            "quantman-player-c"
+          ]
+        }
+      ]
+    },
+    {
+      "fileId": "quantman-player-down",
+      "relativePath": "assets/quantman/quantman-player-c-down-16x16.png",
+      "sha256": "d5c63a1d2ef6eb5dec4302a19700340ca437b20dd3fab92511f09733706e0492",
+      "dimensions": {
+        "width": 16,
+        "height": 16
+      },
+      "kind": "single-frame-runtime-sprite",
+      "frames": [
+        {
+          "frameId": "down",
+          "order": 0,
+          "rect": {
+            "x": 0,
+            "y": 0,
+            "width": 16,
+            "height": 16
+          },
+          "anchor": {
+            "x": 8,
+            "y": 16,
+            "convention": "frame-local-integer"
+          },
+          "derivationMethod": "integer-quarter-turn-clockwise-v1:1",
+          "parents": [
+            "quantman-player-c"
+          ]
+        }
+      ]
+    },
+    {
+      "fileId": "quantman-player-left",
+      "relativePath": "assets/quantman/quantman-player-c-left-16x16.png",
+      "sha256": "feafeff69dca74ad8165f4de8cdbc173e5d662616f76d36abe23805a5c6906fc",
+      "dimensions": {
+        "width": 16,
+        "height": 16
+      },
+      "kind": "single-frame-runtime-sprite",
+      "frames": [
+        {
+          "frameId": "left",
+          "order": 0,
+          "rect": {
+            "x": 0,
+            "y": 0,
+            "width": 16,
+            "height": 16
+          },
+          "anchor": {
+            "x": 8,
+            "y": 16,
+            "convention": "frame-local-integer"
+          },
+          "derivationMethod": "integer-quarter-turn-clockwise-v1:2",
+          "parents": [
+            "quantman-player-c"
+          ]
+        }
+      ]
+    },
+    {
+      "fileId": "quantman-player-up",
+      "relativePath": "assets/quantman/quantman-player-c-up-16x16.png",
+      "sha256": "e01b3137e69d1005f1c2994df7ddd24bfba4cdde3a7ead416d5489ce45e218ed",
+      "dimensions": {
+        "width": 16,
+        "height": 16
+      },
+      "kind": "single-frame-runtime-sprite",
+      "frames": [
+        {
+          "frameId": "up",
+          "order": 0,
+          "rect": {
+            "x": 0,
+            "y": 0,
+            "width": 16,
+            "height": 16
+          },
+          "anchor": {
+            "x": 8,
+            "y": 16,
+            "convention": "frame-local-integer"
+          },
+          "derivationMethod": "integer-quarter-turn-clockwise-v1:3",
+          "parents": [
+            "quantman-player-c"
+          ]
+        }
+      ]
+    },
+    {
+      "fileId": "quantman-player-directional-strip",
+      "relativePath": "assets/quantman/quantman-player-c-directional-strip-16x16.png",
+      "sha256": "665d44fd89daf39390142096c49903d8ae5ff949f79b0287e25b75abb7070b01",
+      "dimensions": {
+        "width": 64,
+        "height": 16
+      },
+      "kind": "runtime-sprite-strip",
+      "frames": [
+        {
+          "frameId": "right",
+          "order": 0,
+          "rect": {
+            "x": 0,
+            "y": 0,
+            "width": 16,
+            "height": 16
+          },
+          "anchor": {
+            "x": 8,
+            "y": 16,
+            "convention": "frame-local-integer"
+          },
+          "derivationMethod": "integer-quarter-turn-clockwise-v1:0",
+          "parents": [
+            "quantman-player-c"
+          ]
+        },
+        {
+          "frameId": "down",
+          "order": 1,
+          "rect": {
+            "x": 16,
+            "y": 0,
+            "width": 16,
+            "height": 16
+          },
+          "anchor": {
+            "x": 8,
+            "y": 16,
+            "convention": "frame-local-integer"
+          },
+          "derivationMethod": "integer-quarter-turn-clockwise-v1:1",
+          "parents": [
+            "quantman-player-c"
+          ]
+        },
+        {
+          "frameId": "left",
+          "order": 2,
+          "rect": {
+            "x": 32,
+            "y": 0,
+            "width": 16,
+            "height": 16
+          },
+          "anchor": {
+            "x": 8,
+            "y": 16,
+            "convention": "frame-local-integer"
+          },
+          "derivationMethod": "integer-quarter-turn-clockwise-v1:2",
+          "parents": [
+            "quantman-player-c"
+          ]
+        },
+        {
+          "frameId": "up",
+          "order": 3,
+          "rect": {
+            "x": 48,
+            "y": 0,
+            "width": 16,
+            "height": 16
+          },
+          "anchor": {
+            "x": 8,
+            "y": 16,
+            "convention": "frame-local-integer"
+          },
+          "derivationMethod": "integer-quarter-turn-clockwise-v1:3",
+          "parents": [
+            "quantman-player-c"
+          ]
+        }
+      ]
+    },
+    {
+      "fileId": "quantman-ghost-neutral",
+      "relativePath": "assets/quantman/quantman-ghost-c-neutral-16x16.png",
+      "sha256": "d9fa2bc427ec2dccbed20fba5a4e3cbcf9ceef9446bd09a0f22bb19397423fea",
+      "dimensions": {
+        "width": 16,
+        "height": 16
+      },
+      "kind": "single-frame-runtime-sprite",
+      "frames": [
+        {
+          "frameId": "neutral",
+          "order": 0,
+          "rect": {
+            "x": 0,
+            "y": 0,
+            "width": 16,
+            "height": 16
+          },
+          "anchor": {
+            "x": 8,
+            "y": 16,
+            "convention": "frame-local-integer"
+          },
+          "derivationMethod": "byte-for-byte-copy",
+          "parents": [
+            "quantman-ghost-c"
+          ]
+        }
+      ]
+    },
+    {
+      "fileId": "quantman-ghost-right",
+      "relativePath": "assets/quantman/quantman-ghost-c-right-16x16.png",
+      "sha256": "5442ae16cf6e7246bdd489ac0678d7dbcceaa7c116b2d8d8fa66045142486182",
+      "dimensions": {
+        "width": 16,
+        "height": 16
+      },
+      "kind": "single-frame-runtime-sprite",
+      "frames": [
+        {
+          "frameId": "right",
+          "order": 0,
+          "rect": {
+            "x": 0,
+            "y": 0,
+            "width": 16,
+            "height": 16
+          },
+          "anchor": {
+            "x": 8,
+            "y": 16,
+            "convention": "frame-local-integer"
+          },
+          "derivationMethod": "eye-cut-integer-translation-v1:dx=1:dy=0",
+          "parents": [
+            "quantman-ghost-c"
+          ]
+        }
+      ]
+    },
+    {
+      "fileId": "quantman-ghost-down",
+      "relativePath": "assets/quantman/quantman-ghost-c-down-16x16.png",
+      "sha256": "4ee30c7d08ce2e0090daefa51000d9b5118e5823d3de0ace934f5afa3675e730",
+      "dimensions": {
+        "width": 16,
+        "height": 16
+      },
+      "kind": "single-frame-runtime-sprite",
+      "frames": [
+        {
+          "frameId": "down",
+          "order": 0,
+          "rect": {
+            "x": 0,
+            "y": 0,
+            "width": 16,
+            "height": 16
+          },
+          "anchor": {
+            "x": 8,
+            "y": 16,
+            "convention": "frame-local-integer"
+          },
+          "derivationMethod": "eye-cut-integer-translation-v1:dx=0:dy=1",
+          "parents": [
+            "quantman-ghost-c"
+          ]
+        }
+      ]
+    },
+    {
+      "fileId": "quantman-ghost-left",
+      "relativePath": "assets/quantman/quantman-ghost-c-left-16x16.png",
+      "sha256": "3e98a98640d97dbb0706a358101f996f20ae0ba7a49385f7bfd542080dab522a",
+      "dimensions": {
+        "width": 16,
+        "height": 16
+      },
+      "kind": "single-frame-runtime-sprite",
+      "frames": [
+        {
+          "frameId": "left",
+          "order": 0,
+          "rect": {
+            "x": 0,
+            "y": 0,
+            "width": 16,
+            "height": 16
+          },
+          "anchor": {
+            "x": 8,
+            "y": 16,
+            "convention": "frame-local-integer"
+          },
+          "derivationMethod": "eye-cut-integer-translation-v1:dx=-1:dy=0",
+          "parents": [
+            "quantman-ghost-c"
+          ]
+        }
+      ]
+    },
+    {
+      "fileId": "quantman-ghost-up",
+      "relativePath": "assets/quantman/quantman-ghost-c-up-16x16.png",
+      "sha256": "6830e9eb4454f19be80ee34edc42662dae74303e7e1749db617858fa4ff87ea8",
+      "dimensions": {
+        "width": 16,
+        "height": 16
+      },
+      "kind": "single-frame-runtime-sprite",
+      "frames": [
+        {
+          "frameId": "up",
+          "order": 0,
+          "rect": {
+            "x": 0,
+            "y": 0,
+            "width": 16,
+            "height": 16
+          },
+          "anchor": {
+            "x": 8,
+            "y": 16,
+            "convention": "frame-local-integer"
+          },
+          "derivationMethod": "eye-cut-integer-translation-v1:dx=0:dy=-1",
+          "parents": [
+            "quantman-ghost-c"
+          ]
+        }
+      ]
+    },
+    {
+      "fileId": "quantman-ghost-directional-strip",
+      "relativePath": "assets/quantman/quantman-ghost-c-directional-strip-16x16.png",
+      "sha256": "99409bf7a1e85a7ee3e47bcdd8d764f921e2372dbb792dd76757e25dc1b80e2d",
+      "dimensions": {
+        "width": 80,
+        "height": 16
+      },
+      "kind": "runtime-sprite-strip",
+      "frames": [
+        {
+          "frameId": "neutral",
+          "order": 0,
+          "rect": {
+            "x": 0,
+            "y": 0,
+            "width": 16,
+            "height": 16
+          },
+          "anchor": {
+            "x": 8,
+            "y": 16,
+            "convention": "frame-local-integer"
+          },
+          "derivationMethod": "byte-for-byte-copy",
+          "parents": [
+            "quantman-ghost-c"
+          ]
+        },
+        {
+          "frameId": "right",
+          "order": 1,
+          "rect": {
+            "x": 16,
+            "y": 0,
+            "width": 16,
+            "height": 16
+          },
+          "anchor": {
+            "x": 8,
+            "y": 16,
+            "convention": "frame-local-integer"
+          },
+          "derivationMethod": "eye-cut-integer-translation-v1:dx=1:dy=0",
+          "parents": [
+            "quantman-ghost-c"
+          ]
+        },
+        {
+          "frameId": "down",
+          "order": 2,
+          "rect": {
+            "x": 32,
+            "y": 0,
+            "width": 16,
+            "height": 16
+          },
+          "anchor": {
+            "x": 8,
+            "y": 16,
+            "convention": "frame-local-integer"
+          },
+          "derivationMethod": "eye-cut-integer-translation-v1:dx=0:dy=1",
+          "parents": [
+            "quantman-ghost-c"
+          ]
+        },
+        {
+          "frameId": "left",
+          "order": 3,
+          "rect": {
+            "x": 48,
+            "y": 0,
+            "width": 16,
+            "height": 16
+          },
+          "anchor": {
+            "x": 8,
+            "y": 16,
+            "convention": "frame-local-integer"
+          },
+          "derivationMethod": "eye-cut-integer-translation-v1:dx=-1:dy=0",
+          "parents": [
+            "quantman-ghost-c"
+          ]
+        },
+        {
+          "frameId": "up",
+          "order": 4,
+          "rect": {
+            "x": 64,
+            "y": 0,
+            "width": 16,
+            "height": 16
+          },
+          "anchor": {
+            "x": 8,
+            "y": 16,
+            "convention": "frame-local-integer"
+          },
+          "derivationMethod": "eye-cut-integer-translation-v1:dx=0:dy=-1",
+          "parents": [
+            "quantman-ghost-c"
+          ]
+        }
+      ]
+    },
+    {
+      "fileId": "quantman-collectible",
+      "relativePath": "assets/quantman/quantman-collectible-8x8.png",
+      "sha256": "50a588d591c6da87d90340f6081276f7338249e73013ca2411c23e503d601c15",
+      "dimensions": {
+        "width": 8,
+        "height": 8
+      },
+      "kind": "single-frame-runtime-sprite",
+      "frames": [
+        {
+          "frameId": "collectible",
+          "order": 0,
+          "rect": {
+            "x": 0,
+            "y": 0,
+            "width": 8,
+            "height": 8
+          },
+          "anchor": {
+            "x": 4,
+            "y": 4,
+            "convention": "frame-local-integer"
+          },
+          "derivationMethod": "byte-for-byte-copy",
+          "parents": [
+            "quantman-collectible"
+          ]
+        }
+      ]
+    },
+    {
+      "fileId": "quantman-observation",
+      "relativePath": "assets/quantman/quantman-observation-indicator-16x8.png",
+      "sha256": "d5d7e4288c1650a8eab2d3f2f17efa0c9f8ca2d820dce2c613fed96861d369f7",
+      "dimensions": {
+        "width": 16,
+        "height": 8
+      },
+      "kind": "single-frame-runtime-sprite",
+      "frames": [
+        {
+          "frameId": "observation",
+          "order": 0,
+          "rect": {
+            "x": 0,
+            "y": 0,
+            "width": 16,
+            "height": 8
+          },
+          "anchor": {
+            "x": 8,
+            "y": 4,
+            "convention": "frame-local-integer"
+          },
+          "derivationMethod": "byte-for-byte-copy",
+          "parents": [
+            "quantman-observation"
+          ]
+        }
+      ]
+    },
+    {
+      "fileId": "qong-paddle",
+      "relativePath": "assets/qong/qong-paddle-canonical-20x20.png",
+      "sha256": "e77cd26e555dd8e13e9d30ea308a8328a1e53497ec054ff28f4d99067a82b48e",
+      "dimensions": {
+        "width": 20,
+        "height": 20
+      },
+      "kind": "single-frame-runtime-sprite",
+      "frames": [
+        {
+          "frameId": "paddle",
+          "order": 0,
+          "rect": {
+            "x": 0,
+            "y": 0,
+            "width": 20,
+            "height": 20
+          },
+          "anchor": {
+            "x": 10,
+            "y": 20,
+            "convention": "frame-local-integer"
+          },
+          "derivationMethod": "binary-luminance-mask-to-cream-alpha-v1",
+          "parents": [
+            "qong-human-paddle",
+            "qong-cpu-paddle"
+          ]
+        }
+      ]
+    }
+  ]
+}

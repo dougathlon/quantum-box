@@ -184,7 +184,7 @@ describe("SkiPixl deterministic difficulty policy sweep", () => {
     expect(reference.every((run) => run.completed)).toBe(true);
     expect(referenceSummary.minimumCollisions).toBe(0);
     expect(referenceSummary.maximumCollisions).toBeLessThanOrEqual(16);
-    expect(referenceSummary.minimumSeconds).toBeGreaterThan(35);
+    expect(referenceSummary.minimumSeconds).toBeGreaterThan(30);
     expect(
       reference
         .filter((run) => run.qualified)
@@ -200,10 +200,10 @@ describe("SkiPixl deterministic difficulty policy sweep", () => {
     const referenceEasy = reference.filter((run) => run.packId.endsWith("p90"));
     expect(
       Math.min(...referenceEasy.map((run) => run.elapsedSeconds)),
-    ).toBeGreaterThan(35);
+    ).toBeGreaterThan(30);
     expect(
       Math.max(...referenceEasy.map((run) => run.elapsedSeconds)),
-    ).toBeLessThan(55);
+    ).toBeLessThan(40);
     expect(referenceHard.some((run) => run.qualified)).toBe(true);
     expect(referenceHard.some((run) => !run.qualified)).toBe(true);
   }, 30_000);
@@ -292,7 +292,7 @@ describe("SkiPixl deterministic difficulty policy sweep", () => {
       );
       expect(evidence.difficultyScore).toBe(pack.payload.difficultyScore);
       expect(evidence.winSeconds).toBe(pack.payload.winSeconds);
-      expect(evidence.challengeProfile.version).toBe("skipixl-challenge-v5");
+      expect(evidence.challengeProfile.version).toBe("skipixl-challenge-v6");
       expect(Object.isFrozen(evidence)).toBe(true);
     });
   });

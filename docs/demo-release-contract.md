@@ -1,127 +1,95 @@
-# Quantum Box MOTH demo release contract
+# Quantum Box public demo contract
 
-**Status:** canonical implementation contract, presentation revision 2026-09-07
+**Status:** binding public product contract, revised 2026-09-09
 
-**Canonical baseline:** `qbox/main-game@28deff7fe80244cacdf2ada7f1d8423c2126fb44`
+## Product and fiction
 
-**Release branch:** `qbox/demo-release`
+- The main menu is Story, Arcade, Terminal, and Settings.
+- The Designer is a fictional experimenter given access to MOTH, not its
+  inventor. The Designer communicates only through the forgotten Quantum Box
+  terminal.
+- Physical Designer/player figures, morphs, doors, offices, dens, walking
+  sequences, and Workshop rooms are not production surfaces or assets.
+- Story begins or resumes directly. It has no chapter-selection menu.
+- Terminal is a five-program transcript archive and independent retry surface.
+- Enclose is not a shipped cabinet, route, asset, or source-record entry.
 
-This document supersedes contrary player-flow, timing, source, and publication
-directions in earlier QA notes. Historical QA files remain evidence of the
-state inspected at the time; they are not silently rewritten into current
-acceptance claims.
+## Story
 
-## Product and narrative decisions
+The deterministic gameplay order is Qong; SkiPixl feasible; SkiPixl overloaded;
+Quantman Hold; Fluxball 2P Global; Fluxball 2P Individual; and Quarry.
 
-- The main-menu Workshop is always selectable and presents five records. Each
-  record remains unrecovered until its corresponding Story chapter supplies
-  qualified evidence. The MOTH platform link remains gated by Quarry completion
-  and appears within Quarry's final Workshop/recovery material, never as an
-  ungated menu shortcut.
-- The Designer received access to MOTH and experimented with its engines. He
-  did not invent MOTH, its engines, or the provider hardware.
-- Stored provider returns are selected before play. No screen may describe
-  them as a live computation.
-- Qong and Fluxball teach their central rule after the first complete
-  unsuccessful Story match, never after a single lost round. That explanation
-  is shown once, persists across reload, and precedes a fresh retry. Arcade may
-  expose the same material only through an optional `HOW TO PLAY` action.
-- A completed SkiPixl Medium or Hard attempt advances Story whether it succeeds
-  or fails. The saved evidence retains the outcome, time, collisions, gates,
-  triplet, and source provenance. Genuine success receives distinct feedback.
-- Qong and SkiPixl receive the bespoke court/slope-to-office presentation pass.
-  Fluxball, Quantman, and Quarry still require truthful, navigable, complete
-  Story transitions, but their visual staging may remain provisional for this
-  demo and must be reported as such.
-- The five visible chapters and eight gameplay stages remain Qong; SkiPixl
-  Medium and Hard; Fluxball 2P and 4P; Quantman Stabilized and Inverted Gaze;
-  and Quarry. Enclose remains absent from the shipped application.
+The exact approved document is player-copy authority through Quantman. Its hash,
+normalization rules, and exact runtime corpus hash are pinned in
+`src/story/terminal/text-notes-provenance.json`. Fluxball and Quarry terminal
+pages remain literal `PLACEHOLDER` pages until approved prose exists.
+
+Only proven wins unlock transcript evidence: Qong once; both SkiPixl courses;
+Quantman Hold; both Fluxball Story modes; and Quarry. Story may continue along
+an explicit loss branch without converting that attempt into a clear.
 
 ## Game contracts
 
-- **Qong:** seven rounds, three observations, unresolved to measuring to
-  resolved rule state, and stored one-shot Coin Toss QPU authority. A physical
-  line crossing forces measurement when the rule remains unresolved. The first
-  Story round uses the admitted stored OWN-goal state already in the bank.
-- **SkiPixl:** current QPixl residual terrain remains authoritative. Medium and
-  Hard progression is attempt-complete rather than win-gated. Missed gates add
-  time; gates, trees, and moguls must be visually and sonically distinct.
-- **Fluxball:** Global keeps one shared mutable rule state and Individual keeps
-  coupled player-specific hidden rules. The first human to use the one shared
-  `CHANGE RULES` opportunity consumes it. A physical goal crossing is recorded
-  once before the operative rule determines point attribution. Goals do not
-  change rules. Every Arcade and Story format uses approximately 60-second
-  rounds.
-- **Quantman:** both gaze modes remain. Arcade selects deterministically among
-  admissible installed hardware fixtures. Story selects a single fixture at
-  Stabilize and persists its exact ID and content hash through Inverse. Runtime
-  sampling is conditioned on an explicit admissible-state index; the original
-  returned bitstrings and weights are never repaired, spliced, or fabricated.
-- **Quarry:** exactly three approximately 60-second rounds. The complete
-  directed pursuit relation changes on an approximately 12-second schedule,
-  never because of a catch. A catch scores, briefly knocks out the caught duck,
-  then returns it at a different safe perch with visible respawn grace. The
-  directed relation remains in force until its scheduled change. Match order is
-  rounds won, then total points; an exact remaining tie is `DRAW`.
+- **Qong:** seven rounds, three optional observations, and a recorded one-shot
+  Coin Toss bank. An unresolved physical crossing forces measurement.
+- **SkiPixl:** Easy, Medium, and Hard each use 60 seconds. Medium and Hard are
+  the feasible and overloaded Story courses. Down accelerates from cruise 72
+  toward 92 at 36 units/s²; release returns at 18 units/s².
+- **Quantman:** Hold and Invert remain Arcade modes; Story currently uses Hold.
+  Seven authored hardware-backed maze topologies rotate internally. The
+  original topology's two independent captures do not create two menu levels.
+- **Fluxball:** every format uses four 40-second rounds. Global has one shared
+  mutable rule state; Individual has coupled hidden player rules. One shared
+  `CHANGE RULES` opportunity exists per round. CPU policy sees no hidden rules.
+- **Quarry:** Arcade supports one to four humans. A caught duck is knocked out,
+  respawns elsewhere with grace, and retains its directed relation until the
+  fixed scheduled remeasurement. One of 24 recorded QGraph jobs is selected.
 
-## Acquisition cutoff and source classifications
+Story has no high score. Successful terminal Arcade runs write only to the
+existing SkiPixl or Quantman top-five systems, with initials, course/mode, run
+identity, and immutable provenance.
 
-The original release cutoff was 2026-09-06; the validated serial Quantman
-captures collected by 2026-09-07 are now part of the frozen runtime corpus.
-This integration performs no provider submission, retry, polling, or purchase.
+## Hardware and runtime boundary
 
-- Qong: four authenticated seven-result Coin Toss QPU packs plus the sealed
-  selector bank already installed.
-- SkiPixl: twenty preserved QPixl IBM Fez source/return captures already
-  installed; difficulty is a local residual decoding of a selected triplet.
-- Fluxball: forty recorded QGraph IBM Fez distributions already installed.
-- Quarry: twenty-four recorded QGraph IBM Fez jobs already installed, four
-  independent realizations in each of six recipe families.
-- Quantman: eight independent 4,096-shot IBM Fez measurements are grouped
-  beneath seven distinct authored 10 by 10 Labyrinth topologies. The original
-  topology owns the original job `b26af8de-d420-41f9-88cb-dfd436320304` and
-  serial control `62e54fda-a9eb-4c23-baf1-3b0815d81479`; Maps 01–06 each own
-  one validated serial capture. The failed twelve-job bulk campaign is not
-  runtime evidence. Story advances across distinct topologies without a
-  selector or high score; Arcade rotates courses automatically while retaining
-  course-indexed score records.
+This release performs no provider submission, polling, purchase, or retry.
 
-For Quantman, the authored coupling map is submitted input; the complete
-measured bitstring distribution is returned output; playability filtering and
-parity-to-passage conversion are local deterministic operations. Multiple
-hardware executions of one topology do not constitute additional maze levels.
+- Qong uses four authenticated seven-result Coin Toss packs and its sealed
+  selector bank.
+- SkiPixl uses twenty preserved QPixl IBM Fez captures.
+- Quantman uses eight successful IBM Fez Labyrinth captures beneath seven
+  authored topologies. The failed bulk tranche is excluded.
+- Fluxball uses forty IBM Fez QGraph distributions.
+- Quarry uses twenty-four IBM Fez QGraph distributions: four realizations of
+  each of six recipes. The API-returned top-outcome projection is disclosed and
+  is not represented as a complete 4,096-shot distribution.
 
-## Shared presentation and publication
+Every run freezes its bank/pack, seed, rules version, and exact provenance
+before fixed-step browser play. No synthetic fallback can silently replace
+hardware authority.
 
-- Story and Arcade use parallel five-cabinet indexes. Arcade selection opens a
-  separate game-specific trial sheet before its existing modes and score boards;
-  this routing changes explanation hierarchy, not gameplay or provider
-  authority.
-- Internal text retains the established 3 by 5 bitmap face with at least one
-  blank logical tracking column. The photographed title alone uses the locally
-  authored 5 by 7 raster recorded in the lettering research note. No
-  proprietary character ROM or wholesale typography replacement is shipped.
-- The existing default background programme and bytes remain unchanged. Its
-  visible label is `STANDARD`, replacing only `CURRENT`. Adaptive programmes
-  retain their recorded whole-field evolution and individual timing contracts.
-- Resetting the save must reproduce a new-profile player state, including
-  progression, help flags, pending presentation, records, background, keymap,
-  and run recovery.
-- Every visible Space continuation is state-aware and release-latched so one
-  press cannot also trigger the next scene's action.
-- Menu music is the exact approved local
-  `fluxball-01-open-field-likeness-65-region-03-repeated.wav` asset derived
-  from the QRC/Qiskit Aer experiment. It is not QPU-generated audio and resumes
-  on every menu return.
-- Publication target is the public, no-project-license repository
-  `dougathlon/quantum-box`. Publication uses a sanitized one-commit archive of
-  the final internal release commit, not internal history. GitHub Pages is
-  complete only after the deployed game itself is exercised at
-  `https://dougathlon.github.io/quantum-box/`.
+## Presentation and audio
 
-## Evidence boundary
+- The title and every internal surface share the native `320×180` Brown Box
+  field and integer bitmap grid.
+- The title displays `QUANTUM BOX` at three logical pixels per glyph cell and
+  `PRESS START` at two.
+- Arcade uses a five-cabinet index; each selection opens a terminal-style trial
+  sheet with tutorial copy and controls.
+- Story terminals type header then body, reveal actions only when complete, and
+  persist their node before transition. Reduced Motion renders them immediately.
+- Title uses Cabinet Hum; menu surfaces use the lead-free Key Is Opaque backing;
+  terminal pages use A Spare Key; games and results are effects-only.
 
-Automated checks, direct local browser execution, a complete fresh-save Story
-run, hosted-site verification, and external human acceptance are separate
-evidence categories. This release requires the first four. External human
-acceptance remains future work and must not be inferred from tests or screenshots.
+## Persistence and publication
+
+Current saves use `quantum-box-save-v6`; v1–v5 migration preserves settings,
+Arcade records, selected hardware evidence, and exact historical hashes without
+inventing completion.
+
+The public target is `dougathlon/quantum-box` at
+<https://dougathlon.github.io/quantum-box/>. Publication uses a sanitized fresh
+clone and excludes credentials, caches, local paths, private QA, retired assets,
+source maps, and internal history. The project has no open-source licence.
+
+Automated checks, executed browser tests, fresh-save Story traversal, deployed
+site verification, and human visual/listening acceptance remain separate.

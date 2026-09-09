@@ -1,11 +1,11 @@
 # Fluxball rule model
 
-Status: canonical gameplay and fiction contract for `fluxball-rules-v4`.
+Status: canonical gameplay contract for `fluxball-rules-v5`.
 
 Fluxball has two variants. Their rule models must remain distinct.
 
-Story presents them in a fixed escalation: `fluxball-two` is 2P Global, then
-`fluxball-four` is 4P Individual. Arcade may expose the additional supported
+Story presents them in a fixed escalation: `fluxball-global` is 2P Global, then
+`fluxball-individual` is 2P Individual. Arcade may expose the additional supported
 format combinations, but it must not alter those Story assignments.
 
 ## Global Fluxball
@@ -44,7 +44,7 @@ the opening state and the possible successor. Active play is provider-free.
 Goals are local to a timed round and reset when the next round starts. A unique
 highest goal total earns exactly one round win; a tied highest total is a drawn
 round and earns no round win. The match result is determined by round wins,
-not cumulative goals. Every format uses four 60-second rounds. In four-player
+not cumulative goals. Every format uses four 40-second rounds. In four-player
 formats the north/south apertures are scaled to the court width, rather than
 reusing the narrower side-goal measurement.
 

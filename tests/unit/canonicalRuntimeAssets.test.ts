@@ -2,7 +2,7 @@ import { createHash } from "node:crypto";
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
-import { designerMorphFrame } from "../../src/display/views/DesignerEncounterView";
+import { CANONICAL_RUNTIME_ASSETS } from "../../src/assets/CanonicalRuntimeAssets";
 import {
   canonicalSpritePlacement,
   CANONICAL_SPRITE_PIXEL_SCALE,
@@ -14,6 +14,10 @@ const runtimeManifestPath = resolve(
   assetRoot,
   "manifests/runtime-handoff.json",
 );
+const shippedManifestPath = resolve(
+  assetRoot,
+  "manifests/shipped-runtime-handoff.json",
+);
 const displaySource = readFileSync("src/display/BrownBoxDisplay.ts", "utf8");
 const fluxballSource = readFileSync(
   "src/display/views/FluxballView.ts",
@@ -22,23 +26,22 @@ const fluxballSource = readFileSync(
 const qongSource = readFileSync("src/display/views/QongView.ts", "utf8");
 const skiPixlSource = readFileSync("src/display/views/SkiPixlView.ts", "utf8");
 const quantmanSource = readFileSync(
-  "src/display/views/QuantmanView.ts",
-  "utf8",
-);
-const designerSource = readFileSync(
-  "src/display/views/DesignerEncounterView.ts",
+  "src/display/views/QuantmanSyntheticView.ts",
   "utf8",
 );
 const sha256 = (path: string) =>
   createHash("sha256").update(readFileSync(path)).digest("hex");
 
 describe("canonical runtime asset manifest", () => {
-  it("locks both manifests to their approved source hashes", () => {
+  it("locks the source, archive, and shipped manifests to approved hashes", () => {
     expect(sha256(sourceManifestPath)).toBe(
       "aa12069a34edd3b60585b476bac6f73d01dfd503fbbbac6f9808b7e30ebdb842",
     );
     expect(sha256(runtimeManifestPath)).toBe(
       "1ffdb24e076cb10c51402523c7b66ef462a8a8ba9a492d29bc1560d32b43e9ae",
+    );
+    expect(sha256(shippedManifestPath)).toBe(
+      "51311236eaaec3cc6627ae987c94891a7d043043e630ffb8765a2bc64e3cd83e",
     );
   });
 
@@ -60,37 +63,47 @@ describe("canonical runtime asset manifest", () => {
     }
   });
 
-  it("plays all approved true-morph strips across interaction states", () => {
-    expect(designerMorphFrame("approach", 0)).toBe(0);
-    expect(designerMorphFrame("dialogue", 0)).toBe(2);
-    expect(designerMorphFrame("dialogue", 1)).toBe(4);
-    expect(designerMorphFrame("dialogue", 2)).toBe(6);
-    expect(designerMorphFrame("mechanism", 0)).toBe(6);
-  });
-
   it("maps each canonical source pixel to one native framebuffer pixel", () => {
-    expect(CANONICAL_SPRITE_PIXEL_SCALE).toBe(2);
+    expect(CANONICAL_SPRITE_PIXEL_SCALE).toBe(1);
   });
 
   it("maps manifest anchors onto existing cabinet coordinates", () => {
     expect(
       canonicalSpritePlacement(20, 20, 10, 10, {
-        pixel: 2,
+        pixel: 1,
         centerX: 100,
         bottomY: 80,
       }),
-    ).toEqual({ pixel: 2, centerX: 100, bottomY: 100 });
+    ).toEqual({ pixel: 1, centerX: 100, bottomY: 90 });
     expect(
       canonicalSpritePlacement(20, 20, 10, 20, {
-        pixel: 2,
+        pixel: 1,
         centerX: 100,
         bottomY: 80,
       }),
-    ).toEqual({ pixel: 2, centerX: 100, bottomY: 80 });
+    ).toEqual({ pixel: 1, centerX: 100, bottomY: 80 });
   });
 
-  it("loads and consumes every approved runtime family without a SkiPixl morph", () => {
+  it("loads only the cabinet families in production", () => {
+    const shipped = JSON.parse(readFileSync(shippedManifestPath, "utf8"));
+    expect(shipped.runtimeFiles).toHaveLength(31);
+    expect(shipped.archiveHandoff.sha256).toBe(
+      "1ffdb24e076cb10c51402523c7b66ef462a8a8ba9a492d29bc1560d32b43e9ae",
+    );
     expect(displaySource).toContain("CANONICAL_RUNTIME_ASSETS");
+    expect(CANONICAL_RUNTIME_ASSETS).toHaveLength(31);
+    expect(
+      CANONICAL_RUNTIME_ASSETS.every((asset) =>
+        /assets\/(?:fluxball|qong|quantman|skipixl)\//u.test(
+          asset.relativePath,
+        ),
+      ),
+    ).toBe(true);
+    expect(
+      CANONICAL_RUNTIME_ASSETS.some((asset) =>
+        /(?:designer|morphs|player)\//u.test(asset.relativePath),
+      ),
+    ).toBe(false);
     expect(qongSource).toContain('"qong-paddle"');
     expect(qongSource).toContain("drawCanonicalSprite");
     expect(fluxballSource).toContain('"fluxball-player-motion-strip"');
@@ -106,8 +119,9 @@ describe("canonical runtime asset manifest", () => {
       "fluxball-player-a-to-wizard",
       "quantman-ghost-c-to-wizard",
     ]) {
-      expect(designerSource).toContain(`"${fileId}"`);
+      expect(
+        CANONICAL_RUNTIME_ASSETS.map((asset) => asset.fileId),
+      ).not.toContain(fileId);
     }
-    expect(designerSource).not.toContain("skipixl-to-wizard");
   });
 });

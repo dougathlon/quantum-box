@@ -23,7 +23,8 @@ PALETTE = {
 FAMILIES = (
     (
         "canonical-runtime-v2",
-        ROOT / "src/assets/canonical-runtime-assets-v2/manifests/runtime-handoff.json",
+        ROOT
+        / "src/assets/canonical-runtime-assets-v2/manifests/shipped-runtime-handoff.json",
     ),
     (
         "qgraph-cabinet-v1",
@@ -31,8 +32,6 @@ FAMILIES = (
         / "src/assets/qgraph-cabinet-assets-v1/manifests/shipped-runtime-handoff.json",
     ),
 )
-
-
 def sha256(path: Path) -> str:
     return hashlib.sha256(path.read_bytes()).hexdigest()
 

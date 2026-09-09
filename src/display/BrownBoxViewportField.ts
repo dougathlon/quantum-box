@@ -26,9 +26,32 @@ export interface BrownBoxViewportFieldLayout {
   readonly originY: number;
 }
 
+export interface BrownBoxViewportFieldOptions {
+  readonly surfaceClass?: string;
+  readonly assembly?: string;
+  readonly scaleMode?: "foreground-width" | "viewport-integer";
+}
+
 const QPIXL_PANEL_SIZE = 20;
+const MAX_DISPLAY_PIXEL_SCALE = 6;
 const QPIXL_PANEL_COLUMNS = BROWN_BOX_LOGICAL_SCREEN.width / QPIXL_PANEL_SIZE;
 const QPIXL_PANEL_ROWS = BROWN_BOX_LOGICAL_SCREEN.height / QPIXL_PANEL_SIZE;
+
+export function resolveBrownBoxDisplayPixelScale(
+  width: number,
+  height: number,
+): number {
+  const resolvedWidth = positiveInteger(width, "viewport width");
+  const resolvedHeight = positiveInteger(height, "viewport height");
+  return Math.max(
+    1,
+    Math.min(
+      MAX_DISPLAY_PIXEL_SCALE,
+      Math.floor(resolvedWidth / BROWN_BOX_LOGICAL_SCREEN.width),
+      Math.floor(resolvedHeight / BROWN_BOX_LOGICAL_SCREEN.height),
+    ),
+  );
+}
 
 export function resolveBrownBoxViewportFieldLayout(
   width: number,
@@ -98,6 +121,9 @@ export class BrownBoxViewportField
   private previousWidth = 0;
   private previousHeight = 0;
   private previousForegroundWidth = 0;
+  private readonly scaleMode: NonNullable<
+    BrownBoxViewportFieldOptions["scaleMode"]
+  >;
   private destroyed = false;
 
   public constructor(
@@ -105,13 +131,16 @@ export class BrownBoxViewportField
     private readonly foreground: HTMLElement,
     assets: readonly BrownBoxViewportFieldAsset[],
     reducedMotion: boolean,
+    options: BrownBoxViewportFieldOptions = {},
   ) {
     validateAssets(assets, this.programme);
     this.reducedMotion = reducedMotion;
     this.canvas = document.createElement("canvas");
-    this.canvas.className = "qb-field-surface";
+    this.canvas.className = options.surfaceClass ?? "qb-field-surface";
     this.canvas.dataset["fieldProgramme"] = this.programme.programmeId;
-    this.canvas.dataset["fieldAssembly"] = "local-qpixl-panel-remix-v1";
+    this.canvas.dataset["fieldAssembly"] =
+      options.assembly ?? "local-qpixl-panel-remix-v1";
+    this.scaleMode = options.scaleMode ?? "foreground-width";
     this.canvas.setAttribute("aria-hidden", "true");
     const context = this.canvas.getContext("2d", { alpha: false });
     if (!context)
@@ -235,7 +264,11 @@ export class BrownBoxViewportField
     const foregroundRect = this.foreground.getBoundingClientRect();
     const width = Math.max(1, Math.round(hostRect.width));
     const height = Math.max(1, Math.round(hostRect.height));
-    const foregroundWidth = Math.max(1, Math.round(foregroundRect.width));
+    const foregroundWidth =
+      this.scaleMode === "viewport-integer"
+        ? BROWN_BOX_LOGICAL_SCREEN.width *
+          resolveBrownBoxDisplayPixelScale(width, height)
+        : Math.max(1, Math.round(foregroundRect.width));
     if (
       frame.loopTick === this.previousTick &&
       width === this.previousWidth &&

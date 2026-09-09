@@ -1,100 +1,48 @@
 import { describe, expect, it } from "vitest";
 
-import { storySelectionForChapter } from "../../src/ui/QuantumBoxShell";
-import { createDefaultSave, type QuantumBoxSave } from "../../src/save/types";
+import {
+  TERMINAL_TRANSCRIPT_PAGE_IDS,
+  chapterStages,
+  earliestUnclearedStage,
+} from "../../src/story/terminal";
 
-describe("Story menu availability", () => {
-  it("opens only the current cabinet in a fresh save", () => {
-    const save = createDefaultSave();
+describe("Terminal archive gating", () => {
+  it("requires the exact clear set for each chapter", () => {
+    expect(chapterStages("qong")).toEqual(["qong"]);
+    expect(chapterStages("skipixl")).toEqual([
+      "skipixl-feasible",
+      "skipixl-overloaded",
+    ]);
+    expect(chapterStages("fluxball")).toEqual([
+      "fluxball-global",
+      "fluxball-individual",
+    ]);
+  });
 
-    expect(storySelectionForChapter("qong", save)).toEqual({
-      locked: false,
-      replay: false,
-      stage: "qong",
-    });
-    for (const chapterId of [
+  it("targets the earliest uncleared stage without changing the main cursor", () => {
+    expect(earliestUnclearedStage("skipixl", [])).toBe("skipixl-feasible");
+    expect(earliestUnclearedStage("skipixl", ["skipixl-feasible"])).toBe(
+      "skipixl-overloaded",
+    );
+    expect(
+      earliestUnclearedStage("skipixl", [
+        "skipixl-feasible",
+        "skipixl-overloaded",
+      ]),
+    ).toBeNull();
+  });
+
+  it("keeps five bounded transcript collections", () => {
+    expect(Object.keys(TERMINAL_TRANSCRIPT_PAGE_IDS)).toEqual([
+      "qong",
       "skipixl",
-      "fluxball",
       "quantman",
+      "fluxball",
       "quarry",
-    ] as const) {
-      expect(storySelectionForChapter(chapterId, save)).toEqual({
-        locked: true,
-        replay: false,
-        stage: null,
-      });
+    ]);
+    for (const ids of Object.values(TERMINAL_TRANSCRIPT_PAGE_IDS)) {
+      expect(ids.length).toBeGreaterThan(0);
+      expect(new Set(ids).size).toBe(ids.length);
     }
   });
-
-  it("keeps completed cabinets unlocked while prioritizing the current Fluxball tier", () => {
-    const save = progressedSave({
-      currentStage: "fluxball-four",
-      completedStages: ["qong", "skipixl-medium", "skipixl", "fluxball-two"],
-    });
-
-    expect(storySelectionForChapter("qong", save)).toEqual({
-      locked: false,
-      replay: true,
-      stage: "qong",
-    });
-    expect(storySelectionForChapter("skipixl", save)).toEqual({
-      locked: false,
-      replay: true,
-      stage: "skipixl",
-    });
-    expect(storySelectionForChapter("fluxball", save)).toEqual({
-      locked: false,
-      replay: false,
-      stage: "fluxball-four",
-    });
-    expect(storySelectionForChapter("quantman", save).locked).toBe(true);
-    expect(storySelectionForChapter("quarry", save).locked).toBe(true);
-  });
-
-  it("replays the final completed tier for every recovered cabinet", () => {
-    const save = progressedSave({
-      currentStage: "complete",
-      completedStages: [
-        "qong",
-        "skipixl-medium",
-        "skipixl",
-        "fluxball-two",
-        "fluxball-four",
-        "quantman-stabilize",
-        "quantman",
-        "quarry",
-      ],
-    });
-
-    expect(storySelectionForChapter("qong", save).replay).toBe(true);
-    expect(storySelectionForChapter("skipixl", save).replay).toBe(true);
-    expect(storySelectionForChapter("fluxball", save)).toEqual({
-      locked: false,
-      replay: true,
-      stage: "fluxball-four",
-    });
-    expect(storySelectionForChapter("quantman", save)).toEqual({
-      locked: false,
-      replay: true,
-      stage: "quantman",
-    });
-    expect(storySelectionForChapter("quarry", save)).toEqual({
-      locked: false,
-      replay: true,
-      stage: "quarry",
-    });
-  });
 });
-
-function progressedSave(
-  story: Pick<QuantumBoxSave["story"], "currentStage" | "completedStages">,
-): QuantumBoxSave {
-  const save = createDefaultSave();
-  return {
-    ...save,
-    story: {
-      ...save.story,
-      ...story,
-    },
-  };
-}

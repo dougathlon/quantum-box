@@ -1,78 +1,67 @@
 # Quantum Box current status
 
-**Snapshot:** 2026-09-07 public demo line
+**Branch family:** public demo release
 
-This file distinguishes shipped functionality from presentation that is still
-provisional. The current GitHub Actions result on `main` is the authority for
-whether the stable Pages URL contains the latest source commit.
+**Product URL:** <https://dougathlon.github.io/quantum-box/>
 
-## Implemented and release-gated
+**Status date:** 2026-09-09
 
-- Five shipped cabinets: Qong, SkiPixl, Fluxball, Quantman, and Quarry.
-- Five visible Story chapters and eight ordered gameplay stages.
-- One shared deterministic fixed-step runtime path for Story and Arcade.
-- Hardware-backed runtime banks for all five games, selected before play with
-  no browser-time provider call.
-- Versioned saves, legacy migration, pending Story-beat recovery, and internal
-  deterministic replay evidence.
-- Four-player keyboard profiles and configurable bindings.
-- SkiPixl and Quantman Arcade top-five boards with initials and immutable run,
-  course, and pack provenance.
-- Six selectable, provenance-labelled Brown Box background programs.
-- A selectable five-record Workshop whose records unlock through Story.
-- A pinned GitHub Actions gate that scans public source, executes browser
-  journeys, builds the static artifact, and updates one stable Pages URL.
+## Implemented
 
-## Deliberately provisional
+- Native `320×180` Brown Box framebuffer, integer nearest-neighbour scaling,
+  bitmap UI, animated selectable background programmes, and a field-based title.
+- Home routes: Story, Arcade, Terminal, and Settings.
+- A linear terminal-mediated Story with seven gameplay stages. Physical
+  Designer/player morphs, rooms, doors, dens, and Workshop presentation are not
+  part of the shipping application.
+- Exact pinned terminal copy through Quantman, typed presentation, coherent
+  reload, first/later-loss branches, and literal late-Story placeholders.
+- Terminal transcript gating and independent retry of an experienced but
+  uncleared chapter.
+- Save-v6 with explicit v1–v5 migration and preserved historical evidence.
+- Qong, three 60-second SkiPixl modes with Down boost, Quantman Hold/Invert,
+  four 40-second-round Fluxball formats, and one-to-four-player Quarry.
+- Hardware-backed runtime banks: Qong Coin Toss, SkiPixl QPixl, Quantman
+  Labyrinth, Fluxball QGraph, and Quarry QGraph. Gameplay is provider-free.
+- Three mutually exclusive background audio routes: title hum, menu backing,
+  and terminal loop. Games are effects-only.
+- Persistent top-five SkiPixl and Quantman Arcade boards with initials and exact
+  run/course provenance.
+- Enclose absent from the shipped navigation, runtime imports, and release
+  artifact.
 
-- **Later Story staging:** Qong and SkiPixl carry the bespoke spatial/cinematic
-  direction. Fluxball, Quantman, and Quarry have complete navigable transitions
-  and evidence binding, but their animation, spaces, dialogue, and pacing still
-  need the same authored attention.
-- **Workshop:** the five recovery records and gating work, but their information
-  architecture, writing, and visual presentation remain an editorial/design
-  project rather than a finished educational experience.
-- **Game feel:** deterministic tests establish rules and reachability, not fun.
-  Fluxball multiplayer CPU behavior and scoring feel, Quarry collision density,
-  Quantman first-contact comprehension, and SkiPixl course variance still need
-  repeated human play.
-- **Input hardware:** keyboard and standard gamepad mappings exist, but physical
-  controller, D-pad, multi-keyboard rollover, and exhibition-device testing are
-  not complete.
-- **Typography:** the current release makes a conservative title and spacing
-  repair. A broader internal 7×9 heading experiment remains an option, not an
-  approved redesign.
-- **Cross-browser audio:** lifecycle and loop behavior have automated coverage,
-  but long-session listening on the intended exhibition browsers remains a
-  human acceptance task.
+## Deliberately unfinished
 
-## Next work in priority order
+- Fluxball and Quarry terminal prose is literally `PLACEHOLDER`; approved copy
+  is required before those chapters can be considered editorially complete.
+- Human visual review is still required for the complete terminal flow, dense
+  Arcade trial sheets, moving sprites, and game-result transitions.
+- Human listening approval is still required for three consecutive repetitions
+  of each cue. Waveform and transport tests establish mechanics, not taste or an
+  inaudible seam on every playback device.
+- Broad external playtesting is not a release gate, but Fluxball CPU feel,
+  overloaded SkiPixl difficulty, Quantman legibility, and Quarry match pacing
+  remain the highest-value playtest targets.
 
-1. Give Fluxball, Quantman, and Quarry bespoke in-world Story transitions that
-   match the accepted Qong/SkiPixl spatial grammar.
-2. Rewrite and stage the five Workshop records for progressive comprehension;
-   keep audit-grade provenance available without leading with it.
-3. Run structured human play sessions for every cabinet and tune only against
-   observed problems, especially multiplayer Fluxball and Quarry.
-4. Validate and polish controller/D-pad navigation and local multiplayer on the
-   actual target hardware.
-5. Decide whether to prototype the bounded 7×9 heading layer; do not replace the
-   complete type system without screen-by-screen evidence.
-6. Choose a project licence if collaboration should extend beyond invited pull
-   requests and repository-local review.
+## Technical cautions
 
-## Known collaboration constraints
+- `quag` and `quantmanSynthetic` remain internal compatibility names.
+- The Quantman bank contains seven distinct maze topologies and eight hardware
+  captures: the original topology has two independent captures; six maps have
+  one each. Failed bulk acquisition is excluded.
+- Quarry has 24 captured jobs: four hardware realizations for each of six recipe
+  families. Provider returns contain the ranked returned subset, not a complete
+  4,096-shot distribution, and provenance states that limitation.
+- Browser automation can be infrastructure-blocked on some managed macOS hosts.
+  Test collection is not execution; use the Linux Pages workflow and direct
+  served-browser checks as separate evidence.
 
-- The public repository intentionally omits private QA history, raw acquisition
-  caches, operator-only notes, credentials, and retired Enclose code.
-- Some historical names remain in source for compatibility. See
-  [project-map.md](project-map.md) before renaming `quag` or
-  `quantmanSynthetic`.
-- Provider captures are evidence, not raw material for cleanup. New hardware
-  acquisition is a separate explicitly authorized operation.
-- No project licence is currently granted. Dependency licences do not license
-  Quantum Box itself.
+## Next work
 
-For requirement-level status, use the
-[acceptance matrix](acceptance-matrix.md). For the exact boundary between
-provider data and local game code, use [source lineage](source-lineage.md).
+1. Approve final Fluxball and Quarry Story copy and replace only the literal
+   placeholders.
+2. Conduct a fresh-save comprehension/playability session, concentrating on
+   terminal pacing, Fluxball CPU decisions, SkiPixl Hard, and Quarry pacing.
+3. Decide a project licence if outside reuse is intended. The current public
+   repository permits review and invited contribution but grants no general
+   open-source licence.

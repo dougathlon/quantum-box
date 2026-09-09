@@ -1,22 +1,13 @@
 import Phaser from "phaser";
 
 import { QUANTUM_BOX_ASSETS } from "../assets/manifest";
-import { SynthAudio, type SynthCue } from "../audio/SynthAudio";
+import { SynthAudio, type BackgroundCueId } from "../audio/SynthAudio";
 import {
   isArcadeScoreEligible,
   type ArcadeLaunchOptions,
   type ArcadeRunOrigin,
 } from "./arcade";
-import {
-  isInstalledQuantmanStoryRun,
-  isInstalledQuarryStoryRun,
-  isInstalledFluxballStoryRun,
-  persistSkiPixlStoryResult,
-  resolveInstalledQongStoryRun,
-  resolveInstalledSkiPixlStoryRun,
-  resolveStoryRetryLaunch,
-} from "./StoryResultPersistence";
-import { createQuantmanRetryRequest } from "./QuantmanRetry";
+import { persistSkiPixlStoryResult } from "./StoryResultPersistence";
 import {
   createReplayBundle,
   serializeReplayBundle,
@@ -37,7 +28,6 @@ import {
 import {
   isShippedArcadeCabinetId,
   type ArcadeCabinetId,
-  type GameId,
   type StoryStageId,
 } from "../games/registry";
 import {
@@ -54,9 +44,7 @@ import type {
   QongOpponent,
   QongSnapshot,
 } from "../games/qong/types";
-import { qualifiesQongStory } from "../games/qong/storyQualification";
 import {
-  createSkiPixlDesignerEvidence,
   selectArcadeSkiPixlCuts,
   selectStorySkiPixlPack,
   type SkiPixlCommittedPack,
@@ -68,7 +56,6 @@ import type {
   SkiPixlSnapshot,
 } from "../games/skipixl/types";
 import { FluxballRuntime } from "../games/fluxball/FluxballRuntime";
-import { createFluxballDesignerEvidence } from "../games/fluxball/FluxballDesignerEvidence";
 import {
   fluxballRulePackFor,
   type FluxballCommittedPack,
@@ -114,12 +101,13 @@ import {
   type QuarryQpuPackSelection,
 } from "../games/qgraph/quarryQpuBank";
 import { InputController, type InputSignal } from "../input/InputController";
-import { SAVE_EXPORT_FILENAME, SaveRepository } from "../save/SaveRepository";
+import {
+  SAVE_EXPORT_FILENAME,
+  SaveRepository,
+  type StoryAttemptSource,
+} from "../save/SaveRepository";
 import { quantmanArcadeOverallBoard } from "../save/ArcadeRecords";
-import type {
-  PendingStoryNarrativeBeat,
-  QuantumBoxSettings,
-} from "../save/types";
+import type { QuantumBoxSettings } from "../save/types";
 import {
   QuantumBoxShell,
   type ArcadeScoreboardRequest,
@@ -127,26 +115,16 @@ import {
 } from "../ui/QuantumBoxShell";
 import type { CommittedPack } from "../packs/types";
 import type { QongPackPayload } from "../games/qong/types";
-import { sha256CanonicalJsonSync } from "../tutorials/recovery";
 import {
-  STORY_V2_VERSION,
-  StoryV2PresentationMachine,
-  createFluxballPresentationEvidenceDetail,
-  createQongPresentationEvidenceDetail,
-  createQuantmanPresentationEvidenceDetail,
-  createQuarryPresentationEvidenceDetail,
-  createSkiPixlPresentationEvidenceDetail,
-  createStoryV2PresentationEvidence,
-  parseStoryV2ResumeToken,
-  isStoryV2StageId,
-  storyV2Stage,
-  type StoryV2PresentationEvidenceDetail,
-  type StoryV2PresentationEvidence,
-  type StoryV2PresentationCompletion,
-  type StoryV2PresentationBeat,
-  QongStoryRuntime,
-  qongStoryPhaseForBeat,
-} from "../story/v2";
+  TERMINAL_TRANSCRIPT_PAGE_IDS,
+  earliestUnclearedStage,
+  storyNode,
+  storyTerminalPage,
+  type StoryOutcome,
+  type StoryTerminalActionId,
+  type StoryTerminalView,
+} from "../story/terminal";
+import type { StoryChapterId } from "../games/registry";
 
 export interface QuantumBoxTestApi {
   readonly enterInternal: () => void;
@@ -155,7 +133,6 @@ export interface QuantumBoxTestApi {
   readonly getSave: () => ReturnType<SaveRepository["snapshot"]>;
   readonly getInputResponse: () => InputResponseReport;
   readonly captureCabinetFrame: () => Promise<string>;
-  readonly showFormulaForQa: (gameId: GameId) => void;
 }
 
 declare global {
@@ -176,19 +153,24 @@ export class QuantumBoxApp {
   private monitorFrameId = 0;
   private readonly inputPresentationFrameIds = new Set<number>();
   private qongRuntime: QongRuntime | null = null;
-  private qongStoryRuntime: QongStoryRuntime | null = null;
   private readonly qongStoryBankPromise: Promise<QongStoryPackBank>;
   private readonly quarryQpuBankPromise: Promise<QuarryQpuBank>;
   private readonly quantmanQpuBankPromise: Promise<QuantmanQpuBank>;
   private activeQongPack: CommittedPack<QongPackPayload> | null = null;
   private activeQongSelection: QongStoryPackSelection | null = null;
-  private storyPresentationMachine: StoryV2PresentationMachine | null = null;
   private skipixlRuntime: SkiPixlRuntime | null = null;
   private fluxballRuntime: FluxballRuntime | null = null;
   private quantmanRuntime: QuantmanSyntheticMainGameRuntime | null = null;
   private quagRuntime: QuagRuntime | null = null;
   private activeRun: RunContext | null = null;
   private activeStoryReplay = false;
+  private activeStoryAttemptSource: StoryAttemptSource = "main-story";
+  private activeTerminalView: StoryTerminalView | null = null;
+  private terminalTranscript: Readonly<{
+    chapterId: StoryChapterId;
+    pageIds: readonly string[];
+    index: number;
+  }> | null = null;
   private activeArcadeRunOrigin: ArcadeRunOrigin | null = null;
   private qongOpponent: QongOpponent | null = null;
   private qongRecording: readonly QongInput[] | null = null;
@@ -203,10 +185,6 @@ export class QuantumBoxApp {
   private fluxballRecording: readonly FluxballHumanInput[] | null = null;
   private fluxballIsReplay = false;
   private fluxballLastHumanWon: boolean | null = null;
-  private pendingFirstLossRetry: Readonly<{
-    gameId: "qong" | "fluxball";
-    stage: StoryStageId;
-  }> | null = null;
   private pendingArcadeScoreboard: ArcadeScoreboardRequest | null = null;
   private fluxballLobby: {
     readonly mode: string;
@@ -223,7 +201,6 @@ export class QuantumBoxApp {
   private quagIsReplay = false;
   private activeQuarryHumanPlayerIds: readonly QuagPlayerId[] = ["A"];
   private activeQuarrySelection: QuarryQpuPackSelection | null = null;
-  private recoveredFormulaAfterCabinet: GameId | null = null;
   private completedReplay: ReplayBundle | null = null;
   private unsubscribeInput: (() => void) | null = null;
   private unsubscribeDevices: (() => void) | null = null;
@@ -234,7 +211,6 @@ export class QuantumBoxApp {
     this.audio = new SynthAudio(this.saveRepository.snapshot().settings);
     this.shell = new QuantumBoxShell(
       root,
-      QUANTUM_BOX_ASSETS.shell,
       QUANTUM_BOX_ASSETS.display,
       this.saveRepository.snapshot(),
       {
@@ -245,12 +221,20 @@ export class QuantumBoxApp {
         },
         onInternalEntered: () => {
           this.game.scale.refresh();
-          // Preserve the direct title cut while leaving the boot chirp a
-          // distinct attack before the approved menu loop starts.
-          this.audio.setMenuMusic(true, 0.24);
+          this.audio.requestBackgroundCue("key-is-opaque");
         },
-        onTitleReturned: () => this.audio.setMenuMusic(false),
-        onLaunchStory: (stage, replay) => void this.launchStory(stage, replay),
+        onTitleReturned: () => this.audio.requestBackgroundCue("cabinet-hum"),
+        onPageChanged: (page) =>
+          this.audio.requestBackgroundCue(
+            page === "story-terminal" ? "spare-key" : "key-is-opaque",
+          ),
+        onStartStory: () => this.startOrResumeStory(),
+        onStoryTerminalAction: (action) =>
+          void this.handleStoryTerminalAction(action),
+        onOpenTerminalTranscript: (chapterId) =>
+          this.openTerminalTranscript(chapterId),
+        onRetryTerminalChapter: (chapterId) =>
+          void this.retryTerminalChapter(chapterId),
         onLaunchArcade: (gameId, mode, options) =>
           void this.launchArcade(gameId, mode, options),
         onSettingChanged: (change) => this.updateSettings(change),
@@ -259,25 +243,11 @@ export class QuantumBoxApp {
         onExportSave: () => this.exportSave(),
         onResetSave: () => this.resetSave(),
         onCabinetAction: (action) => this.handleCabinetAction(action),
-        onStoryPresentationContinue: () =>
-          this.handleStoryPresentationContinue(),
-        onStoryPresentationExited: () => {
-          this.screenScene().showLibrary();
-          this.audio.setMenuMusic(true);
-        },
-        onFirstLossHelpContinue: (gameId) => this.continueFirstLossHelp(gameId),
-        onStoryWalkStep: () => this.audio.play("story-step"),
-        onQongStoryAction: (action) => {
-          if (action.kind === "step") {
-            this.qongStoryRuntime?.nudge(action.direction);
-          } else {
-            this.qongStoryRuntime?.use();
-          }
-        },
         onFluxballLobbyAction: (action) =>
           this.handleFluxballLobbyAction(action),
       },
     );
+    this.audio.requestBackgroundCue("cabinet-hum");
     this.qongStoryBankPromise = loadInstalledQongStoryBank();
     void this.qongStoryBankPromise.catch(() => undefined);
     this.quarryQpuBankPromise = loadInstalledQuarryQpuBank();
@@ -344,8 +314,6 @@ export class QuantumBoxApp {
               resolve(snapshot.src);
             });
           }),
-        showFormulaForQa: (gameId: GameId) =>
-          this.shell.showDevelopmentFormula(gameId),
       });
       if (qaRoute === "palette-audit") this.shell.enterInternal();
       if (paletteAuditEnabled) {
@@ -359,33 +327,17 @@ export class QuantumBoxApp {
           })
           .catch((error: unknown) => this.reportDevPaletteError(error));
       }
-      const storyV2StageId = devStoryV2StageIdFromRoute(qaRoute);
-      if (storyV2StageId) {
-        const openQaStory = () => {
-          if (!this.game.scene.isActive(SCREEN_SCENE_KEY)) {
-            requestAnimationFrame(openQaStory);
-            return;
-          }
+      if (qaRoute === "story-terminal") {
+        requestAnimationFrame(() => {
           this.shell.enterInternal();
-          void this.openStoryV2PresentationForQa(
-            storyV2StageId,
-            parseDevStoryV2BeatIndex(qaParams.get("beat")),
-          ).catch((error: unknown) =>
-            this.unavailable(
-              error instanceof Error
-                ? `STORY QA UNAVAILABLE · ${error.message}`
-                : "STORY QA UNAVAILABLE",
-            ),
-          );
-        };
-        requestAnimationFrame(openQaStory);
+          this.startOrResumeStory();
+        });
       }
     }
   }
 
   public destroy(): void {
     this.qongRuntime?.stop();
-    this.qongStoryRuntime?.stop();
     this.skipixlRuntime?.stop();
     this.fluxballRuntime?.stop();
     this.quantmanRuntime?.stop();
@@ -429,10 +381,6 @@ export class QuantumBoxApp {
       if (playerId) this.toggleFluxballLobbyPlayer(playerId);
       else if (signal.action === "secondary") this.startFluxballFromLobby();
       else if (signal.action === "back") this.cancelFluxballLobby();
-      return;
-    }
-    if (this.qongStoryRuntime) {
-      this.qongStoryRuntime.handleInput(signal);
       return;
     }
     if (
@@ -563,7 +511,7 @@ export class QuantumBoxApp {
         cutSet.packs[cutId],
         options.runSeed,
         false,
-        "skipixl",
+        "skipixl-feasible",
         options.runOrigin,
       );
       return;
@@ -584,7 +532,10 @@ export class QuantumBoxApp {
     }
     if (
       gameId === "quantman" &&
-      (mode === "STABILIZE GAZE" || mode === "INVERSE GAZE")
+      (mode === "HOLD" ||
+        mode === "INVERT" ||
+        mode === "STABILIZE GAZE" ||
+        mode === "INVERSE GAZE")
     ) {
       try {
         const bank = await this.quantmanQpuBankPromise;
@@ -594,7 +545,9 @@ export class QuantumBoxApp {
         );
         this.startQuantman(
           "arcade",
-          mode === "STABILIZE GAZE" ? "stabilize-gaze" : "inverse-gaze",
+          mode === "HOLD" || mode === "STABILIZE GAZE"
+            ? "stabilize-gaze"
+            : "inverse-gaze",
           fixture,
           options.runSeed,
           false,
@@ -674,7 +627,7 @@ export class QuantumBoxApp {
       {
         competitorCount: lobby.competitorCount,
         ruleMode: lobby.ruleMode,
-        roundSeconds: 60,
+        roundSeconds: 40,
         humanPlayerIds,
       },
       humanPlayerIds,
@@ -691,7 +644,7 @@ export class QuantumBoxApp {
     const format: FluxballFormat = {
       competitorCount: lobby.competitorCount,
       ruleMode: lobby.ruleMode,
-      roundSeconds: 60,
+      roundSeconds: 40,
       humanPlayerIds: [...lobby.humanPlayerIds].sort(),
     };
     const runSeed = lobby.runSeed;
@@ -705,203 +658,186 @@ export class QuantumBoxApp {
     this.shell.closeFluxballLobby();
   }
 
-  private async launchStory(
-    stage: StoryStageId,
-    replay: boolean,
-  ): Promise<void> {
-    this.pendingFirstLossRetry = null;
+  private startOrResumeStory(): void {
     const story = this.saveRepository.snapshot().story;
+    if (story.storyCompleted) {
+      this.shell.updateSave(this.saveRepository.replayStoryFromStart());
+    }
+    this.terminalTranscript = null;
+    void this.presentCurrentStoryNode();
+  }
+
+  private async presentCurrentStoryNode(): Promise<void> {
+    const node = storyNode(this.saveRepository.snapshot().story.currentNodeId);
     if (
-      replay
-        ? !story.completedStages.includes(stage)
-        : story.currentStage !== stage
+      node.kind === "terminal-page" ||
+      node.kind === "loading-transition" ||
+      node.kind === "placeholder"
     ) {
-      this.unavailable("That Story level is not available in this save.");
+      this.presentTerminal({
+        nodeId: node.id,
+        page: storyTerminalPage(node.pageId),
+        transcript: false,
+      });
       return;
     }
-    if (!replay && story.pendingNarrativeBeat?.stage === stage) {
-      this.resumeStoryPresentation(story.pendingNarrativeBeat);
+    if (node.kind === "game-launch") {
+      await this.launchStoryStage(node.stageId, "main-story");
       return;
     }
-    if (stage === "qong") {
-      try {
+    if (node.kind === "completion") {
+      this.activeTerminalView = null;
+      this.audio.requestBackgroundCue("key-is-opaque");
+      this.shell.showPage("terminal");
+      this.shell.announce(
+        "Story complete. All cleared program transcripts are available in Terminal.",
+      );
+      return;
+    }
+    throw new Error(
+      `Story cannot resume from unresolved outcome node ${node.id}.`,
+    );
+  }
+
+  private presentTerminal(view: StoryTerminalView): void {
+    this.activeTerminalView = Object.freeze(view);
+    this.shell.showStoryTerminal(this.activeTerminalView);
+    this.audio.requestBackgroundCue("spare-key");
+  }
+
+  private async handleStoryTerminalAction(
+    action: StoryTerminalActionId,
+  ): Promise<void> {
+    const view = this.activeTerminalView;
+    if (!view) return;
+    if (view.transcript) {
+      this.advanceTerminalTranscript();
+      return;
+    }
+    const save = this.saveRepository.advanceStoryTerminal(action);
+    this.shell.updateSave(save);
+    await this.presentCurrentStoryNode();
+  }
+
+  private openTerminalTranscript(chapterId: StoryChapterId): void {
+    const pageIds = TERMINAL_TRANSCRIPT_PAGE_IDS[chapterId];
+    this.shell.updateSave(this.saveRepository.markTranscriptSeen(chapterId));
+    this.terminalTranscript = Object.freeze({ chapterId, pageIds, index: 0 });
+    this.presentTranscriptPage();
+  }
+
+  private presentTranscriptPage(): void {
+    const transcript = this.terminalTranscript;
+    if (!transcript) return;
+    const sourcePage = storyTerminalPage(transcript.pageIds[transcript.index]!);
+    const last = transcript.index === transcript.pageIds.length - 1;
+    this.presentTerminal({
+      nodeId: `transcript-${transcript.chapterId}-${transcript.index}`,
+      page: Object.freeze({
+        ...sourcePage,
+        actions: Object.freeze([
+          Object.freeze({
+            id: "continue" as const,
+            label: "CONTINUE" as const,
+          }),
+        ]),
+      }),
+      transcript: true,
+      transcriptPosition: Object.freeze({
+        index: transcript.index,
+        count: transcript.pageIds.length,
+      }),
+    });
+    if (last)
+      this.shell.announce("Final archived page. Continue returns to Terminal.");
+  }
+
+  private advanceTerminalTranscript(): void {
+    const transcript = this.terminalTranscript;
+    if (!transcript) return;
+    if (transcript.index + 1 >= transcript.pageIds.length) {
+      this.terminalTranscript = null;
+      this.activeTerminalView = null;
+      this.audio.requestBackgroundCue("key-is-opaque");
+      this.shell.showPage("terminal");
+      return;
+    }
+    this.terminalTranscript = Object.freeze({
+      ...transcript,
+      index: transcript.index + 1,
+    });
+    this.presentTranscriptPage();
+  }
+
+  private async retryTerminalChapter(chapterId: StoryChapterId): Promise<void> {
+    const stage = earliestUnclearedStage(
+      chapterId,
+      this.saveRepository.snapshot().story.clearedStages,
+    );
+    if (!stage) return;
+    await this.launchStoryStage(stage, "terminal-retry");
+  }
+
+  private async launchStoryStage(
+    stage: StoryStageId,
+    source: StoryAttemptSource,
+  ): Promise<void> {
+    this.activeStoryAttemptSource = source;
+    const story = this.saveRepository.snapshot().story;
+    try {
+      if (stage === "qong") {
         const bank = await this.qongStoryBankPromise;
-        const selector = story.qongSelector;
-        const savedRun = replay ? (story.qualifiedRuns.qong ?? null) : null;
-        if (replay && !savedRun) {
-          throw new Error(
-            "The completed Qong level has no exact qualified-run evidence.",
-          );
-        }
-        const selection = replay
-          ? resolveInstalledQongStoryRun(bank, savedRun)
-          : selectQongStoryPack(bank, selector);
-        if (!selection) {
-          throw new Error(
-            "The completed Qong level no longer matches its installed QPU pack and selector receipt.",
-          );
-        }
-        this.startQong(
-          "story",
-          "cpu",
-          replay ? savedRun?.runSeed : undefined,
-          selection,
-          replay,
-        );
-      } catch (error) {
-        const detail =
-          error instanceof QongStoryBankUnavailableError
-            ? error.message
-            : error instanceof Error
-              ? error.message
-              : "The installed Qong QPU bank failed local validation.";
-        this.shell.showStoryUnavailable(detail);
-      }
-      return;
-    }
-    if (stage === "skipixl-medium" || stage === "skipixl") {
-      const cutId = stage === "skipixl-medium" ? "P84" : "P78";
-      const savedRun = replay ? (story.qualifiedRuns[stage] ?? null) : null;
-      if (replay && !savedRun) {
-        this.unavailable(
-          "The completed SkiPixl level has no exact qualified-run evidence.",
-        );
+        const selection = selectQongStoryPack(bank, story.qongSelector);
+        this.startQong("story", "cpu", undefined, selection, false);
         return;
       }
-      const pack = replay
-        ? resolveInstalledSkiPixlStoryRun(savedRun, stage)
-        : selectStorySkiPixlPack(
-            story.skipixlCuts.tripletCursor,
-            cutId,
-            story.skipixlCuts.tripletId ?? undefined,
-          );
-      if (!pack) {
-        this.unavailable(
-          "The completed SkiPixl level no longer matches its saved QPixl pack.",
+      if (stage === "skipixl-feasible" || stage === "skipixl-overloaded") {
+        const pack = selectStorySkiPixlPack(
+          story.skipixlCuts.tripletCursor,
+          stage === "skipixl-feasible" ? "P84" : "P78",
+          story.skipixlCuts.tripletId ?? undefined,
         );
+        this.startSkiPixl("story", pack, undefined, false, stage);
         return;
       }
-      this.startSkiPixl(
-        "story",
-        pack,
-        replay ? savedRun?.runSeed : undefined,
-        replay,
-        stage,
-      );
-      return;
-    }
-    if (stage === "fluxball-two" || stage === "fluxball-four") {
-      const recovery = story.tutorialRecoveries.fluxball;
-      const savedRun =
-        story.qualifiedRuns[stage] ??
-        (recovery?.run.storyStage === stage ? recovery.run : null);
-      const format: FluxballFormat = {
-        competitorCount: stage === "fluxball-two" ? 2 : 4,
-        ruleMode: stage === "fluxball-two" ? "global" : "individual",
-        roundSeconds: 60,
-        humanPlayerIds: ["A"],
-      };
-      if (replay && !savedRun) {
-        this.unavailable(
-          "The completed Fluxball level predates saved qualified-run evidence and cannot be replayed exactly.",
-        );
-        return;
-      }
-      if (replay && !isInstalledFluxballStoryRun(savedRun, stage, format)) {
-        this.unavailable(
-          "The completed Fluxball level no longer matches the installed deterministic rule pack.",
-        );
-        return;
-      }
-      this.startFluxball(
-        "story",
-        format,
-        replay ? savedRun?.runSeed : undefined,
-        replay,
-      );
-      return;
-    }
-    if (stage === "quantman-stabilize" || stage === "quantman") {
-      const savedRun = replay ? (story.qualifiedRuns[stage] ?? null) : null;
-      if (replay && !savedRun) {
-        this.unavailable(
-          "The completed Quantman level has no exact qualified-run evidence.",
-        );
-        return;
-      }
-      try {
+      if (stage === "quantman-hold") {
         const bank = await this.quantmanQpuBankPromise;
-        const runSeed = replay ? savedRun!.runSeed : resolveRunSeed(undefined);
-        const selection = replay
-          ? resolveQuantmanQpuFixtureForRun(bank, runSeed, {
-              fixtureId: savedRun!.pack.packId,
-              contentSha256: savedRun!.pack.contentSha256,
-            })
-          : selectQuantmanStoryQpuFixture(
-              bank,
-              stage === "quantman-stabilize" ? 0 : 1,
-              runSeed,
-            );
-        if (
-          replay &&
-          !isInstalledQuantmanStoryRun(savedRun, stage, selection.fixture)
-        ) {
-          this.unavailable(
-            "The completed Quantman level no longer matches the installed QPU record.",
-          );
-          return;
-        }
+        const runSeed = resolveRunSeed(undefined);
         this.startQuantman(
           "story",
-          stage === "quantman-stabilize" ? "stabilize-gaze" : "inverse-gaze",
-          selection,
+          "stabilize-gaze",
+          selectQuantmanStoryQpuFixture(
+            bank,
+            story.attempts[stage] ?? 0,
+            runSeed,
+          ),
           runSeed,
-          replay,
-        );
-      } catch (error) {
-        this.shell.showStoryUnavailable(
-          error instanceof Error
-            ? error.message
-            : "The installed Quantman QPU bank failed local validation.",
-        );
-      }
-      return;
-    }
-    if (stage === "quarry") {
-      const savedRun = replay ? (story.qualifiedRuns.quarry ?? null) : null;
-      if (replay && !savedRun) {
-        this.unavailable(
-          "The completed Quarry level has no exact qualified-run evidence.",
         );
         return;
       }
-      try {
-        const bank = await this.quarryQpuBankPromise;
-        const runSeed = replay ? savedRun!.runSeed : resolveRunSeed(undefined);
-        const selection = replay
-          ? findInstalledQuarryQpuPack(
-              bank,
-              savedRun!.pack.packId,
-              savedRun!.pack.contentSha256,
-            )
-          : selectQuarryQpuPack(bank, runSeed);
-        if (
-          !selection ||
-          (replay && !isInstalledQuarryStoryRun(savedRun, selection.pack))
-        ) {
-          this.unavailable(
-            "The completed Quarry level no longer matches the installed QPU record.",
-          );
-          return;
-        }
-        this.startQuag("story", runSeed, ["A"], selection, replay);
-      } catch (error) {
-        this.shell.showStoryUnavailable(
-          error instanceof Error
-            ? error.message
-            : "The installed Quarry QPU bank failed local validation.",
-        );
+      if (stage === "fluxball-global" || stage === "fluxball-individual") {
+        this.startFluxball("story", {
+          competitorCount: 2,
+          ruleMode: stage === "fluxball-global" ? "global" : "individual",
+          roundSeconds: 40,
+          humanPlayerIds: ["A"],
+        });
+        return;
       }
+      const bank = await this.quarryQpuBankPromise;
+      const runSeed = resolveRunSeed(undefined);
+      this.startQuag(
+        "story",
+        runSeed,
+        ["A"],
+        selectQuarryQpuPack(bank, runSeed),
+      );
+    } catch (error) {
+      this.shell.showStoryUnavailable(
+        error instanceof Error
+          ? error.message
+          : "The installed hardware bank failed local validation.",
+      );
     }
   }
 
@@ -950,9 +886,14 @@ export class QuantumBoxApp {
     this.qongIsReplay = false;
     this.qongLastStoryQualified = null;
     if (playMode === "story" && !storyReplay) {
-      this.shell.updateSave(this.saveRepository.recordStoryAttempt(context));
+      this.shell.updateSave(
+        this.saveRepository.recordStoryAttempt(
+          context,
+          this.activeStoryAttemptSource,
+        ),
+      );
     }
-    this.shell.beginQong(opponent);
+    this.shell.beginQong(opponent, playMode);
     this.beginCabinetAudio();
     this.qongRuntime = this.createQongRuntime(context, pack, opponent);
     this.qongRuntime.start();
@@ -973,8 +914,11 @@ export class QuantumBoxApp {
       {
         onCompleted: (snapshot, recording) =>
           this.completeQong(snapshot, recording),
-        onContinue: () => this.retryQong(),
-        onReplay: () => this.retryQong(),
+        onContinue: () => this.continueQong(),
+        onReplay: () =>
+          context.playMode === "story"
+            ? this.returnFromStoryCabinet()
+            : this.retryQong(),
         onFeedbackEvent: (event) =>
           this.audio.play(
             event === "paddle-contact"
@@ -998,53 +942,30 @@ export class QuantumBoxApp {
     recording: readonly QongInput[],
   ): void {
     const humanWon = snapshot.winner === "left";
-    const storyQualified = qualifiesQongStory(snapshot, recording);
-    this.qongLastStoryQualified = storyQualified;
+    this.qongLastStoryQualified = humanWon;
     if (!this.qongIsReplay) {
       this.qongRecording = recording;
       this.captureReplay(
         recording,
         snapshot,
-        this.activeRun?.playMode === "story" ? storyQualified : humanWon,
+        humanWon,
         String(snapshot.winner),
       );
     }
     this.audio.setPaused(false);
-    this.audio.play(
-      (this.activeRun?.playMode === "story" ? storyQualified : humanWon)
-        ? "qong-match-win"
-        : "qong-match-loss",
-    );
+    this.audio.play(humanWon ? "qong-match-win" : "qong-match-loss");
     if (this.qongIsReplay) {
       this.shell.announce(
         `Deterministic replay complete · ${this.activeRun?.runId ?? "unknown run"}.`,
       );
       return;
     }
-    if (this.finishStoryReplay("qong", storyQualified)) return;
-    if (this.activeRun?.playMode === "story" && storyQualified) {
-      if (!this.activeQongSelection) {
-        throw new Error(
-          "Qualified Qong Story victory lost its frozen QPU selection.",
-        );
-      }
-      this.queueStoryPresentation(
-        this.activeRun,
-        snapshot.tick,
-        createQongPresentationEvidenceDetail(
-          this.activeQongSelection,
-          snapshot,
-        ),
-        snapshot,
-      );
-      this.shell.announce(
-        "Qong accepted. Continue into the Designer sequence.",
-      );
-    } else if (this.activeRun?.playMode === "story") {
+    if (this.activeRun?.playMode === "story") {
+      this.recordActiveStoryOutcome(humanWon ? "won" : "lost");
       this.shell.announce(
         humanWon
-          ? "Qong match won, but the paddle was not operated in enough rounds to recover a formula."
-          : "Qong recovery failed. The Story stage remains available.",
+          ? "Qong won. Continue to the terminal."
+          : "Qong lost. Continue to the terminal.",
       );
     } else {
       this.shell.announce(
@@ -1079,20 +1000,12 @@ export class QuantumBoxApp {
 
   private retryQong(): void {
     if (!this.activeRun || !this.qongOpponent) return;
-    if (
-      this.qongLastStoryQualified === false &&
-      this.maybeShowFirstLossHelp("qong")
-    ) {
-      return;
-    }
-    const storyRetry = resolveStoryRetryLaunch(
-      this.activeRun,
-      this.activeStoryReplay,
-    );
+    const storyStage = this.activeRun.storyStage;
+    const storySource = this.activeStoryAttemptSource;
     const opponent = this.qongOpponent;
-    this.exitCabinet();
-    if (storyRetry) {
-      void this.launchStory(storyRetry.stage, storyRetry.replay);
+    this.exitCabinet(null);
+    if (storyStage && isCurrentStoryStage(storyStage)) {
+      void this.launchStoryStage(storyStage, storySource);
     } else {
       void this.launchArcade(
         "qong",
@@ -1106,12 +1019,26 @@ export class QuantumBoxApp {
     }
   }
 
+  private continueQong(): void {
+    if (
+      this.activeRun?.playMode === "story" &&
+      this.qongRuntime?.isComplete()
+    ) {
+      this.returnFromStoryCabinet();
+      return;
+    }
+    this.retryQong();
+  }
+
   private startSkiPixl(
     playMode: "story" | "arcade",
     pack: SkiPixlCommittedPack,
     requestedRunSeed?: number,
     storyReplay = false,
-    storyStage: Extract<StoryStageId, "skipixl-medium" | "skipixl"> = "skipixl",
+    storyStage: Extract<
+      StoryStageId,
+      "skipixl-feasible" | "skipixl-overloaded"
+    > = "skipixl-feasible",
     arcadeRunOrigin: ArcadeRunOrigin = "player-arcade",
   ): void {
     if (
@@ -1146,9 +1073,14 @@ export class QuantumBoxApp {
     this.skipixlRecording = null;
     this.skipixlIsReplay = false;
     if (playMode === "story" && !storyReplay) {
-      this.shell.updateSave(this.saveRepository.recordStoryAttempt(context));
+      this.shell.updateSave(
+        this.saveRepository.recordStoryAttempt(
+          context,
+          this.activeStoryAttemptSource,
+        ),
+      );
     }
-    this.shell.beginSkiPixl();
+    this.shell.beginSkiPixl(playMode);
     this.beginCabinetAudio();
     this.skipixlRuntime = this.createSkiPixlRuntime(context, pack);
     this.skipixlRuntime.start();
@@ -1168,7 +1100,10 @@ export class QuantumBoxApp {
         onCompleted: (snapshot, recording) =>
           this.completeSkiPixl(snapshot, recording),
         onContinue: () => this.continueSkiPixl(),
-        onReplay: () => this.retrySkiPixl(),
+        onReplay: () =>
+          context.playMode === "story"
+            ? this.returnFromStoryCabinet()
+            : this.retrySkiPixl(),
         onFeedback: (event) => {
           if (event.type === "gate") {
             this.audio.play(event.passed ? "ski-gate-clear" : "ski-gate-miss");
@@ -1207,7 +1142,6 @@ export class QuantumBoxApp {
       );
       return;
     }
-    if (this.finishStoryReplay("skipixl", snapshot.storyQualified)) return;
     let recordedSequence: number | null = null;
     if (
       this.activeRun &&
@@ -1262,21 +1196,11 @@ export class QuantumBoxApp {
       }
       this.shell.announce(
         snapshot.storyQualified
-          ? `${this.activeRun.storyStage === "skipixl-medium" ? "MEDIUM" : "HARD"} descent cleared. Story transition ready.`
-          : `${this.activeRun.storyStage === "skipixl-medium" ? "MEDIUM" : "HARD"} descent completed outside the qualification limit. The recorded return and outcome remain authoritative; Story continues.`,
+          ? `${this.activeRun.storyStage === "skipixl-feasible" ? "FEASIBLE" : "OVERLOADED"} descent cleared. Continue to the terminal.`
+          : `${this.activeRun.storyStage === "skipixl-feasible" ? "FEASIBLE" : "OVERLOADED"} descent complete. Continue to the terminal.`,
       );
-      this.queueStoryPresentation(
-        this.activeRun,
-        snapshot.tick,
-        createSkiPixlPresentationEvidenceDetail(
-          this.activeSkiPixlPack,
-          snapshot,
-        ),
-        undefined,
-        {
-          snapshot,
-          payload: this.activeSkiPixlPack.payload,
-        },
+      this.recordActiveStoryOutcome(
+        snapshot.storyQualified ? "finished" : "failed",
       );
     } else {
       if (
@@ -1325,15 +1249,13 @@ export class QuantumBoxApp {
 
   private retrySkiPixl(): void {
     if (!this.activeRun || !this.activeSkiPixlPack) return;
-    const storyRetry = resolveStoryRetryLaunch(
-      this.activeRun,
-      this.activeStoryReplay,
-    );
+    const storyStage = this.activeRun.storyStage;
+    const storySource = this.activeStoryAttemptSource;
     const difficulty = this.activeSkiPixlPack.payload.difficulty;
     const arcadeRunOrigin = this.activeArcadeRunOrigin;
-    this.exitCabinet();
-    if (storyRetry) {
-      void this.launchStory(storyRetry.stage, storyRetry.replay);
+    this.exitCabinet(null);
+    if (storyStage && isCurrentStoryStage(storyStage)) {
+      void this.launchStoryStage(storyStage, storySource);
       return;
     }
     const runSeed = resolveRunSeed();
@@ -1345,12 +1267,16 @@ export class QuantumBoxApp {
       cuts.packs[cutId],
       runSeed,
       false,
-      "skipixl",
+      "skipixl-feasible",
       arcadeRunOrigin ?? "developer-qa",
     );
   }
 
   private continueSkiPixl(): void {
+    if (this.activeRun?.playMode === "story") {
+      this.returnFromStoryCabinet();
+      return;
+    }
     const scoreboard = this.pendingArcadeScoreboard;
     this.exitCabinet();
     if (scoreboard) this.shell.showArcadeScoreboard(scoreboard);
@@ -1373,9 +1299,9 @@ export class QuantumBoxApp {
     const pack = fluxballRulePackFor(format.competitorCount);
     const storyStage =
       playMode === "story"
-        ? format.competitorCount === 2
-          ? "fluxball-two"
-          : "fluxball-four"
+        ? format.ruleMode === "global"
+          ? "fluxball-global"
+          : "fluxball-individual"
         : null;
     const candidateRunSeed = resolveRunSeed(requestedRunSeed);
     const runSeed =
@@ -1417,14 +1343,14 @@ export class QuantumBoxApp {
     this.fluxballIsReplay = false;
     this.fluxballLastHumanWon = null;
     if (playMode === "story" && !storyReplay) {
-      this.shell.updateSave(this.saveRepository.recordStoryAttempt(context));
-    }
-    this.shell.beginFluxball();
-    if (playMode === "story") {
-      this.shell.announce(
-        "Playable rule bank fixed before RUN_STARTED. Each round prefers recorded QPU evidence, then falls back with its actual source labelled. No network occurs during play.",
+      this.shell.updateSave(
+        this.saveRepository.recordStoryAttempt(
+          context,
+          this.activeStoryAttemptSource,
+        ),
       );
     }
+    this.shell.beginFluxball(playMode);
     this.beginCabinetAudio();
     this.fluxballRuntime = this.createFluxballRuntime(
       context,
@@ -1447,7 +1373,10 @@ export class QuantumBoxApp {
         onCompleted: (snapshot, recording) =>
           this.completeFluxball(snapshot, recording),
         onContinue: () => this.continueFluxball(),
-        onReplay: () => this.retryFluxball(),
+        onReplay: () =>
+          context.playMode === "story"
+            ? this.returnFromStoryCabinet()
+            : this.retryFluxball(),
         onFeedback: (event) => {
           if (event.type === "contact") {
             this.audio.play(
@@ -1509,25 +1438,12 @@ export class QuantumBoxApp {
       );
       return;
     }
-    if (this.finishStoryReplay("fluxball", snapshot.humanWon)) return;
-    if (this.activeRun?.playMode === "story" && snapshot.humanWon) {
-      if (!this.activeFluxballPack) {
-        throw new Error("Qualified Fluxball run lost its frozen rule pack.");
-      }
-      this.queueStoryPresentation(
-        this.activeRun,
-        snapshot.sport?.tick ?? 0,
-        createFluxballPresentationEvidenceDetail(
-          this.activeFluxballPack,
-          snapshot,
-        ),
-      );
+    if (this.activeRun?.playMode === "story") {
+      this.recordActiveStoryOutcome(snapshot.humanWon ? "won" : "lost");
       this.shell.announce(
-        "Fluxball accepted. Continue into the Designer sequence.",
-      );
-    } else if (this.activeRun?.playMode === "story") {
-      this.shell.announce(
-        "Fluxball recovery failed. Player A must win more rounds than every CPU.",
+        snapshot.humanWon
+          ? "Fluxball won. Continue to the terminal."
+          : "Fluxball lost. Continue to the terminal.",
       );
     } else {
       this.shell.announce(
@@ -1560,69 +1476,23 @@ export class QuantumBoxApp {
 
   private retryFluxball(): void {
     if (!this.activeRun || !this.activeFluxballFormat) return;
-    if (
-      this.fluxballLastHumanWon === false &&
-      this.maybeShowFirstLossHelp("fluxball")
-    ) {
-      return;
-    }
-    const storyRetry = resolveStoryRetryLaunch(
-      this.activeRun,
-      this.activeStoryReplay,
-    );
+    const storyStage = this.activeRun.storyStage;
+    const storySource = this.activeStoryAttemptSource;
     const format = this.activeFluxballFormat;
-    this.exitCabinet();
-    if (storyRetry) {
-      void this.launchStory(storyRetry.stage, storyRetry.replay);
+    this.exitCabinet(null);
+    if (storyStage && isCurrentStoryStage(storyStage)) {
+      void this.launchStoryStage(storyStage, storySource);
     } else {
       this.startFluxball("arcade", format);
     }
   }
 
   private continueFluxball(): void {
-    if (
-      this.fluxballLastHumanWon === false &&
-      this.activeRun?.playMode === "story"
-    ) {
-      this.retryFluxball();
+    if (this.activeRun?.playMode === "story") {
+      this.returnFromStoryCabinet();
       return;
     }
     this.exitCabinet();
-  }
-
-  private maybeShowFirstLossHelp(gameId: "qong" | "fluxball"): boolean {
-    const run = this.activeRun;
-    if (
-      run?.playMode !== "story" ||
-      run.storyStage === null ||
-      this.activeStoryReplay ||
-      this.saveRepository.snapshot().story.firstLossExplanations[gameId]
-    ) {
-      return false;
-    }
-    this.pendingFirstLossRetry = Object.freeze({
-      gameId,
-      stage: run.storyStage,
-    });
-    this.shell.updateSave(
-      this.saveRepository.markFirstLossExplanationSeen(gameId),
-    );
-    this.exitCabinet();
-    this.audio.setMenuMusic(false);
-    this.shell.showFirstLossHelp(gameId);
-    return true;
-  }
-
-  private continueFirstLossHelp(gameId: "qong" | "fluxball"): void {
-    const retry = this.pendingFirstLossRetry;
-    if (!retry || retry.gameId !== gameId) {
-      this.shell.showPage("story");
-      this.audio.setMenuMusic(true);
-      return;
-    }
-    this.pendingFirstLossRetry = null;
-    this.shell.showPage("story");
-    void this.launchStory(retry.stage, false);
   }
 
   private startQuantman(
@@ -1645,12 +1515,7 @@ export class QuantumBoxApp {
     const { fixture } = selection;
     const context = createRunContext({
       gameId: "quantman",
-      storyStage:
-        playMode === "story"
-          ? mechanic === "stabilize-gaze"
-            ? "quantman-stabilize"
-            : "quantman"
-          : null,
+      storyStage: playMode === "story" ? "quantman-hold" : null,
       playMode,
       rulesVersion: QUANTMAN_QPU_RULES_VERSION,
       runSeed,
@@ -1670,9 +1535,14 @@ export class QuantumBoxApp {
     this.activeQuantmanFixture = selection;
     this.quantmanRecording = null;
     if (playMode === "story" && !storyReplay) {
-      this.shell.updateSave(this.saveRepository.recordStoryAttempt(context));
+      this.shell.updateSave(
+        this.saveRepository.recordStoryAttempt(
+          context,
+          this.activeStoryAttemptSource,
+        ),
+      );
     }
-    this.shell.beginQuantman();
+    this.shell.beginQuantman(playMode);
     this.beginCabinetAudio();
     this.quantmanRuntime = this.createQuantmanRuntime(
       context,
@@ -1707,8 +1577,18 @@ export class QuantumBoxApp {
         onCompleted: (snapshot, recording) =>
           this.completeQuantman(snapshot, recording),
         onContinue: () => this.continueQuantman(),
-        onExit: () => this.exitCabinet(),
-        onFreshRunRequested: () => this.retryQuantman(),
+        onExit: () => {
+          if (
+            this.activeRun?.playMode === "story" &&
+            this.quantmanRuntime?.isComplete()
+          )
+            this.returnFromStoryCabinet();
+          else this.exitCabinet();
+        },
+        onFreshRunRequested: () =>
+          context.playMode === "story"
+            ? this.returnFromStoryCabinet()
+            : this.retryQuantman(),
         onPauseChanged: (paused) => {
           this.audio.setPaused(paused);
           this.audio.play(paused ? "pause" : "resume");
@@ -1780,10 +1660,7 @@ export class QuantumBoxApp {
       }
       this.pendingArcadeScoreboard = Object.freeze({
         gameId: "quantman",
-        mode:
-          terminal.mechanic === "stabilize-gaze"
-            ? "STABILIZE GAZE"
-            : "INVERSE GAZE",
+        mode: terminal.mechanic === "stabilize-gaze" ? "HOLD" : "INVERT",
         highlightRecordSequence: recordedSequence,
         resultLabel: recordedSequence
           ? "NEW TOP FIVE SCORE"
@@ -1793,28 +1670,18 @@ export class QuantumBoxApp {
       this.shell.announce(
         `${terminal.cleared ? "Screen cleared" : "Run lost"}. Quantman ${terminal.mechanic} score recorded locally.`,
       );
-    } else if (terminal.cleared && this.activeRun.playMode === "story") {
-      const selection = this.activeQuantmanFixture;
-      if (!selection) {
-        throw new Error("Quantman completed without its frozen QPU fixture.");
-      }
-      this.queueStoryPresentation(
-        this.activeRun,
-        snapshot.simulation.activeTick,
-        createQuantmanPresentationEvidenceDetail(selection, snapshot),
-      );
-    } else if (this.activeRun?.playMode === "story") {
+    } else if (this.activeRun.playMode === "story") {
+      this.recordActiveStoryOutcome(terminal.cleared ? "won" : "lost");
       this.shell.announce(
-        "Quantman Story requires complete screen clearance. Retry starts a fresh run from the installed QPU bank.",
+        terminal.cleared
+          ? "Quantman cleared. Continue to the terminal."
+          : "Quantman lost. Continue to the terminal.",
       );
     }
     if (this.activeRun.playMode === "arcade" && !this.pendingArcadeScoreboard) {
       this.pendingArcadeScoreboard = Object.freeze({
         gameId: "quantman",
-        mode:
-          terminal.mechanic === "stabilize-gaze"
-            ? "STABILIZE GAZE"
-            : "INVERSE GAZE",
+        mode: terminal.mechanic === "stabilize-gaze" ? "HOLD" : "INVERT",
         highlightRecordSequence: null,
         resultLabel:
           this.activeArcadeRunOrigin === "developer-qa"
@@ -1827,14 +1694,11 @@ export class QuantumBoxApp {
 
   private async retryQuantman(): Promise<void> {
     if (!this.activeRun || !this.activeQuantmanMechanic) return;
-    const frozenStoryFixture = this.activeQuantmanFixture;
-    const retry = createQuantmanRetryRequest(
-      this.activeRun,
-      this.activeQuantmanMechanic,
-      this.activeStoryReplay,
-      this.activeArcadeRunOrigin,
-      resolveRunSeed(),
-    );
+    const playMode = this.activeRun.playMode;
+    const stage = this.activeRun.storyStage;
+    const source = this.activeStoryAttemptSource;
+    const mechanic = this.activeQuantmanMechanic;
+    const arcadeRunOrigin = this.activeArcadeRunOrigin;
     this.quantmanRuntime?.stop();
     this.quantmanRuntime = null;
     this.activeRun = null;
@@ -1843,22 +1707,21 @@ export class QuantumBoxApp {
     this.quantmanRecording = null;
     this.shell.exitCabinet();
     this.screenScene().showLibrary();
+    if (playMode === "story" && stage && isCurrentStoryStage(stage)) {
+      await this.launchStoryStage(stage, source);
+      return;
+    }
     try {
       const bank = await this.quantmanQpuBankPromise;
-      const fixture =
-        retry.playMode === "story"
-          ? frozenStoryFixture
-          : this.selectNextQuantmanArcadeFixture(bank, retry.runSeed);
-      if (!fixture) {
-        throw new Error("Quantman Story retry lost its frozen QPU fixture.");
-      }
+      const runSeed = resolveRunSeed();
+      const fixture = this.selectNextQuantmanArcadeFixture(bank, runSeed);
       this.startQuantman(
-        retry.playMode,
-        retry.mechanic,
+        "arcade",
+        mechanic,
         fixture,
-        retry.runSeed,
-        retry.storyReplay,
-        retry.arcadeRunOrigin,
+        runSeed,
+        false,
+        arcadeRunOrigin ?? "player-arcade",
       );
     } catch (error) {
       this.shell.showStoryUnavailable(
@@ -1880,6 +1743,10 @@ export class QuantumBoxApp {
   }
 
   private continueQuantman(): void {
+    if (this.activeRun?.playMode === "story") {
+      this.returnFromStoryCabinet();
+      return;
+    }
     const scoreboard = this.pendingArcadeScoreboard;
     this.exitCabinet();
     if (scoreboard) this.shell.showArcadeScoreboard(scoreboard);
@@ -1915,9 +1782,14 @@ export class QuantumBoxApp {
     this.quagRecording = null;
     this.quagIsReplay = false;
     if (playMode === "story" && !storyReplay) {
-      this.shell.updateSave(this.saveRepository.recordStoryAttempt(context));
+      this.shell.updateSave(
+        this.saveRepository.recordStoryAttempt(
+          context,
+          this.activeStoryAttemptSource,
+        ),
+      );
     }
-    this.shell.beginQuag();
+    this.shell.beginQuag(playMode);
     this.beginCabinetAudio();
     this.quagRuntime = this.createQuagRuntime(context);
     this.quagRuntime.start();
@@ -1938,9 +1810,19 @@ export class QuantumBoxApp {
       {
         onCompleted: (snapshot, recording) =>
           this.completeQuag(snapshot, recording),
-        onExit: () => this.exitCabinet(),
+        onExit: () => {
+          if (
+            this.activeRun?.playMode === "story" &&
+            this.quagRuntime?.isComplete()
+          )
+            this.returnFromStoryCabinet();
+          else this.exitCabinet();
+        },
         onRestart: () => this.restartQuag(),
-        onReplay: () => void this.retryQuarry(),
+        onReplay: () =>
+          context.playMode === "story"
+            ? this.returnFromStoryCabinet()
+            : void this.retryQuarry(),
         onFeedbackEvent: (event) => {
           this.audio.play(
             event.type === "flap"
@@ -1984,26 +1866,13 @@ export class QuantumBoxApp {
       );
       return;
     }
-    if (this.finishStoryReplay("quarry", storyQualified)) return;
     if (this.activeRun?.playMode === "story") {
-      if (storyQualified) {
-        this.queueStoryPresentation(
-          this.activeRun,
-          snapshot.activeTick,
-          createQuarryPresentationEvidenceDetail(
-            this.requireActiveQuarrySelection(),
-            snapshot,
-            this.activeRun.runSeed,
-          ),
-        );
-        this.shell.announce(
-          "Quarry accepted. Continue into the final Workshop.",
-        );
-      } else {
-        this.shell.announce(
-          "Quarry Story requires Player A to win the three-round match outright.",
-        );
-      }
+      this.recordActiveStoryOutcome(storyQualified ? "won" : "lost");
+      this.shell.announce(
+        storyQualified
+          ? "Quarry won. Continue to the terminal."
+          : "Quarry lost. Continue to the terminal.",
+      );
       return;
     }
     this.shell.announce(
@@ -2052,14 +1921,12 @@ export class QuantumBoxApp {
 
   private async retryQuarry(): Promise<void> {
     if (!this.activeRun) return;
-    const storyRetry = resolveStoryRetryLaunch(
-      this.activeRun,
-      this.activeStoryReplay,
-    );
+    const storyStage = this.activeRun.storyStage;
+    const storySource = this.activeStoryAttemptSource;
     const humanPlayerIds = this.activeQuarryHumanPlayerIds;
-    this.exitCabinet();
-    if (storyRetry) {
-      void this.launchStory(storyRetry.stage, storyRetry.replay);
+    this.exitCabinet(null);
+    if (storyStage && isCurrentStoryStage(storyStage)) {
+      void this.launchStoryStage(storyStage, storySource);
     } else {
       try {
         const runSeed = resolveRunSeed(undefined);
@@ -2095,67 +1962,6 @@ export class QuantumBoxApp {
     );
   }
 
-  private async openStoryV2PresentationForQa(
-    stageId: StoryStageId,
-    requestedBeatIndex: number,
-  ): Promise<void> {
-    if (!import.meta.env.DEV) return;
-    let evidence: StoryV2PresentationEvidence | null = null;
-    if (stageId === "qong") {
-      const bank = await this.qongStoryBankPromise;
-      const selection = selectQongStoryPack(bank, { cursor: 0, cycle: 0 });
-      const run = createRunContext({
-        gameId: "qong",
-        storyStage: "qong",
-        playMode: "story",
-        rulesVersion: selection.pack.rulesVersion,
-        runSeed: 101,
-        pack: {
-          packId: selection.pack.packId,
-          contentSha256: selection.pack.contentSha256,
-          schemaVersion: selection.pack.schemaVersion,
-          source: selection.pack.source,
-        },
-        packSelection: selection.receipt,
-      });
-      const court = qaQongCompletedSnapshot();
-      evidence = createStoryV2PresentationEvidence(
-        {
-          stageId: "qong",
-          run,
-          activeTick: court.tick,
-          evidenceSha256: "0".repeat(64),
-        },
-        createQongPresentationEvidenceDetail(selection, court),
-      );
-    }
-    const machine = new StoryV2PresentationMachine(stageId, null, evidence);
-    const opening = machine.snapshot();
-    const beatIndex = Math.min(
-      Math.max(0, requestedBeatIndex),
-      opening.beatCount - 1,
-    );
-    for (let index = 0; index < beatIndex; index += 1) {
-      machine.dispatch("continue");
-    }
-    this.storyPresentationMachine = machine;
-    const snapshot = machine.snapshot();
-    if (
-      stageId === "qong" &&
-      snapshot.beat &&
-      qongStoryPhaseForBeat(snapshot.beat.id) !== "terminal"
-    ) {
-      this.startQongStorySequence(
-        qaQongCompletedSnapshot(),
-        snapshot.beat.id,
-        false,
-      );
-    } else {
-      this.shell.showStoryPresentation(snapshot);
-    }
-    this.audio.setMenuMusic(false);
-  }
-
   private handleCabinetAction(
     action:
       | "observe"
@@ -2174,15 +1980,23 @@ export class QuantumBoxApp {
       this.toggleActivePause();
       return;
     }
-    if (this.qongStoryRuntime) {
-      if (action === "back") this.exitCabinet();
-      return;
-    }
     if (this.qongRuntime) {
-      if (action === "back") this.exitCabinet();
-      else if (action === "continue") this.retryQong();
-      else if (action === "replay") this.qongRuntime.requestReplay();
-      else if (this.qongRuntime.isComplete()) this.retryQong();
+      if (action === "back") {
+        if (
+          this.qongRuntime.isComplete() &&
+          this.activeRun?.playMode === "story"
+        )
+          this.returnFromStoryCabinet();
+        else this.exitCabinet();
+      } else if (action === "continue") this.continueQong();
+      else if (action === "replay") {
+        if (
+          this.activeRun?.playMode === "story" &&
+          this.qongRuntime.isComplete()
+        )
+          this.returnFromStoryCabinet();
+        else this.retryQong();
+      } else if (this.qongRuntime.isComplete()) this.continueQong();
       else this.qongRuntime.requestObserve();
       return;
     }
@@ -2191,13 +2005,31 @@ export class QuantumBoxApp {
         if (this.pendingArcadeScoreboard) this.continueSkiPixl();
         else this.exitCabinet();
       } else if (action === "continue") this.continueSkiPixl();
-      else if (action === "replay") this.skipixlRuntime.requestReplay();
+      else if (action === "replay") {
+        if (this.activeRun?.playMode === "story") this.returnFromStoryCabinet();
+        else this.retrySkiPixl();
+      }
       return;
     }
     if (this.fluxballRuntime) {
-      if (action === "back") this.exitCabinet();
-      else if (action === "continue") this.fluxballRuntime.continueRound();
-      else if (action === "replay") this.fluxballRuntime.requestReplay();
+      if (action === "back") {
+        if (
+          this.fluxballRuntime.isComplete() &&
+          this.activeRun?.playMode === "story"
+        )
+          this.returnFromStoryCabinet();
+        else this.exitCabinet();
+      } else if (action === "continue") {
+        if (this.fluxballRuntime.isComplete()) this.continueFluxball();
+        else this.fluxballRuntime.continueRound();
+      } else if (action === "replay") {
+        if (
+          this.activeRun?.playMode === "story" &&
+          this.fluxballRuntime.isComplete()
+        )
+          this.returnFromStoryCabinet();
+        else this.retryFluxball();
+      }
       return;
     }
     if (this.quantmanRuntime) {
@@ -2205,296 +2037,75 @@ export class QuantumBoxApp {
         if (this.pendingArcadeScoreboard) this.continueQuantman();
         else this.exitCabinet();
       } else if (action === "continue") this.continueQuantman();
-      else if (action === "replay") this.quantmanRuntime.requestRetry();
+      else if (action === "replay") {
+        if (
+          this.activeRun?.playMode === "story" &&
+          this.quantmanRuntime.isComplete()
+        )
+          this.returnFromStoryCabinet();
+        else this.quantmanRuntime.requestRetry();
+      }
       return;
     }
     if (this.quagRuntime) {
-      if (action === "back" || action === "continue") this.exitCabinet();
-      else if (action === "restart") this.quagRuntime.requestRestart();
-      else if (action === "replay") this.quagRuntime.requestReplay();
-      return;
-    }
-  }
-
-  private completeStoryAndQueueFormula(context: RunContext): void {
-    const before = this.saveRepository.snapshot().story.recoveredFormulae;
-    const after = this.saveRepository.completeStoryRun(context, null);
-    this.recoveredFormulaAfterCabinet =
-      after.story.recoveredFormulae.find(
-        (gameId) => !before.includes(gameId),
-      ) ?? null;
-    this.shell.updateSave(after);
-  }
-
-  private queueStoryPresentation(
-    context: RunContext,
-    activeTick: number,
-    detail: StoryV2PresentationEvidenceDetail,
-    qongCourt?: QongSnapshot,
-    skiSlope?: Readonly<{
-      snapshot: SkiPixlSnapshot;
-      payload: SkiPixlPackPayload;
-    }>,
-  ): void {
-    const stage = context.storyStage;
-    if (context.playMode !== "story" || stage === null) {
-      throw new Error(
-        "Only a qualified Story run can open a Story transition.",
-      );
-    }
-    const evidenceSha256 = sha256CanonicalJsonSync(
-      this.completedReplay ?? {
-        run: context,
-        completion: { succeeded: true, outcome: "qualified" },
-      },
-    );
-    const presentationEvidence = createStoryV2PresentationEvidence(
-      {
-        stageId: stage,
-        run: context,
-        activeTick,
-        evidenceSha256,
-      },
-      detail,
-    );
-    const machine = new StoryV2PresentationMachine(
-      stage,
-      null,
-      presentationEvidence,
-    );
-    const snapshot = machine.snapshot();
-    const beat = snapshot.beat;
-    if (!beat) throw new Error(`Story stage ${stage} has no opening beat.`);
-    const save = this.saveRepository.recordPendingNarrativeBeat(context, {
-      beatId: beat.id,
-      kind: storyNarrativeBeatKind(stage),
-      activeTick,
-      evidenceSha256,
-      presentationEvidence,
-    });
-    this.shell.updateSave(save);
-    this.storyPresentationMachine = machine;
-    if (stage === "qong" && qongCourt) {
-      this.startQongStorySequence(qongCourt, beat.id, true);
-      return;
-    }
-    this.exitCabinet();
-    if (skiSlope) {
-      this.screenScene().showSkiPixlStorySlope(
-        skiSlope.snapshot,
-        skiSlope.payload,
-      );
-    }
-    this.shell.showStoryPresentation(snapshot);
-    this.audio.play(storyPresentationCue(beat));
-  }
-
-  private startQongStorySequence(
-    court: QongSnapshot,
-    resumeBeatId: string | null,
-    persistProgress: boolean,
-  ): void {
-    this.qongRuntime?.stop();
-    this.qongRuntime = null;
-    this.qongStoryRuntime?.stop();
-    this.audio.setMenuMusic(false);
-    this.audio.setPaused(false);
-    this.qongStoryRuntime = new QongStoryRuntime(
-      court,
-      this.qongOpponent ?? "cpu",
-      resumeBeatId,
-      this.saveRepository.snapshot().settings.reducedMotion,
-      this.screenScene(),
-      this.shell,
-      {
-        onPhaseChanged: (_phase, beatId) =>
-          this.advanceQongPresentationTo(beatId, persistProgress),
-        onTerminal: () => this.openQongStoryTerminal(persistProgress),
-        onBack: () => this.exitCabinet(),
-        onCue: (cue) => this.audio.play(cue),
-      },
-    );
-    this.qongStoryRuntime.start();
-  }
-
-  private advanceQongPresentationTo(
-    beatId: string,
-    persistProgress: boolean,
-  ): void {
-    const machine = this.storyPresentationMachine;
-    if (!machine) {
-      throw new Error("Qong Story sequence lost its presentation machine.");
-    }
-    let snapshot = machine.snapshot();
-    while (snapshot.beat?.id !== beatId) {
-      const result = machine.dispatch("continue");
-      if (result.completion || result.snapshot.beat === null) {
-        throw new Error(`Qong Story cannot advance to ${beatId}.`);
+      if (action === "back" || action === "continue") {
+        if (
+          this.quagRuntime.isComplete() &&
+          this.activeRun?.playMode === "story"
+        )
+          this.returnFromStoryCabinet();
+        else this.exitCabinet();
+      } else if (action === "restart") this.quagRuntime.requestRestart();
+      else if (action === "replay") {
+        if (
+          this.activeRun?.playMode === "story" &&
+          this.quagRuntime.isComplete()
+        )
+          this.returnFromStoryCabinet();
+        else void this.retryQuarry();
       }
-      snapshot = result.snapshot;
+      return;
     }
-    if (!persistProgress) return;
-    const pending = this.saveRepository.snapshot().story.pendingNarrativeBeat;
-    if (pending?.beatId === beatId) return;
+  }
+
+  private recordActiveStoryOutcome(outcome: StoryOutcome): void {
+    const run = this.activeRun;
+    if (!run || run.playMode !== "story" || this.activeStoryReplay) return;
     this.shell.updateSave(
-      this.saveRepository.updatePendingNarrativeBeat(beatId),
+      this.saveRepository.recordStoryOutcome(
+        run,
+        outcome,
+        this.activeStoryAttemptSource,
+      ),
     );
   }
 
-  private openQongStoryTerminal(persistProgress: boolean): void {
-    this.advanceQongPresentationTo("qong-terminal-qong-input", persistProgress);
-    const snapshot = this.storyPresentationMachine?.snapshot();
-    if (!snapshot?.beat) {
-      throw new Error("Qong terminal has no active presentation beat.");
+  private returnFromStoryCabinet(): void {
+    const source = this.activeStoryAttemptSource;
+    this.exitCabinet(source === "main-story" ? "spare-key" : "key-is-opaque");
+    if (source === "main-story") {
+      void this.presentCurrentStoryNode();
+      return;
     }
-    this.qongStoryRuntime?.stop();
-    this.qongStoryRuntime = null;
-    this.exitCabinet();
-    this.shell.showStoryPresentation(snapshot);
-    this.audio.setMenuMusic(false);
-    this.audio.play(storyPresentationCue(snapshot.beat));
+    this.activeTerminalView = null;
+    this.audio.requestBackgroundCue("key-is-opaque");
+    this.shell.showPage("terminal");
   }
 
-  private resumeStoryPresentation(pending: PendingStoryNarrativeBeat): void {
-    const stage = storyV2Stage(pending.stage);
-    const token = parseStoryV2ResumeToken({
-      schemaVersion: STORY_V2_VERSION,
-      stageId: pending.stage,
-      flowId: stage.presentationFlowId,
-      beatId: pending.beatId,
-    });
-    const machine = new StoryV2PresentationMachine(
-      pending.stage,
-      token,
-      pending.presentationEvidence,
-    );
-    this.storyPresentationMachine = machine;
-    const snapshot = machine.snapshot();
-    if (
-      pending.stage === "qong" &&
-      snapshot.beat &&
-      qongStoryPhaseForBeat(snapshot.beat.id) !== "terminal"
-    ) {
-      this.startQongStorySequence(
-        qongCourtFromPresentationEvidence(pending.presentationEvidence),
-        snapshot.beat.id,
-        true,
-      );
-      return;
-    }
-    this.shell.showStoryPresentation(snapshot);
-    if (snapshot.beat) this.audio.play(storyPresentationCue(snapshot.beat));
-    this.audio.setMenuMusic(false);
-  }
-
-  private handleStoryPresentationContinue(): void {
-    const pending = this.saveRepository.snapshot().story.pendingNarrativeBeat;
-    if (!pending) {
-      if (!import.meta.env.DEV || !this.storyPresentationMachine) {
-        this.storyPresentationMachine = null;
-        this.shell.showPage("story");
-        return;
-      }
-      const qaResult = this.storyPresentationMachine.dispatch("continue");
-      if (qaResult.completion || qaResult.snapshot.beat === null) {
-        this.storyPresentationMachine = null;
-        this.shell.showPage("story");
-        return;
-      }
-      this.shell.showStoryPresentation(qaResult.snapshot);
-      this.audio.play(storyPresentationCue(qaResult.snapshot.beat));
-      return;
-    }
-    if (!this.storyPresentationMachine) {
-      this.resumeStoryPresentation(pending);
-      return;
-    }
-    const result = this.storyPresentationMachine.dispatch("continue");
-    if (result.completion) {
-      this.finishStoryPresentation(result.completion, pending);
-      return;
-    }
-    const beatId = result.snapshot.resumeToken?.beatId;
-    if (!beatId) {
-      throw new Error("Active Story transition lost its resume beat.");
-    }
-    const save = this.saveRepository.updatePendingNarrativeBeat(beatId);
-    this.shell.updateSave(save);
-    this.shell.showStoryPresentation(result.snapshot);
-    if (result.snapshot.beat) {
-      this.audio.play(storyPresentationCue(result.snapshot.beat));
-    }
-  }
-
-  private finishStoryPresentation(
-    completion: StoryV2PresentationCompletion,
-    pending: PendingStoryNarrativeBeat,
-  ): void {
-    if (completion.completedStageId !== pending.stage) {
-      throw new Error(
-        "Story transition completion does not match its qualified run.",
-      );
-    }
-    const save = this.saveRepository.completeStoryRun(
-      pending.qualifiedRun,
-      null,
-    );
-    this.shell.updateSave(save);
-    this.storyPresentationMachine = null;
-    this.screenScene().showLibrary();
-    this.audio.play("recover");
-    if (completion.kind === "launch-stage") {
-      this.shell.showPage("story");
-      void this.launchStory(completion.nextStageId, false);
-      return;
-    }
-    if (completion.kind === "complete-story") {
-      this.shell.showPage("story");
-      this.audio.setMenuMusic(true);
-      this.shell.announce(
-        "Story complete. All five Workshop records are recovered; the Quarry record contains the user-initiated MOTH platform link.",
-      );
-      return;
-    }
-    this.shell.showPage("story");
-    this.audio.setMenuMusic(true);
-    this.shell.announce(
-      `${completion.completedChapterId.toUpperCase()} debrief complete. Workshop material unlocked.`,
-    );
-  }
-
-  private finishStoryReplay(
-    gameId: ArcadeCabinetId,
-    qualified: boolean,
-  ): boolean {
-    if (this.activeRun?.playMode !== "story" || !this.activeStoryReplay) {
-      return false;
-    }
-    this.shell.announce(
-      qualified
-        ? `${gameId.toUpperCase()} Story replay complete. Story progress is unchanged.`
-        : `${gameId.toUpperCase()} Story replay ended without recovery. Story progress is unchanged.`,
-    );
-    return true;
-  }
-
-  private exitCabinet(): void {
-    const recoveredFormula = this.recoveredFormulaAfterCabinet;
-    this.recoveredFormulaAfterCabinet = null;
+  private exitCabinet(nextCue: BackgroundCueId | null = "key-is-opaque"): void {
     this.qongRuntime?.stop();
-    this.qongStoryRuntime?.stop();
     this.skipixlRuntime?.stop();
     this.fluxballRuntime?.stop();
     this.quantmanRuntime?.stop();
     this.quagRuntime?.stop();
     this.qongRuntime = null;
-    this.qongStoryRuntime = null;
     this.skipixlRuntime = null;
     this.fluxballRuntime = null;
     this.quantmanRuntime = null;
     this.quagRuntime = null;
     this.activeRun = null;
     this.activeStoryReplay = false;
+    this.activeStoryAttemptSource = "main-story";
     this.activeArcadeRunOrigin = null;
     this.qongOpponent = null;
     this.activeQongPack = null;
@@ -2521,12 +2132,11 @@ export class QuantumBoxApp {
     this.pendingArcadeScoreboard = null;
     this.audio.setSkiCarve(0);
     this.audio.setPaused(false);
-    this.audio.setMenuMusic(true);
+    this.audio.requestBackgroundCue(nextCue);
     this.audio.play("select");
     this.screenScene().showLibrary();
     this.developerAudit?.clear();
     this.shell.exitCabinet();
-    if (recoveredFormula) this.shell.showFormula(recoveredFormula);
   }
 
   private screenScene(): ScreenScene {
@@ -2584,14 +2194,13 @@ export class QuantumBoxApp {
     this.input.setKeyboardBindings(save.settings.keyboardBindings);
     this.audio.setSettings(save.settings);
     this.audio.setPaused(false);
-    this.audio.setMenuMusic(true);
+    this.audio.requestBackgroundCue("key-is-opaque");
     this.audio.play("select");
-    this.storyPresentationMachine = null;
+    this.activeTerminalView = null;
+    this.terminalTranscript = null;
     this.completedReplay = null;
-    this.recoveredFormulaAfterCabinet = null;
     this.fluxballLobby = null;
     this.pendingStorySkiPixlPack = null;
-    this.pendingFirstLossRetry = null;
     this.pendingArcadeScoreboard = null;
     this.shell.resetPlayerState(save);
     this.shell.announce("Local Quantum Box save reset.");
@@ -2606,7 +2215,6 @@ export class QuantumBoxApp {
   private hasActiveCabinet(): boolean {
     return Boolean(
       this.qongRuntime ||
-        this.qongStoryRuntime ||
         this.skipixlRuntime ||
         this.fluxballRuntime ||
         this.quantmanRuntime ||
@@ -2655,7 +2263,9 @@ export class QuantumBoxApp {
   };
 
   private readonly onVisibilityChange = (): void => {
-    if (document.visibilityState === "visible") this.onAudioRecovery();
+    const visible = document.visibilityState === "visible";
+    this.audio.setDocumentVisible(visible);
+    if (visible) this.onAudioRecovery();
   };
 
   private playCompletionCue(success: boolean): void {
@@ -2665,7 +2275,7 @@ export class QuantumBoxApp {
 
   private beginCabinetAudio(): void {
     this.audio.setSkiCarve(0);
-    this.audio.setMenuMusic(false);
+    this.audio.requestBackgroundCue(null);
     this.audio.setPaused(false);
     this.audio.play("launch");
   }
@@ -2716,80 +2326,6 @@ export class QuantumBoxApp {
   }
 }
 
-function qongCourtFromPresentationEvidence(
-  evidence: StoryV2PresentationEvidence,
-): QongSnapshot {
-  const court =
-    evidence.completeness === "bound" && evidence.detail?.kind === "qong"
-      ? evidence.detail.finalCourt
-      : undefined;
-  if (!court) return qaQongCompletedSnapshot();
-  return Object.freeze({
-    phase: "complete",
-    tick: court.tick,
-    rallyNumber: court.rallyNumber,
-    totalRallies: court.totalRallies,
-    leftScore: court.leftScore,
-    rightScore: court.rightScore,
-    observationsRemaining: court.observationsRemaining,
-    measurementState: court.measurementState,
-    goalRule: court.goalRule,
-    ball: Object.freeze({ ...court.ball }),
-    leftPaddleY: court.leftPaddleY,
-    rightPaddleY: court.rightPaddleY,
-    rallyReveal: null,
-    winner: court.winner,
-    storyEvidence: Object.freeze({
-      humanObservationsUsed: 0,
-      directionalRallyNumbers: Object.freeze([]),
-    }),
-  });
-}
-
-function qaQongCompletedSnapshot(): QongSnapshot {
-  return Object.freeze({
-    phase: "complete",
-    tick: 733,
-    rallyNumber: 7,
-    totalRallies: 7,
-    leftScore: 4,
-    rightScore: 3,
-    observationsRemaining: 1,
-    measurementState: "resolved",
-    goalRule: "own",
-    ball: Object.freeze({ x: 320, y: 180 }),
-    leftPaddleY: 134,
-    rightPaddleY: 176,
-    rallyReveal: null,
-    winner: "left",
-    storyEvidence: Object.freeze({
-      humanObservationsUsed: 2,
-      directionalRallyNumbers: Object.freeze([2, 5]),
-    }),
-  });
-}
-
-function requireFluxballPack(
-  pack: FluxballCommittedPack | null,
-): FluxballCommittedPack {
-  if (!pack) throw new Error("Fluxball recovery lost its committed pack.");
-  return pack;
-}
-
-function storyNarrativeBeatKind(
-  stage: StoryStageId,
-): PendingStoryNarrativeBeat["kind"] {
-  if (stage === "quarry") return "finale";
-  if (
-    stage === "skipixl-medium" ||
-    stage === "fluxball-two" ||
-    stage === "quantman-stabilize"
-  ) {
-    return "interlude";
-  }
-  return "debrief";
-}
-
 function quarryHumanPlayersForMode(
   mode: string,
 ): readonly QuagPlayerId[] | null {
@@ -2828,7 +2364,7 @@ function fluxballFormatForArcadeMode(
   return Object.freeze({
     competitorCount,
     ruleMode: match[2]?.toLowerCase() as "global" | "individual",
-    roundSeconds: 60,
+    roundSeconds: 40,
     humanPlayerIds: Object.freeze(
       localPlayers === 2 ? (["A", "B"] as const) : (["A"] as const),
     ),
@@ -2885,33 +2421,14 @@ function legacyCabinetSignal(signal: InputSignal): InputSignal {
   return signal;
 }
 
-function storyPresentationCue(beat: StoryV2PresentationBeat): SynthCue {
-  switch (beat.kind) {
-    case "morph":
-    case "dismount":
-      return "story-morph";
-    case "door":
-      return "story-door";
-    case "transport":
-      return "story-transport";
-    case "terminal":
-    case "workshop":
-      return "reveal";
-    case "explore":
-    case "walk":
-    case "dialogue":
-      return "select";
-  }
-}
-
-function devStoryV2StageIdFromRoute(route: string | null): StoryStageId | null {
-  if (!route?.startsWith("story-v2-")) return null;
-  const stageId = route.slice("story-v2-".length);
-  return isStoryV2StageId(stageId) ? stageId : null;
-}
-
-function parseDevStoryV2BeatIndex(value: string | null): number {
-  if (value === null) return 0;
-  const beatIndex = Number(value);
-  return Number.isSafeInteger(beatIndex) && beatIndex >= 0 ? beatIndex : 0;
+function isCurrentStoryStage(value: string): value is StoryStageId {
+  return [
+    "qong",
+    "skipixl-feasible",
+    "skipixl-overloaded",
+    "quantman-hold",
+    "fluxball-global",
+    "fluxball-individual",
+    "quarry",
+  ].includes(value);
 }

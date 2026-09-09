@@ -1,6 +1,5 @@
 import { QuantumBoxApp } from "./app/QuantumBoxApp";
 import "./styles.css";
-import "./qongDesigner.css";
 import "./display/brownBox.css";
 
 const root = document.querySelector<HTMLElement>("#app");

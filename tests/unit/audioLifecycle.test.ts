@@ -152,54 +152,134 @@ class FakeAudioContext extends EventTarget {
 
 afterEach(() => vi.unstubAllGlobals());
 
-describe("menu audio lifecycle", () => {
-  it("uses a persistent native loop and restarts an unexpected ending", async () => {
-    const context = new FakeAudioContext();
-    const menuAudio = new FakeMenuAudio();
-    const audio = new SynthAudio(
-      { soundMuted: false, soundVolume: 0.35 },
-      () => context as unknown as AudioContext,
-      () => menuAudio as unknown as HTMLAudioElement,
-    );
+describe("background audio lifecycle", () => {
+  it("keeps the same cue alive and restarts only an unexpected ending", async () => {
+    vi.useFakeTimers();
+    try {
+      const context = new FakeAudioContext();
+      const element = new FakeMenuAudio();
+      const audio = new SynthAudio(
+        { soundMuted: false, soundVolume: 0.35 },
+        () => context as unknown as AudioContext,
+        () => element as unknown as HTMLAudioElement,
+      );
 
-    audio.setMenuMusic(true);
-    await vi.waitFor(() => expect(menuAudio.playCalls).toBe(1));
-    await expect(audio.unlock()).resolves.toBe(true);
-    expect(menuAudio.loop).toBe(true);
-    expect(menuAudio.preload).toBe("auto");
-    expect(menuAudio.volume).toBeCloseTo(0.35 * 0.42);
-    expect(context.sources).toHaveLength(0);
+      audio.requestBackgroundCue("key-is-opaque");
+      await Promise.resolve();
+      await vi.advanceTimersByTimeAsync(100);
+      expect(element.playCalls).toBe(1);
+      expect(element.loop).toBe(true);
+      expect(element.preload).toBe("auto");
+      expect(element.volume).toBeCloseTo(0.35 * 0.42);
 
-    menuAudio.finish();
-    await vi.waitFor(() => expect(menuAudio.playCalls).toBe(2));
-    expect(menuAudio.paused).toBe(false);
+      audio.requestBackgroundCue("key-is-opaque");
+      expect(element.playCalls).toBe(1);
+      element.finish();
+      await Promise.resolve();
+      expect(element.playCalls).toBe(2);
+      expect(element.paused).toBe(false);
+      audio.destroy();
+    } finally {
+      vi.useRealTimers();
+    }
+  });
 
-    audio.setMenuMusic(false);
-    expect(menuAudio.paused).toBe(true);
-    expect(menuAudio.currentTime).toBe(0);
-    audio.destroy();
+  it("fades out before creating the replacement cue", async () => {
+    vi.useFakeTimers();
+    try {
+      const context = new FakeAudioContext();
+      const created: Array<{ cue: string; audio: FakeMenuAudio }> = [];
+      const audio = new SynthAudio(
+        { soundMuted: false, soundVolume: 0.5 },
+        () => context as unknown as AudioContext,
+        (cue) => {
+          const item = { cue, audio: new FakeMenuAudio() };
+          created.push(item);
+          return item.audio as unknown as HTMLAudioElement;
+        },
+      );
+      audio.requestBackgroundCue("cabinet-hum");
+      await Promise.resolve();
+      await vi.advanceTimersByTimeAsync(100);
+      expect(created.map(({ cue }) => cue)).toEqual(["cabinet-hum"]);
+
+      audio.requestBackgroundCue("spare-key");
+      await vi.advanceTimersByTimeAsync(80);
+      expect(created).toHaveLength(1);
+      expect(created[0]!.audio.paused).toBe(false);
+      await vi.advanceTimersByTimeAsync(20);
+      expect(created.map(({ cue }) => cue)).toEqual([
+        "cabinet-hum",
+        "spare-key",
+      ]);
+      expect(created[0]!.audio.paused).toBe(true);
+      expect(created[1]!.audio.playCalls).toBe(1);
+      audio.destroy();
+    } finally {
+      vi.useRealTimers();
+    }
   });
 
   it("retries a transient native-media play rejection", async () => {
     const context = new FakeAudioContext();
-    const menuAudio = new FakeMenuAudio();
-    menuAudio.rejectPlay = true;
+    const element = new FakeMenuAudio();
+    element.rejectPlay = true;
     const audio = new SynthAudio(
       { soundMuted: false, soundVolume: 0.35 },
       () => context as unknown as AudioContext,
-      () => menuAudio as unknown as HTMLAudioElement,
+      () => element as unknown as HTMLAudioElement,
     );
 
-    audio.setMenuMusic(true);
-    await vi.waitFor(() => expect(menuAudio.playCalls).toBe(1));
-    expect(menuAudio.paused).toBe(true);
+    audio.requestBackgroundCue("cabinet-hum");
     await Promise.resolve();
     await Promise.resolve();
+    expect(element.playCalls).toBe(1);
+    expect(audio.backgroundCueState().autoplayPending).toBe(true);
 
-    menuAudio.rejectPlay = false;
+    element.rejectPlay = false;
     audio.recoverFromBrowserInterruption();
-    await vi.waitFor(() => expect(menuAudio.playCalls).toBe(2));
-    expect(menuAudio.paused).toBe(false);
+    await Promise.resolve();
+    expect(element.playCalls).toBe(2);
+    expect(element.paused).toBe(false);
+    audio.destroy();
+  });
+
+  it("preserves native-media position while the document is hidden", async () => {
+    const context = new FakeAudioContext();
+    const element = new FakeMenuAudio();
+    const audio = new SynthAudio(
+      { soundMuted: false, soundVolume: 0.35 },
+      () => context as unknown as AudioContext,
+      () => element as unknown as HTMLAudioElement,
+    );
+    audio.requestBackgroundCue("spare-key");
+    await Promise.resolve();
+    element.currentTime = 7.25;
+    audio.setDocumentVisible(false);
+    expect(element.paused).toBe(true);
+    audio.setDocumentVisible(true);
+    await Promise.resolve();
+    expect(element.currentTime).toBe(7.25);
+    expect(element.playCalls).toBe(2);
+    audio.destroy();
+  });
+
+  it("applies mute and volume without restarting playback", async () => {
+    const context = new FakeAudioContext();
+    const element = new FakeMenuAudio();
+    const audio = new SynthAudio(
+      { soundMuted: false, soundVolume: 0.35 },
+      () => context as unknown as AudioContext,
+      () => element as unknown as HTMLAudioElement,
+    );
+    audio.requestBackgroundCue("key-is-opaque");
+    await Promise.resolve();
+    audio.setSettings({ soundMuted: true, soundVolume: 0.8 });
+    expect(element.muted).toBe(true);
+    expect(element.playCalls).toBe(1);
+    audio.setSettings({ soundMuted: false, soundVolume: 0.8 });
+    expect(element.muted).toBe(false);
+    expect(element.playCalls).toBe(1);
     audio.destroy();
   });
 

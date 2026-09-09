@@ -1,6 +1,6 @@
 import { expect, test, type Page } from "@playwright/test";
 
-import { captureExternalRequests } from "./support/spatialTutorial";
+import { captureExternalRequests } from "./support/network";
 
 test("keyboard held action changes each cabinet and keyup applies cabinet release semantics", async ({
   page,

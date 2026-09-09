@@ -1,4 +1,4 @@
-import fixtureJson from "./data/quantman-labyrinth-synthetic-10x10-v1.json";
+import fixtureJson from "./data/quantman-labyrinth-synthetic-10x10-v1.json" with { type: "json" };
 import { QuantmanSession } from "./game/QuantmanSession";
 import type {
   MazeMechanic,

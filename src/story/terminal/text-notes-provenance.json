@@ -1,0 +1,25 @@
+{
+  "schemaVersion": "quantum-box-terminal-copy-provenance-v1",
+  "sourceFilename": "QUANTUM BOX text notes.docx",
+  "sourceSha256": "a5d193623eeb1361f430db50e249180871e5752d756906ec483c7dc72a212148",
+  "authorityThrough": "end-of-quantman",
+  "runtimePageCorpusSha256": "9896dfa5d902912e2e8b2420695746c86abb4a8f0618903e4444e351a6c53820",
+  "normalization": {
+    "actionMarkers": ["CONTINUE", "PLAY", "RETRY"],
+    "excludedEditorialLabels": [
+      "Instruction",
+      "After first failure",
+      "After success",
+      "Post-game"
+    ],
+    "excludedMaterial": [
+      "accidentally embedded project instruction",
+      "duplicated introductory passage"
+    ],
+    "displayOnlyTransformation": "command and engine identifiers are rendered uppercase; semantic identifiers retain their canonical values"
+  },
+  "lateStoryCopy": {
+    "fluxball": "PLACEHOLDER",
+    "quarry": "PLACEHOLDER"
+  }
+}

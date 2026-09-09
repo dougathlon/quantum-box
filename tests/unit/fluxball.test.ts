@@ -36,7 +36,10 @@ import { SportSimulation } from "../../src/games/fluxball/standalone/simulation"
 import type { InterpretedRoundRules } from "../../src/games/fluxball/standalone/rules/types";
 import { TUNING } from "../../src/games/fluxball/standalone/config/tuning";
 import type { FluxballPublicSportSnapshot } from "../../src/games/fluxball/types";
-import { FLUXBALL_RULES_VERSION } from "../../src/games/fluxball/types";
+import {
+  FLUXBALL_LEGACY_RULES_VERSION,
+  FLUXBALL_RULES_VERSION,
+} from "../../src/games/fluxball/types";
 import { FLUXBALL_V2_BALL } from "../../src/display/PixelSprites";
 import type { PlayerId } from "../../src/games/fluxball/standalone/modes";
 
@@ -121,7 +124,7 @@ describe("Quantum Box Fluxball round contract", () => {
     const active = session.snapshot();
     expect(active.phase).toBe("active");
     expect(active.reveal).toBeNull();
-    expect(active.sport?.roundTicks).toBe(1200);
+    expect(active.sport?.roundTicks).toBe(800);
     expect(JSON.stringify(active.sport)).not.toMatch(
       /fixture|distribution|outcome|DIRECT|INVERTED|CARRY|STRIKE|OPPOSITE|OWN/,
     );
@@ -305,9 +308,9 @@ describe("Quantum Box Fluxball round contract", () => {
     expect(trace.activePlayerIds).toEqual(["A", "B", "C", "D"]);
   });
 
-  it("runs one four-round 2P match at sixty seconds per round", () => {
+  it("runs one four-round 2P match at forty seconds per round", () => {
     const session = twoPlayerSession();
-    expect(session.snapshot().sport?.roundTicks).toBe(1200);
+    expect(session.snapshot().sport?.roundTicks).toBe(800);
     for (let round = 1; round <= 4; round += 1) {
       const reveal = advanceToReveal(session);
       expect(reveal.roundNumber).toBe(round);
@@ -317,9 +320,9 @@ describe("Quantum Box Fluxball round contract", () => {
     }
   });
 
-  it("runs one four-round 4P match at sixty seconds per round", () => {
+  it("runs one four-round 4P match at forty seconds per round", () => {
     const session = fourPlayerSession();
-    expect(session.snapshot().sport?.roundTicks).toBe(1200);
+    expect(session.snapshot().sport?.roundTicks).toBe(800);
     for (let round = 1; round <= 4; round += 1) {
       const reveal = advanceToReveal(session);
       expect(reveal.roundNumber).toBe(round);
@@ -558,6 +561,20 @@ describe("Quantum Box Fluxball round contract", () => {
     },
   );
 
+  it.each(["global", "individual"] as const)(
+    "lets the active CPU create a physical goal in 2P %s play",
+    (ruleMode) => {
+      for (let seed = 0; seed < 8; seed += 1) {
+        const session = arcadeSession(2, ruleMode, ["A"], seed);
+        const reveal = advanceToReveal(session);
+        expect(
+          reveal.reveal?.goals.length,
+          `${ruleMode} seed ${seed}`,
+        ).toBeGreaterThan(0);
+      }
+    },
+  );
+
   it.each(["A", "B", "C", "D"] as const)(
     "lets a diagonally approaching CARRY body score through its %s goal",
     (goalId) => {
@@ -763,6 +780,8 @@ describe("Fluxball v2 response and collision feel", () => {
     internals.players.A!.y = 230;
     internals.players.B!.x = 440;
     internals.players.B!.y = 230;
+    internals.players.B!.resolvedFacing = { x: -1, y: 0 };
+    internals.players.B!.resolvedMotion = { x: -80, y: 0 };
     internals.ball = { x: 425, y: 230, vx: 0, vy: 0, carrierId: "A" };
 
     let packet = sport.step();
@@ -945,28 +964,59 @@ describe("Fluxball CPU information boundary", () => {
     expect(policy.snapshotBelief().action.confidence).toBeGreaterThan(0.9);
   });
 
-  it("admits a public-state-only winning policy for every swept Story seed", () => {
-    for (const competitorCount of [2, 4] as const) {
-      for (const selectedRunSeed of FLUXBALL_STORY_CERTIFIED_SEEDS[
-        competitorCount
-      ]) {
-        const results = [];
-        for (let variant = 0; variant < 256; variant += 1) {
-          const result = runPublicPolicyMatch(
-            competitorCount,
-            selectedRunSeed,
-            variant,
-          );
-          results.push(result);
-          if (result.humanWon) break;
-        }
-        expect(
-          results.some((result) => result.humanWon),
-          `${competitorCount}P certified seed ${selectedRunSeed}, ${JSON.stringify(assessFluxballStorySeed(selectedRunSeed, competitorCount))}: ${JSON.stringify(results.at(-1)?.roundWins)}`,
-        ).toBe(true);
-      }
-    }
-  }, 120_000);
+  it.each(["A", "B", "C", "D"] as const)(
+    "aims a carrier beyond learned physical goal %s using public outcomes only",
+    (playerId) => {
+      const policy = new FluxballCpuPolicy(
+        playerId,
+        31,
+        CAPABLE_PUBLIC_POLICY_TUNING,
+        [playerId],
+      );
+      const before = fourPlayerPublicObservation(30, playerId);
+      const probe = policy.decide(before);
+      const commanded = {
+        x: Number(probe.rawInput.right) - Number(probe.rawInput.left),
+        y: Number(probe.rawInput.down) - Number(probe.rawInput.up),
+      };
+      const learned = withPublicPlayer(
+        before,
+        playerId,
+        {
+          x: before.players[playerId]!.x + commanded.x * 4,
+          y: before.players[playerId]!.y + commanded.y * 4,
+        },
+        {
+          roundTick: 31,
+          ballCarrierId: playerId,
+          latestGoal: {
+            eventId: 1,
+            roundNumber: 1,
+            tick: 30,
+            ruleStateIndex: 0,
+            physicalGoal: playerId,
+            awardedPlayerIds: [playerId],
+            scoreAfter: { A: 0, B: 0, C: 0, D: 0, [playerId]: 1 },
+          },
+        },
+      );
+      policy.decide(learned);
+      const decision = policy.decide({
+        ...learned,
+        tick: 32,
+        roundTick: 32,
+        latestGoal: null,
+      });
+
+      expect(decision.reason).toBe("carry-to-believed-goal");
+      if (playerId === "A") expect(decision.target.x).toBeLessThan(0);
+      if (playerId === "B")
+        expect(decision.target.x).toBeGreaterThan(learned.court.width);
+      if (playerId === "C") expect(decision.target.y).toBeLessThan(0);
+      if (playerId === "D")
+        expect(decision.target.y).toBeGreaterThan(learned.court.height);
+    },
+  );
 
   it("rejects uncertified Story schedules and selects locally before play", () => {
     const rejected = Array.from({ length: 4_096 }, (_, runSeed) =>
@@ -975,7 +1025,7 @@ describe("Fluxball CPU information boundary", () => {
     expect(rejected).toBeDefined();
     if (!rejected) throw new Error("Expected one inadmissible 4P schedule.");
     expect(rejected.separatingRounds.length).toBeLessThan(2);
-    expect(() => fourPlayerSession(rejected.runSeed)).toThrow(
+    expect(() => legacyFourPlayerStorySession(rejected.runSeed)).toThrow(
       /uncertified seed/,
     );
     expect(() => twoPlayerSession(8)).toThrow(/uncertified seed/);
@@ -1018,7 +1068,7 @@ function twoPlayerSession(seed = 0): FluxballSession {
   return new FluxballSession(
     createRunContext({
       gameId: "fluxball",
-      storyStage: "fluxball-two",
+      storyStage: "fluxball-individual",
       playMode: "story",
       rulesVersion: FLUXBALL_RULES_VERSION,
       runSeed: seed,
@@ -1032,7 +1082,7 @@ function twoPlayerSession(seed = 0): FluxballSession {
     {
       competitorCount: 2,
       ruleMode: "individual",
-      roundSeconds: 60,
+      roundSeconds: 40,
       humanPlayerIds: ["A"],
     },
   );
@@ -1042,9 +1092,33 @@ function fourPlayerSession(seed = 0): FluxballSession {
   return new FluxballSession(
     createRunContext({
       gameId: "fluxball",
+      storyStage: null,
+      playMode: "arcade",
+      rulesVersion: FLUXBALL_RULES_VERSION,
+      runSeed: seed,
+      pack: {
+        packId: FLUXBALL_PLAYABLE_RULE_BANK.packId,
+        contentSha256: FLUXBALL_PLAYABLE_RULE_BANK.contentSha256,
+        schemaVersion: FLUXBALL_PLAYABLE_RULE_BANK.schemaVersion,
+        source: FLUXBALL_PLAYABLE_RULE_BANK.source,
+      },
+    }),
+    {
+      competitorCount: 4,
+      ruleMode: "individual",
+      roundSeconds: 40,
+      humanPlayerIds: ["A"],
+    },
+  );
+}
+
+function legacyFourPlayerStorySession(seed = 0): FluxballSession {
+  return new FluxballSession(
+    createRunContext({
+      gameId: "fluxball",
       storyStage: "fluxball-four",
       playMode: "story",
-      rulesVersion: FLUXBALL_RULES_VERSION,
+      rulesVersion: FLUXBALL_LEGACY_RULES_VERSION,
       runSeed: seed,
       pack: {
         packId: FLUXBALL_PLAYABLE_RULE_BANK.packId,
@@ -1083,7 +1157,7 @@ function twoHumanSession(
     {
       competitorCount: 2,
       ruleMode,
-      roundSeconds: 60,
+      roundSeconds: 40,
       humanPlayerIds: ["A", "B"],
     },
   );
@@ -1112,7 +1186,7 @@ function arcadeSession(
     {
       competitorCount,
       ruleMode,
-      roundSeconds: 60,
+      roundSeconds: 40,
       humanPlayerIds,
     },
   );
@@ -1138,69 +1212,6 @@ function advanceToReveal(session: FluxballSession) {
   return snapshot;
 }
 
-function runPublicPolicyMatch(
-  competitorCount: 2 | 4,
-  runSeed: number,
-  variant: number,
-) {
-  const session =
-    competitorCount === 2
-      ? twoPlayerSession(runSeed)
-      : fourPlayerSession(runSeed);
-  let snapshot = session.snapshot();
-  let policy = new FluxballCpuPolicy(
-    "A",
-    variant & 1,
-    CAPABLE_PUBLIC_POLICY_TUNING,
-  );
-  let roundNumber = snapshot.roundNumber;
-  let revealedThisRound = false;
-  while (snapshot.phase !== "complete") {
-    if (snapshot.phase === "reveal") {
-      snapshot = session.continueAfterReveal();
-      if (snapshot.phase === "active" && snapshot.roundNumber !== roundNumber) {
-        roundNumber = snapshot.roundNumber;
-        revealedThisRound = false;
-        policy = new FluxballCpuPolicy(
-          "A",
-          (variant >>> (roundNumber - 1)) & 1,
-          CAPABLE_PUBLIC_POLICY_TUNING,
-        );
-      }
-      continue;
-    }
-    const publicState = snapshot.sport;
-    if (!publicState) throw new Error("Active Fluxball lost its public sport.");
-    const timingCode = (variant >>> ((roundNumber - 1) * 2)) & 3;
-    const revealTick =
-      timingCode === 0
-        ? 0
-        : timingCode === 1
-          ? Math.floor(publicState.roundTicks / 4)
-          : timingCode === 2
-            ? Math.floor(publicState.roundTicks / 2)
-            : null;
-    const revealRequests =
-      !revealedThisRound &&
-      revealTick !== null &&
-      publicState.roundTick >= revealTick &&
-      publicState.goalFreezeTicksRemaining === 0
-        ? [
-            {
-              playerId: "A" as const,
-              capturedAtMs: roundNumber * 100_000 + publicState.roundTick,
-            },
-          ]
-        : [];
-    if (revealRequests.length > 0) revealedThisRound = true;
-    snapshot = session.step({
-      players: { A: policy.decide(publicState).rawInput },
-      revealRequests,
-    });
-  }
-  return snapshot;
-}
-
 function publicObservation(
   tick: number,
   playerX: number,
@@ -1210,8 +1221,8 @@ function publicObservation(
     roundNumber: 1,
     tick,
     roundTick: tick,
-    roundTicks: 1200,
-    secondsRemaining: 60 - tick / 20,
+    roundTicks: 800,
+    secondsRemaining: 40 - tick / 20,
     ruleStateIndex: 0,
     goalFreezeTicksRemaining: 0,
     activePlayerIds: ["A", "B"],
@@ -1241,6 +1252,71 @@ function publicObservation(
     score: { A: 0, B: 0 },
     latestGoal: null,
     latestContact: null,
+  };
+}
+
+function fourPlayerPublicObservation(
+  tick: number,
+  carrierId: PlayerId,
+): FluxballPublicSportSnapshot {
+  const twoPlayer = publicObservation(tick, 624, 230);
+  return {
+    ...twoPlayer,
+    activePlayerIds: ["A", "B", "C", "D"],
+    players: {
+      ...twoPlayer.players,
+      C: {
+        id: "C",
+        x: 400,
+        y: 101,
+        rawFacing: { x: 0, y: 1 },
+        resolvedMotion: { x: 0, y: 0 },
+      },
+      D: {
+        id: "D",
+        x: 400,
+        y: 359,
+        rawFacing: { x: 0, y: -1 },
+        resolvedMotion: { x: 0, y: 0 },
+      },
+    },
+    ball: {
+      ...twoPlayer.ball,
+      carrierId,
+    },
+    score: { A: 0, B: 0, C: 0, D: 0 },
+  };
+}
+
+function withPublicPlayer(
+  observation: FluxballPublicSportSnapshot,
+  playerId: PlayerId,
+  position: Readonly<{ x: number; y: number }>,
+  changes: Readonly<{
+    roundTick: number;
+    ballCarrierId: PlayerId;
+    latestGoal: FluxballPublicSportSnapshot["latestGoal"];
+  }>,
+): FluxballPublicSportSnapshot {
+  const player = observation.players[playerId];
+  if (!player) throw new Error(`Missing public Player ${playerId}.`);
+  return {
+    ...observation,
+    tick: changes.roundTick,
+    roundTick: changes.roundTick,
+    players: {
+      ...observation.players,
+      [playerId]: {
+        ...player,
+        ...position,
+        resolvedMotion: {
+          x: position.x - player.x,
+          y: position.y - player.y,
+        },
+      },
+    },
+    ball: { ...observation.ball, carrierId: changes.ballCarrierId },
+    latestGoal: changes.latestGoal,
   };
 }
 

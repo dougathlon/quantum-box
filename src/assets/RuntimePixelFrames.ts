@@ -1,4 +1,4 @@
-import runtimePixelFramesJson from "./runtime-pixel-frames-v1.json";
+import runtimePixelFramesJson from "./runtime-pixel-frames-v1.json" with { type: "json" };
 
 export type RuntimePixelFrameFamily =
   | "canonical-runtime-v2"
@@ -34,7 +34,7 @@ interface RuntimePixelFrame {
 const payload = runtimePixelFramesJson as RuntimePixelFramesJson;
 const EXPECTED_FRAME_COUNTS: Readonly<Record<RuntimePixelFrameFamily, number>> =
   Object.freeze({
-    "canonical-runtime-v2": 98,
+    "canonical-runtime-v2": 52,
     "qgraph-cabinet-v1": 81,
   });
 

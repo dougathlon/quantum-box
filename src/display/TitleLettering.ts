@@ -1,10 +1,10 @@
 export const TITLE_LETTERING_CONTRACT = Object.freeze({
-  viewBox: Object.freeze({ width: 1672, height: 941 }),
-  screenCentreX: 724,
+  logicalScreen: Object.freeze({ width: 320, height: 180 }),
+  screenCentreX: 160,
   colour: "#D6BD8B",
-  raster: "five-by-seven-original-v1",
-  title: Object.freeze({ text: "QUANTUM BOX", y: 252, pixel: 10 }),
-  prompt: Object.freeze({ text: "PRESS START", y: 399, pixel: 6 }),
+  raster: "five-by-seven-field-grid-v5",
+  title: Object.freeze({ text: "QUANTUM BOX", y: 55, pixel: 3, tracking: 3 }),
+  prompt: Object.freeze({ text: "PRESS START", y: 99, pixel: 2, tracking: 2 }),
 });
 
 type FiveBySevenGlyph = readonly string[];
@@ -13,7 +13,7 @@ const glyph = (source: string): FiveBySevenGlyph =>
   Object.freeze(source.trim().split("\n"));
 
 /**
- * An original, deliberately small 5x7 face for the photographed title only.
+ * An original 5x7 face for the native Brown Box opening.
  * It borrows the constraints of 1970s terminal character generators, not the
  * outline of any one historical typeface. Internal UI text remains 3x5.
  */
@@ -135,71 +135,81 @@ export function titleLetteringRects(
   text: string,
   y: number,
   pixel: number,
+  tracking = pixel,
 ): readonly TitleLetteringRect[] {
   const normalized = text.toUpperCase();
   const widths = [...normalized].map((character) =>
     character === " " ? 3 : 5,
   );
-  const totalColumns =
-    widths.reduce((sum, width) => sum + width, 0) +
-    Math.max(0, widths.length - 1);
+  const totalWidth =
+    widths.reduce((sum, width) => sum + width * pixel, 0) +
+    Math.max(0, widths.length - 1) * tracking;
   let cursorX =
-    TITLE_LETTERING_CONTRACT.screenCentreX -
-    Math.floor((totalColumns * pixel) / 2);
+    TITLE_LETTERING_CONTRACT.screenCentreX - Math.floor(totalWidth / 2);
   const rects: TitleLetteringRect[] = [];
 
-  for (const character of normalized) {
+  for (
+    let characterIndex = 0;
+    characterIndex < normalized.length;
+    characterIndex += 1
+  ) {
+    const character = normalized[characterIndex]!;
     if (character === " ") {
-      cursorX += 4 * pixel;
-      continue;
-    }
-    const pattern = TITLE_GLYPHS[character];
-    if (!pattern) throw new Error(`Unsupported title glyph: ${character}.`);
-    for (let row = 0; row < pattern.length; row += 1) {
-      for (let column = 0; column < pattern[row]!.length; column += 1) {
-        if (pattern[row]![column] !== "#") continue;
-        rects.push(
-          Object.freeze({
-            x: cursorX + column * pixel,
-            y: y + row * pixel,
-            width: pixel,
-            height: pixel,
-          }),
-        );
+      cursorX += 3 * pixel;
+    } else {
+      const pattern = TITLE_GLYPHS[character];
+      if (!pattern) throw new Error(`Unsupported title glyph: ${character}.`);
+      for (let row = 0; row < pattern.length; row += 1) {
+        for (let column = 0; column < pattern[row]!.length; column += 1) {
+          if (pattern[row]![column] !== "#") continue;
+          rects.push(
+            Object.freeze({
+              x: cursorX + column * pixel,
+              y: y + row * pixel,
+              width: pixel,
+              height: pixel,
+            }),
+          );
+        }
       }
+      cursorX += 5 * pixel;
     }
-    cursorX += 6 * pixel;
+    if (characterIndex < normalized.length - 1) cursorX += tracking;
   }
   return Object.freeze(rects);
 }
 
 export function drawTitleLettering(
   context: CanvasRenderingContext2D,
-  assetX: number,
-  assetY: number,
-  assetScale: number,
+  fieldX: number,
+  fieldY: number,
+  pixelScale: number,
 ): void {
-  if (!Number.isFinite(assetScale) || assetScale <= 0) {
-    throw new Error("Title lettering scale must be positive and finite.");
+  if (!Number.isInteger(fieldX) || !Number.isInteger(fieldY)) {
+    throw new Error("Title lettering field origin must use integer pixels.");
+  }
+  if (!Number.isInteger(pixelScale) || pixelScale <= 0) {
+    throw new Error("Title lettering scale must be a positive integer.");
   }
   const title = TITLE_LETTERING_CONTRACT.title;
   const prompt = TITLE_LETTERING_CONTRACT.prompt;
   const rects = [
-    ...titleLetteringRects(title.text, title.y, title.pixel),
-    ...titleLetteringRects(prompt.text, prompt.y, prompt.pixel),
+    ...titleLetteringRects(title.text, title.y, title.pixel, title.tracking),
+    ...titleLetteringRects(
+      prompt.text,
+      prompt.y,
+      prompt.pixel,
+      prompt.tracking,
+    ),
   ];
   context.save();
   context.fillStyle = TITLE_LETTERING_CONTRACT.colour;
   for (const rect of rects) {
-    const left = Math.round(assetX + rect.x * assetScale);
-    const top = Math.round(assetY + rect.y * assetScale);
-    const right = Math.round(assetX + (rect.x + rect.width) * assetScale);
-    const bottom = Math.round(assetY + (rect.y + rect.height) * assetScale);
     context.fillRect(
-      left,
-      top,
-      Math.max(1, right - left),
-      Math.max(1, bottom - top),
+      fieldX + rect.x * pixelScale,
+      fieldY + rect.y * pixelScale,
+      rect.width * pixelScale,
+      rect.height * pixelScale,
     );
   }
   context.restore();

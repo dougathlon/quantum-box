@@ -17,7 +17,11 @@ export interface FluxballCpuDecision {
   readonly reason:
     | "probe-action"
     | "pursue-ball"
+    | "intercept-loose-ball"
     | "challenge-carrier"
+    | "intercept-carrier"
+    | "support-carrier"
+    | "guard-open-goal"
     | "carry-to-believed-goal"
     | "stage-strike"
     | "strike-through-ball"
@@ -34,9 +38,9 @@ export interface FluxballPolicyTuning {
 }
 
 export const FORGIVING_CPU_TUNING: FluxballPolicyTuning = Object.freeze({
-  twoPlayerDecisionInterval: 20,
-  fourPlayerDecisionInterval: 30,
-  hesitationEveryDecisions: 3,
+  twoPlayerDecisionInterval: 3,
+  fourPlayerDecisionInterval: 4,
+  hesitationEveryDecisions: 0,
 });
 
 export const ARCADE_CPU_TUNING: FluxballPolicyTuning = Object.freeze({
@@ -84,6 +88,9 @@ export class FluxballCpuPolicy {
     private readonly playerId: PlayerId,
     private readonly policySeed: number,
     private readonly tuning: FluxballPolicyTuning = FORGIVING_CPU_TUNING,
+    private readonly cpuPlayerIds: readonly PlayerId[] = Object.freeze([
+      playerId,
+    ]),
   ) {}
 
   public snapshotBelief(): FluxballCpuBelief {
@@ -138,10 +145,16 @@ export class FluxballCpuPolicy {
     }
 
     const targetGoalId = this.believedTargetGoal(observation);
-    const targetGoal = goalCentre(targetGoalId, observation);
+    const targetGoal = goalApproachWaypoint(targetGoalId, observation);
     const ball = observation.ball;
-    let target: Axis = { x: ball.x, y: ball.y };
-    let reason: FluxballCpuDecision["reason"] = "pursue-ball";
+    const looseBallTarget = predictPoint(
+      ball,
+      { x: ball.vx, y: ball.vy },
+      0.22,
+      observation,
+    );
+    let target: Axis = looseBallTarget;
+    let reason: FluxballCpuDecision["reason"] = "intercept-loose-ball";
 
     if (this.belief.action === "UNKNOWN" && observation.roundTick < 24) {
       target = { x: player.x + 90, y: player.y };
@@ -150,7 +163,31 @@ export class FluxballCpuPolicy {
       target = targetGoal;
       reason = "carry-to-believed-goal";
     } else if (ball.carrierId !== null) {
-      reason = "challenge-carrier";
+      const carrier = observation.players[ball.carrierId];
+      if (!carrier) {
+        target = looseBallTarget;
+      } else if (this.cpuPlayerIds.includes(ball.carrierId)) {
+        target = supportPoint(carrier, targetGoal, this.playerId, observation);
+        reason = "support-carrier";
+      } else if (this.isNearestCpuTo(carrier, observation)) {
+        target = predictPoint(
+          carrier,
+          carrier.resolvedMotion,
+          0.36,
+          observation,
+        );
+        reason = "challenge-carrier";
+      } else {
+        target = interceptionPoint(carrier, this.playerId, observation);
+        reason = "intercept-carrier";
+      }
+    } else if (!this.isNearestCpuTo(looseBallTarget, observation)) {
+      target = guardPoint(
+        oppositeGoalFor(targetGoalId),
+        this.playerId,
+        observation,
+      );
+      reason = "guard-open-goal";
     } else if (this.belief.interaction === "STRIKE") {
       const strikeDirection = normalizeAxis({
         x: targetGoal.x - ball.x,
@@ -272,6 +309,22 @@ export class FluxballCpuPolicy {
       : oppositeGoalFor(this.playerId);
   }
 
+  private isNearestCpuTo(
+    target: Readonly<Axis>,
+    observation: FluxballPublicSportSnapshot,
+  ): boolean {
+    const ranked = this.cpuPlayerIds
+      .filter((playerId) => observation.players[playerId] !== undefined)
+      .sort((leftId, rightId) => {
+        const left = observation.players[leftId]!;
+        const right = observation.players[rightId]!;
+        const distance =
+          squaredDistance(left, target) - squaredDistance(right, target);
+        return distance || leftId.localeCompare(rightId);
+      });
+    return ranked[0] === this.playerId;
+  }
+
   private commitDecision(
     tick: number,
     decision: FluxballCpuDecision,
@@ -296,23 +349,137 @@ function axisForInput(input: Readonly<PlayerInput>): Axis {
   });
 }
 
-function goalCentre(
+function goalApproachWaypoint(
   playerId: PlayerId,
   observation: FluxballPublicSportSnapshot,
 ): Axis {
+  const overshoot = Math.max(48, observation.court.width * 0.08);
   switch (playerId) {
     case "A":
-      return { x: 0, y: observation.court.height / 2 };
+      return { x: -overshoot, y: observation.court.height / 2 };
     case "B":
-      return { x: observation.court.width, y: observation.court.height / 2 };
+      return {
+        x: observation.court.width + overshoot,
+        y: observation.court.height / 2,
+      };
     case "C":
-      return { x: observation.court.width / 2, y: 0 };
+      return { x: observation.court.width / 2, y: -overshoot };
     case "D":
       return {
         x: observation.court.width / 2,
-        y: observation.court.height,
+        y: observation.court.height + overshoot,
       };
   }
+}
+
+function predictPoint(
+  point: Readonly<Axis>,
+  velocity: Readonly<Axis>,
+  seconds: number,
+  observation: FluxballPublicSportSnapshot,
+): Axis {
+  return {
+    x: clamp(
+      point.x + velocity.x * seconds,
+      observation.court.width * 0.03,
+      observation.court.width * 0.97,
+    ),
+    y: clamp(
+      point.y + velocity.y * seconds,
+      observation.court.height * 0.05,
+      observation.court.height * 0.95,
+    ),
+  };
+}
+
+function guardPoint(
+  goalId: PlayerId,
+  playerId: PlayerId,
+  observation: FluxballPublicSportSnapshot,
+): Axis {
+  const centre = goalApproachWaypoint(goalId, observation);
+  const courtCentre = {
+    x: observation.court.width / 2,
+    y: observation.court.height / 2,
+  };
+  const inward = normalizeAxis({
+    x: courtCentre.x - centre.x,
+    y: courtCentre.y - centre.y,
+  });
+  const side = playerId.charCodeAt(0) % 2 === 0 ? 1 : -1;
+  return {
+    x: clamp(
+      centre.x + inward.x * 110 - inward.y * side * 38,
+      observation.court.width * 0.08,
+      observation.court.width * 0.92,
+    ),
+    y: clamp(
+      centre.y + inward.y * 110 + inward.x * side * 38,
+      observation.court.height * 0.1,
+      observation.court.height * 0.9,
+    ),
+  };
+}
+
+function supportPoint(
+  carrier: FluxballPublicPlayer,
+  goal: Readonly<Axis>,
+  playerId: PlayerId,
+  observation: FluxballPublicSportSnapshot,
+): Axis {
+  const towardGoal = normalizeAxis({
+    x: goal.x - carrier.x,
+    y: goal.y - carrier.y,
+  });
+  const flank = playerId.charCodeAt(0) % 2 === 0 ? 1 : -1;
+  return {
+    x: clamp(
+      carrier.x - towardGoal.x * 54 - towardGoal.y * flank * 62,
+      observation.court.width * 0.05,
+      observation.court.width * 0.95,
+    ),
+    y: clamp(
+      carrier.y - towardGoal.y * 54 + towardGoal.x * flank * 62,
+      observation.court.height * 0.07,
+      observation.court.height * 0.93,
+    ),
+  };
+}
+
+function interceptionPoint(
+  carrier: FluxballPublicPlayer,
+  playerId: PlayerId,
+  observation: FluxballPublicSportSnapshot,
+): Axis {
+  const prediction = predictPoint(
+    carrier,
+    carrier.resolvedMotion,
+    0.72,
+    observation,
+  );
+  const offset = playerId.charCodeAt(0) % 2 === 0 ? 34 : -34;
+  return {
+    x: clamp(
+      prediction.x - carrier.resolvedMotion.y * 0.12,
+      observation.court.width * 0.04,
+      observation.court.width * 0.96,
+    ),
+    y: clamp(
+      prediction.y + carrier.resolvedMotion.x * 0.12 + offset,
+      observation.court.height * 0.06,
+      observation.court.height * 0.94,
+    ),
+  };
+}
+
+function squaredDistance(left: Readonly<Axis>, right: Readonly<Axis>): number {
+  const x = left.x - right.x;
+  const y = left.y - right.y;
+  return x * x + y * y;
+}
+
+function clamp(value: number, minimum: number, maximum: number): number {
+  return Math.min(maximum, Math.max(minimum, value));
 }
 
 const NEUTRAL_INPUT: Readonly<PlayerInput> = Object.freeze({

@@ -21,6 +21,11 @@ import {
   skiPixlCanvasPrompt,
   skiPixlDistanceLabel,
 } from "../../games/skipixl/presentation";
+import {
+  drawNativePixelLine,
+  drawNativePixelRect,
+  snapNativePixel,
+} from "../NativePixelRaster";
 
 const TREE_SPRITE = Object.freeze([
   "......C......",
@@ -73,7 +78,7 @@ export function renderSkiPixl(
     drawObstacle(g, obstacle, Math.round(screenY));
   }
 
-  if (view.finishY >= 10 && view.finishY <= 350) {
+  if (view.finishY >= 5 && view.finishY <= 175) {
     drawFinish(g, Math.round(view.finishY));
   }
 
@@ -90,32 +95,39 @@ function drawHud(
   paused: boolean,
   hideCompletionPrompt: boolean,
 ): void {
-  g.lineStyle(1, BROWN_BOX_PALETTE.cream, 1).lineBetween(264, 49, 376, 49);
+  drawNativePixelLine(
+    g,
+    { x: 132, y: 24 },
+    { x: 188, y: 24 },
+    {
+      colour: BROWN_BOX_PALETTE.cream,
+    },
+  );
   drawPixelText(g, skiPixlDistanceLabel(snapshot), {
-    x: 320,
-    y: 11,
-    pixel: 2,
+    x: 160,
+    y: 6,
+    pixel: 1,
     colour: BROWN_BOX_PALETTE.cream,
     align: "center",
   });
   drawPixelText(g, formatSkiPixlTime(snapshot.elapsedSeconds), {
-    x: 320,
-    y: 25,
-    pixel: 4,
+    x: 160,
+    y: 13,
+    pixel: 2,
     colour: BROWN_BOX_PALETTE.cream,
     align: "center",
   });
   drawPixelText(g, `LIMIT ${snapshot.targetSeconds}`, {
-    x: 407,
-    y: 27,
-    pixel: 2,
+    x: 204,
+    y: 14,
+    pixel: 1,
     colour: BROWN_BOX_PALETTE.cream,
     align: "left",
   });
   drawPixelText(g, difficultyLabel(payload), {
-    x: 96,
-    y: 17,
-    pixel: 2,
+    x: 48,
+    y: 9,
+    pixel: 1,
     colour: BROWN_BOX_PALETTE.cream,
     align: "left",
   });
@@ -125,9 +137,9 @@ function drawHud(
       ({ passed }) => passed,
     ).length;
     drawPixelText(g, `GATES ${passedGateCount}/${gateCount}`, {
-      x: 96,
-      y: 31,
-      pixel: 2,
+      x: 48,
+      y: 16,
+      pixel: 1,
       colour: BROWN_BOX_PALETTE.cream,
       align: "left",
     });
@@ -137,9 +149,9 @@ function drawHud(
       g,
       snapshot.latestGate.passed ? "GATE CLEAR" : "GATE MISSED +2.5",
       {
-        x: 320,
-        y: 55,
-        pixel: 2,
+        x: 160,
+        y: 28,
+        pixel: 1,
         colour: BROWN_BOX_PALETTE.cream,
         align: "center",
       },
@@ -150,18 +162,19 @@ function drawHud(
     ? ""
     : skiPixlCanvasPrompt(snapshot, paused);
   if (prompt.length === 0) return;
-  const promptWidth = pixelTextWidth(prompt, 4);
-  const promptTop = paused ? 58 : 168;
-  g.lineStyle(2, BROWN_BOX_PALETTE.cream, 1).strokeRect(
-    Math.round(320 - promptWidth / 2) - 10,
+  const promptWidth = pixelTextWidth(prompt, 2);
+  const promptTop = paused ? 29 : 84;
+  drawPanelFrame(
+    g,
+    Math.round(160 - promptWidth / 2) - 5,
     promptTop,
-    promptWidth + 20,
-    36,
+    promptWidth + 10,
+    18,
   );
   drawPixelText(g, prompt, {
-    x: 320,
-    y: promptTop + 8,
-    pixel: 4,
+    x: 160,
+    y: promptTop + 4,
+    pixel: 2,
     colour: BROWN_BOX_PALETTE.cream,
     align: "center",
   });
@@ -186,11 +199,13 @@ function drawGroundCue(
   y: number,
   length: number,
 ): void {
-  g.fillStyle(BROWN_BOX_PALETTE.tobacco, 1).fillRect(
-    Math.round(x),
+  drawNativePixelRect(
+    g,
+    snapNativePixel(x / 2),
     y,
     1,
     Math.max(2, Math.round(length * SKIPIXL_WORLD_SCALE)),
+    BROWN_BOX_PALETTE.tobacco,
   );
 }
 
@@ -200,15 +215,29 @@ function drawGate(
   rightX: number,
   y: number,
 ): void {
-  const poleTop = y - 22;
-  g.fillStyle(BROWN_BOX_PALETTE.cream, 1)
-    .fillRect(Math.round(leftX) - 1, poleTop, 3, 24)
-    .fillRect(Math.round(rightX) - 1, poleTop, 3, 24)
-    .fillRect(Math.round(leftX) + 2, poleTop + 2, 10, 7)
-    .fillRect(Math.round(rightX) - 11, poleTop + 2, 10, 7);
-  g.fillStyle(BROWN_BOX_PALETTE.darkTobacco, 1)
-    .fillRect(Math.round(leftX) + 4, poleTop + 4, 6, 3)
-    .fillRect(Math.round(rightX) - 9, poleTop + 4, 6, 3);
+  const left = snapNativePixel(leftX / 2);
+  const right = snapNativePixel(rightX / 2);
+  const poleTop = y - 11;
+  drawNativePixelRect(g, left - 1, poleTop, 2, 12, BROWN_BOX_PALETTE.cream);
+  drawNativePixelRect(g, right - 1, poleTop, 2, 12, BROWN_BOX_PALETTE.cream);
+  drawNativePixelRect(g, left + 1, poleTop + 1, 5, 4, BROWN_BOX_PALETTE.cream);
+  drawNativePixelRect(g, right - 5, poleTop + 1, 5, 4, BROWN_BOX_PALETTE.cream);
+  drawNativePixelRect(
+    g,
+    left + 2,
+    poleTop + 2,
+    3,
+    2,
+    BROWN_BOX_PALETTE.darkTobacco,
+  );
+  drawNativePixelRect(
+    g,
+    right - 4,
+    poleTop + 2,
+    3,
+    2,
+    BROWN_BOX_PALETTE.darkTobacco,
+  );
 }
 
 function drawSpeedSpray(
@@ -218,30 +247,41 @@ function drawSpeedSpray(
   if (snapshot.phase !== "active" || snapshot.knockdownTicksRemaining > 0)
     return;
   const cadence = snapshot.tick % 6;
-  const spread = 7 + Math.abs(snapshot.steeringAngle) * 2;
-  const tail = 8 + Math.round((snapshot.speed - 56) * 0.25);
-  g.fillStyle(BROWN_BOX_PALETTE.cream, 1)
-    .fillRect(
-      Math.round(snapshot.skierX - spread),
-      SKIPIXL_PLAYER_Y + 3 + cadence,
-      2,
-      2,
-    )
-    .fillRect(
-      Math.round(snapshot.skierX + spread),
-      SKIPIXL_PLAYER_Y + 6 - cadence,
-      2,
-      2,
-    )
-    .fillRect(Math.round(snapshot.skierX - 2), SKIPIXL_PLAYER_Y + tail, 4, 2);
+  const skierX = snapNativePixel(snapshot.skierX / 2);
+  const spread = 4 + Math.abs(snapshot.steeringAngle);
+  const tail = 4 + Math.round((snapshot.speed - 56) * 0.125);
+  drawNativePixelRect(
+    g,
+    skierX - spread,
+    SKIPIXL_PLAYER_Y + 2 + cadence,
+    1,
+    1,
+    BROWN_BOX_PALETTE.cream,
+  );
+  drawNativePixelRect(
+    g,
+    skierX + spread,
+    SKIPIXL_PLAYER_Y + 3 - cadence,
+    1,
+    1,
+    BROWN_BOX_PALETTE.cream,
+  );
+  drawNativePixelRect(
+    g,
+    skierX - 1,
+    SKIPIXL_PLAYER_Y + tail,
+    2,
+    1,
+    BROWN_BOX_PALETTE.cream,
+  );
 }
 
 function drawFinish(g: Phaser.GameObjects.Graphics, y: number): void {
-  for (let x = 96; x < 544; x += 16) {
-    if ((x / 16) % 2 === 0) {
-      g.fillStyle(BROWN_BOX_PALETTE.cream).fillRect(x, y, 16, 6);
+  for (let x = 48; x < 272; x += 8) {
+    if ((x / 8) % 2 === 0) {
+      drawNativePixelRect(g, x, y, 8, 3, BROWN_BOX_PALETTE.cream);
     } else {
-      g.fillStyle(BROWN_BOX_PALETTE.cream).fillRect(x, y + 6, 16, 6);
+      drawNativePixelRect(g, x, y + 3, 8, 3, BROWN_BOX_PALETTE.cream);
     }
   }
 }
@@ -254,7 +294,7 @@ function drawObstacle(
   drawOutlinedSprite(
     g,
     obstacle.kind === "tree" ? TREE_SPRITE : MOGUL_SPRITE,
-    obstacle.x,
+    snapNativePixel(obstacle.x / 2),
     y + (obstacle.kind === "tree" ? 13 : 5),
   );
 }
@@ -268,7 +308,7 @@ function drawSkier(
       g,
       "skipixl-approved-five-state-strip",
       snapshot.knockdownTicksRemaining <= 12 ? "recovery" : "fall",
-      snapshot.skierX,
+      snapNativePixel(snapshot.skierX / 2),
       SKIPIXL_PLAYER_Y,
       CANONICAL_SPRITE_PIXEL_SCALE,
     );
@@ -279,7 +319,7 @@ function drawSkier(
     g,
     "skipixl-steering-seven-angle-strip",
     skiPixlFrameForAngle(snapshot.steeringAngle),
-    snapshot.skierX,
+    snapNativePixel(snapshot.skierX / 2),
     SKIPIXL_PLAYER_Y,
     CANONICAL_SPRITE_PIXEL_SCALE,
   );
@@ -316,10 +356,10 @@ function drawOutlinedCanonicalSprite(
 ): void {
   const outline = BROWN_BOX_PALETTE.darkTobacco;
   const offsets = [
-    [-2, 0],
-    [2, 0],
-    [0, -2],
-    [0, 2],
+    [-1, 0],
+    [1, 0],
+    [0, -1],
+    [0, 1],
   ] as const;
   for (const [offsetX, offsetY] of offsets) {
     drawCanonicalSprite(g, fileId, frameId, {
@@ -339,14 +379,14 @@ function drawOutlinedSprite(
   pattern: PixelSprite,
   centerX: number,
   bottomY: number,
-  pixel = 2,
+  pixel = 1,
 ): void {
   const outline = BROWN_BOX_PALETTE.darkTobacco;
   const offsets = [
-    [-2, 0],
-    [2, 0],
-    [0, -2],
-    [0, 2],
+    [-1, 0],
+    [1, 0],
+    [0, -1],
+    [0, 1],
   ] as const;
   for (const [offsetX, offsetY] of offsets) {
     drawPixelSprite(g, pattern, {
@@ -363,4 +403,28 @@ function drawOutlinedSprite(
     centerX,
     bottomY,
   });
+}
+
+function drawPanelFrame(
+  g: Phaser.GameObjects.Graphics,
+  x: number,
+  y: number,
+  width: number,
+  height: number,
+): void {
+  const colour = BROWN_BOX_PALETTE.cream;
+  drawNativePixelLine(g, { x, y }, { x: x + width, y }, { colour });
+  drawNativePixelLine(g, { x, y }, { x, y: y + height }, { colour });
+  drawNativePixelLine(
+    g,
+    { x: x + width, y },
+    { x: x + width, y: y + height },
+    { colour },
+  );
+  drawNativePixelLine(
+    g,
+    { x, y: y + height },
+    { x: x + width, y: y + height },
+    { colour },
+  );
 }

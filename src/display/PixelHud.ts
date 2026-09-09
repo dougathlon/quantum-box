@@ -1,6 +1,7 @@
 import type Phaser from "phaser";
 import { BROWN_BOX_PALETTE } from "./BrownBoxTheme";
 import { drawPixelText, pixelTextWidth } from "./PixelText";
+import { drawNativePixelLine } from "./NativePixelRaster";
 
 export interface CenteredPixelPanelOptions {
   readonly centerX: number;
@@ -27,9 +28,31 @@ export function drawCenteredPixelPanel(
   const panelHeight = pixel * 5 + paddingY * 2;
 
   if (options.border) {
-    graphics
-      .lineStyle(2, BROWN_BOX_PALETTE.cream, 1)
-      .strokeRect(panelX, panelY, panelWidth, panelHeight);
+    const colour = BROWN_BOX_PALETTE.cream;
+    drawNativePixelLine(
+      graphics,
+      { x: panelX, y: panelY },
+      { x: panelX + panelWidth, y: panelY },
+      { colour },
+    );
+    drawNativePixelLine(
+      graphics,
+      { x: panelX, y: panelY },
+      { x: panelX, y: panelY + panelHeight },
+      { colour },
+    );
+    drawNativePixelLine(
+      graphics,
+      { x: panelX + panelWidth, y: panelY },
+      { x: panelX + panelWidth, y: panelY + panelHeight },
+      { colour },
+    );
+    drawNativePixelLine(
+      graphics,
+      { x: panelX, y: panelY + panelHeight },
+      { x: panelX + panelWidth, y: panelY + panelHeight },
+      { colour },
+    );
   }
   drawPixelText(graphics, text, {
     x: options.centerX,

@@ -1,30 +1,5 @@
-import {
-  createDefaultSave,
-  SAVE_SCHEMA_VERSION,
-  validateSave,
-  type QuantumBoxSave,
-  type QuantumBoxSettings,
-  type PendingStoryNarrativeBeat,
-  type StoryNarrativeBeatKind,
-  type SkiPixlStoryAttemptReceipt,
-  type SkiPixlStoryPassReceipt,
-} from "./types";
-import {
-  createLegacyStoryV2PresentationEvidence,
-  validateStoryV2PresentationEvidence,
-  type StoryV2PresentationEvidence,
-} from "../story/v2/evidence";
-import { parseStoryV2ResumeToken } from "../story/v2/PresentationMachine";
-import { storyV2PresentationFlow } from "../story/v2/flows";
-import { storyV2Stage } from "../story/v2/registry";
-import { STORY_V2_VERSION } from "../story/v2/types";
 import type { RunContext } from "../core/run";
-import { canonicalJson } from "../core/canonicalJson";
-import {
-  gameForStoryStage,
-  nextStoryStage,
-  type StoryStageId,
-} from "../games/registry";
+import type { StoryChapterId, StoryStageId } from "../games/registry";
 import {
   QongStoryBankUnavailableError,
   requireInstalledQongRecoveryReference,
@@ -32,9 +7,13 @@ import {
   type QongPackSelectionReceipt,
 } from "../games/qong/qongStoryPackBank";
 import {
-  validateTutorialRecoveryRecord,
-  type TutorialRecoveryRecord,
-} from "../tutorials/recovery";
+  branchStoryOutcome,
+  chapterStages,
+  STORY_OPENING_NODE_ID,
+  storyNode,
+} from "../story/terminal";
+import type { StoryOutcome, StoryTerminalActionId } from "../story/terminal";
+import type { TutorialRecoveryRecord } from "../tutorials/recovery";
 import {
   normalizeInitials,
   recordQuantmanArcadeResult,
@@ -43,13 +22,25 @@ import {
   type PendingQuantmanArcadeRecord,
   type PendingSkiPixlArcadeRecord,
 } from "./ArcadeRecords";
+import {
+  createDefaultSave,
+  SAVE_SCHEMA_VERSION,
+  validateSave,
+  type QuantumBoxSave,
+  type QuantumBoxSettings,
+  type SkiPixlStoryAttemptReceipt,
+  type SkiPixlStoryPassReceipt,
+} from "./types";
 
-export const SAVE_STORAGE_KEY = "quantum-box/save-v5";
-export const PREVIOUS_SAVE_STORAGE_KEY = "quantum-box/save-v4";
-export const LEGACY_SAVE_STORAGE_KEY = "quantum-box/save-v3";
-export const EARLIEST_SAVE_STORAGE_KEY = "quantum-box/save-v2";
-export const INITIAL_SAVE_STORAGE_KEY = "quantum-box/save-v1";
-export const SAVE_EXPORT_FILENAME = "quantum-box-save-v5.json";
+export const SAVE_STORAGE_KEY = "quantum-box/save-v6";
+export const PREVIOUS_SAVE_STORAGE_KEY = "quantum-box/save-v5";
+export const LEGACY_SAVE_STORAGE_KEY = "quantum-box/save-v4";
+export const EARLIEST_SAVE_STORAGE_KEY = "quantum-box/save-v3";
+export const INITIAL_SAVE_STORAGE_KEY = "quantum-box/save-v2";
+export const ORIGINAL_SAVE_STORAGE_KEY = "quantum-box/save-v1";
+export const SAVE_EXPORT_FILENAME = "quantum-box-save-v6.json";
+
+export type StoryAttemptSource = "main-story" | "terminal-retry";
 
 export type QongRecoveryAuthorityVerifier = (
   recovery: TutorialRecoveryRecord<"qong">,
@@ -58,7 +49,7 @@ export type QongRecoveryAuthorityVerifier = (
 /**
  * The persisted recovery is internally valid, but identifies a different
  * installed Qong bank/version. This is recoverable by demoting only Qong's
- * authority; it is not equivalent to a malformed or tampered save.
+ * authority; it is not equivalent to malformed or tampered save data.
  */
 export class QongRecoveryAuthorityMismatchError extends Error {
   public constructor(message: string) {
@@ -68,12 +59,7 @@ export class QongRecoveryAuthorityMismatchError extends Error {
 }
 
 interface DeferredSave {
-  readonly storageKey:
-    | typeof SAVE_STORAGE_KEY
-    | typeof PREVIOUS_SAVE_STORAGE_KEY
-    | typeof LEGACY_SAVE_STORAGE_KEY
-    | typeof EARLIEST_SAVE_STORAGE_KEY
-    | typeof INITIAL_SAVE_STORAGE_KEY;
+  readonly storageKey: string;
   readonly value: QuantumBoxSave;
 }
 
@@ -115,17 +101,64 @@ export class SaveRepository {
     });
   }
 
-  public recordStoryAttempt(context: RunContext): QuantumBoxSave {
-    this.requireStoryAuthorityAvailable();
-    const stage = requireCurrentStoryAuthority(this.value, context);
-    const qongSelector =
-      stage === "qong"
-        ? advanceQongSelector(this.value, context)
-        : this.value.story.qongSelector;
+  /** Persist a terminal node before the UI or a cabinet transition begins. */
+  public setStoryNode(nodeId: string): QuantumBoxSave {
+    storyNode(nodeId);
     return this.commit({
       ...this.value,
       story: {
         ...this.value.story,
+        currentNodeId: nodeId,
+        storyCompleted:
+          nodeId === "story-complete" || this.value.story.storyCompleted,
+      },
+    });
+  }
+
+  public advanceStoryTerminal(action: StoryTerminalActionId): QuantumBoxSave {
+    const current = storyNode(this.value.story.currentNodeId);
+    if (
+      current.kind !== "terminal-page" &&
+      current.kind !== "loading-transition" &&
+      current.kind !== "placeholder"
+    ) {
+      throw new Error(
+        "The current Story node is not an interactive terminal page.",
+      );
+    }
+    const target = current.transitions[action];
+    if (!target) {
+      throw new Error(
+        `Story action ${action} is not available on ${current.id}.`,
+      );
+    }
+    return this.setStoryNode(target);
+  }
+
+  public recordStoryAttempt(
+    context: RunContext,
+    source: StoryAttemptSource = "main-story",
+  ): QuantumBoxSave {
+    this.requireStoryAuthorityAvailable();
+    const stage = requireStoryRun(context);
+    if (source === "main-story") {
+      const node = storyNode(this.value.story.currentNodeId);
+      if (node.kind !== "game-launch" || node.stageId !== stage) {
+        throw new Error("Story run authority does not match the current node.");
+      }
+    }
+    const qongSelector =
+      stage === "qong"
+        ? advanceQongSelector(this.value, context)
+        : this.value.story.qongSelector;
+    const experiencedStages = this.value.story.experiencedStages.includes(stage)
+      ? this.value.story.experiencedStages
+      : [...this.value.story.experiencedStages, stage];
+    return this.commit({
+      ...this.value,
+      story: {
+        ...this.value.story,
+        experiencedStages,
         attempts: {
           ...this.value.story.attempts,
           [stage]: (this.value.story.attempts[stage] ?? 0) + 1,
@@ -135,60 +168,193 @@ export class SaveRepository {
     });
   }
 
-  public recordPendingNarrativeBeat(
+  /**
+   * Record an authoritative cabinet outcome. Main Story resolves to a terminal
+   * branch; Terminal retries leave the main cursor untouched.
+   */
+  public recordStoryOutcome(
     context: RunContext,
-    input: Readonly<{
-      beatId: string;
-      kind: StoryNarrativeBeatKind;
-      activeTick: number;
-      evidenceSha256: string;
-      presentationEvidence?: StoryV2PresentationEvidence;
-    }>,
+    outcomeValue: StoryOutcome,
+    source: StoryAttemptSource = "main-story",
   ): QuantumBoxSave {
     this.requireStoryAuthorityAvailable();
-    const stage = requireCurrentStoryAuthority(this.value, context);
-    const pendingNarrativeBeat: PendingStoryNarrativeBeat = Object.freeze({
-      schemaVersion: "quantum-box-pending-story-beat-v2",
-      stage,
-      beatId: input.beatId,
-      kind: input.kind,
-      qualifiedRun: context,
-      qualification: Object.freeze({
-        outcome: "qualified",
-        activeTick: input.activeTick,
-        evidenceSha256: input.evidenceSha256,
-      }),
-      presentationEvidence: input.presentationEvidence
-        ? validateStoryV2PresentationEvidence(input.presentationEvidence, {
-            stageId: stage,
-            run: context,
-            activeTick: input.activeTick,
-            evidenceSha256: input.evidenceSha256,
-          })
-        : createLegacyStoryV2PresentationEvidence({
-            stageId: stage,
-            run: context,
-            activeTick: input.activeTick,
-            evidenceSha256: input.evidenceSha256,
-          }),
-    });
-    return this.commit({
-      ...this.value,
-      story: { ...this.value.story, pendingNarrativeBeat },
-    });
-  }
-
-  public updatePendingNarrativeBeat(beatId: string): QuantumBoxSave {
-    const pending = this.value.story.pendingNarrativeBeat;
-    if (pending === null) {
-      throw new Error("No qualified Story transition is pending.");
+    const stage = requireStoryRun(context);
+    if ((this.value.story.attempts[stage] ?? 0) < 1) {
+      throw new Error("A Story outcome requires a recorded attempt.");
     }
-    requireCanonicalStoryBeat(pending.stage, beatId);
+    let currentNodeId = this.value.story.currentNodeId;
+    if (source === "main-story") {
+      const launch = storyNode(currentNodeId);
+      if (launch.kind !== "game-launch" || launch.stageId !== stage) {
+        throw new Error(
+          "Story outcome does not match the current launch node.",
+        );
+      }
+      const branch = storyNode(launch.outcomeNodeId);
+      if (branch.kind !== "outcome-branch" || branch.stageId !== stage) {
+        throw new Error("Story launch has an invalid outcome branch.");
+      }
+      currentNodeId = branchStoryOutcome(
+        branch,
+        outcomeValue,
+        firstLossExplanationAlreadyShown(
+          stage,
+          this.value.story.firstLossExplanations,
+        ),
+      );
+    }
+    const cleared = outcomeValue === "won" || outcomeValue === "finished";
+    const clearedStages =
+      cleared && !this.value.story.clearedStages.includes(stage)
+        ? [...this.value.story.clearedStages, stage]
+        : this.value.story.clearedStages;
+    const qongSelector =
+      stage === "qong" && cleared
+        ? completeQongSelector(this.value, context)
+        : this.value.story.qongSelector;
+    const qualifiedRuns = cleared
+      ? { ...this.value.story.qualifiedRuns, [stage]: context }
+      : this.value.story.qualifiedRuns;
+    const firstLossExplanations =
+      !cleared && stage === "qong"
+        ? { ...this.value.story.firstLossExplanations, qong: true }
+        : !cleared && stage === "quantman-hold"
+          ? { ...this.value.story.firstLossExplanations, quantman: true }
+          : !cleared &&
+              (stage === "fluxball-global" || stage === "fluxball-individual")
+            ? { ...this.value.story.firstLossExplanations, fluxball: true }
+            : this.value.story.firstLossExplanations;
     return this.commit({
       ...this.value,
       story: {
         ...this.value.story,
-        pendingNarrativeBeat: { ...pending, beatId },
+        currentNodeId,
+        clearedStages,
+        completedStages: clearedStages,
+        lastOutcomes: {
+          ...this.value.story.lastOutcomes,
+          [stage]: outcomeValue,
+        },
+        qongSelector,
+        qualifiedRuns,
+        firstLossExplanations,
+      },
+    });
+  }
+
+  public markTranscriptSeen(chapterId: StoryChapterId): QuantumBoxSave {
+    const chapterCleared = chapterStages(chapterId).every((stage) =>
+      this.value.story.clearedStages.includes(stage),
+    );
+    if (!chapterCleared) {
+      throw new Error(
+        "A Terminal transcript unlocks only after its required clears.",
+      );
+    }
+    if (this.value.story.transcriptSeen.includes(chapterId)) return this.value;
+    return this.commit({
+      ...this.value,
+      story: {
+        ...this.value.story,
+        transcriptSeen: [...this.value.story.transcriptSeen, chapterId],
+      },
+    });
+  }
+
+  /** Replay the demonstration without erasing results or Arcade history. */
+  public replayStoryFromStart(): QuantumBoxSave {
+    return this.commit({
+      ...this.value,
+      story: {
+        ...this.value.story,
+        currentNodeId: STORY_OPENING_NODE_ID,
+        storyCompleted: false,
+      },
+    });
+  }
+
+  public recordSkiPixlCutResult(
+    context: RunContext,
+    result:
+      | Readonly<{ qualified: false; attempt: SkiPixlStoryAttemptReceipt }>
+      | Readonly<{
+          qualified: true;
+          pass: SkiPixlStoryPassReceipt;
+          attempt: SkiPixlStoryAttemptReceipt;
+        }>,
+  ): QuantumBoxSave {
+    this.requireStoryAuthorityAvailable();
+    const stage = requireStoryRun(context);
+    if (stage !== "skipixl-feasible" && stage !== "skipixl-overloaded") {
+      throw new Error("SkiPixl cut progress requires a SkiPixl Story stage.");
+    }
+    const expectedCut = stage === "skipixl-feasible" ? "P84" : "P78";
+    const current = this.value.story.skipixlCuts;
+    if (
+      result.attempt.stageId !== stage ||
+      result.attempt.cutId !== expectedCut ||
+      result.attempt.qualified !== result.qualified ||
+      result.attempt.runId !== context.runId ||
+      result.attempt.packId !== context.pack.packId ||
+      result.attempt.contentSha256 !== context.pack.contentSha256
+    ) {
+      throw new Error("SkiPixl attempt receipt does not match the Story run.");
+    }
+    const completedAttempts = [...current.completedAttempts, result.attempt];
+    if (!result.qualified) {
+      return this.commit({
+        ...this.value,
+        story: {
+          ...this.value.story,
+          skipixlCuts: {
+            ...current,
+            currentCut: expectedCut,
+            tripletCursor: current.tripletCursor + 1,
+            tripletId: null,
+            completedAttempts,
+          },
+        },
+      });
+    }
+    if (
+      result.pass.cutId !== expectedCut ||
+      result.pass.tripletId !== result.attempt.tripletId ||
+      result.pass.packId !== result.attempt.packId ||
+      result.pass.contentSha256 !== result.attempt.contentSha256 ||
+      result.pass.runId !== result.attempt.runId ||
+      result.pass.elapsedSeconds !== result.attempt.elapsedSeconds ||
+      result.pass.collisionCount !== result.attempt.collisionCount
+    ) {
+      throw new Error("SkiPixl pass and attempt receipts disagree.");
+    }
+    if (
+      stage === "skipixl-overloaded" &&
+      current.tripletId !== null &&
+      result.pass.tripletId !== current.tripletId
+    ) {
+      throw new Error(
+        "SkiPixl overloaded course must retain its feasible-course triplet until failure rotates it.",
+      );
+    }
+    const successfulPasses = [
+      ...current.successfulPasses.filter((pass) => pass.cutId !== expectedCut),
+      result.pass,
+    ].sort(
+      (left, right) =>
+        ["P90", "P84", "P78"].indexOf(left.cutId) -
+        ["P90", "P84", "P78"].indexOf(right.cutId),
+    );
+    return this.commit({
+      ...this.value,
+      story: {
+        ...this.value.story,
+        skipixlCuts: {
+          currentCut: "P78",
+          tripletCursor: current.tripletCursor,
+          tripletId: result.pass.tripletId,
+          successfulPasses,
+          completedAttempts,
+        },
       },
     });
   }
@@ -238,7 +404,7 @@ export class SaveRepository {
   }
 
   public markFirstLossExplanationSeen(
-    gameId: "qong" | "fluxball",
+    gameId: "qong" | "quantman" | "fluxball",
   ): QuantumBoxSave {
     if (this.value.story.firstLossExplanations[gameId]) return this.value;
     return this.commit({
@@ -253,179 +419,10 @@ export class SaveRepository {
     });
   }
 
-  public recordSkiPixlCutResult(
-    context: RunContext,
-    result:
-      | Readonly<{
-          qualified: false;
-          attempt: SkiPixlStoryAttemptReceipt;
-        }>
-      | Readonly<{
-          qualified: true;
-          pass: SkiPixlStoryPassReceipt;
-          attempt: SkiPixlStoryAttemptReceipt;
-        }>,
-  ): QuantumBoxSave {
-    this.requireStoryAuthorityAvailable();
-    const stage = requireCurrentStoryAuthority(this.value, context);
-    if (stage !== "skipixl-medium" && stage !== "skipixl") {
-      throw new Error("SkiPixl cut progress requires the active Story stage.");
-    }
-    const expectedCut = stage === "skipixl-medium" ? "P84" : "P78";
-    const current = this.value.story.skipixlCuts;
-    if (
-      result.attempt.stageId !== stage ||
-      result.attempt.cutId !== expectedCut ||
-      result.attempt.qualified !== result.qualified ||
-      result.attempt.runId !== context.runId ||
-      result.attempt.packId !== context.pack.packId ||
-      result.attempt.contentSha256 !== context.pack.contentSha256
-    ) {
-      throw new Error(
-        "SkiPixl attempt receipt does not match the active Story run.",
-      );
-    }
-    const completedAttempts = [...current.completedAttempts, result.attempt];
-    if (!result.qualified) {
-      return this.commit({
-        ...this.value,
-        story: {
-          ...this.value.story,
-          skipixlCuts: {
-            ...current,
-            currentCut: expectedCut,
-            tripletCursor: current.tripletCursor + 1,
-            tripletId: null,
-            completedAttempts,
-          },
-        },
-      });
-    }
-    if (result.pass.cutId !== expectedCut) {
-      throw new Error("SkiPixl pass does not match the current residual cut.");
-    }
-    if (
-      result.pass.tripletId !== result.attempt.tripletId ||
-      result.pass.packId !== result.attempt.packId ||
-      result.pass.contentSha256 !== result.attempt.contentSha256 ||
-      result.pass.runId !== result.attempt.runId ||
-      result.pass.elapsedSeconds !== result.attempt.elapsedSeconds ||
-      result.pass.collisionCount !== result.attempt.collisionCount
-    ) {
-      throw new Error("SkiPixl pass and attempt receipts disagree.");
-    }
-    if (
-      stage === "skipixl" &&
-      current.tripletId !== null &&
-      result.pass.tripletId !== current.tripletId
-    ) {
-      throw new Error(
-        "SkiPixl Hard must use the Medium triplet until a failed attempt rotates it.",
-      );
-    }
-    const retainedPasses = current.successfulPasses.filter(
-      (pass) => pass.cutId !== expectedCut,
-    );
-    const successfulPasses = [...retainedPasses, result.pass].sort(
-      (left, right) =>
-        ["P90", "P84", "P78"].indexOf(left.cutId) -
-        ["P90", "P84", "P78"].indexOf(right.cutId),
-    );
-    return this.commit({
-      ...this.value,
-      story: {
-        ...this.value.story,
-        skipixlCuts: {
-          currentCut: "P78",
-          tripletCursor: current.tripletCursor,
-          tripletId: result.pass.tripletId,
-          successfulPasses,
-          completedAttempts,
-        },
-      },
-    });
-  }
-
-  public completeStoryRun(
-    context: RunContext,
-    recovery: TutorialRecoveryRecord | null,
-  ): QuantumBoxSave {
-    this.requireStoryAuthorityAvailable();
-    const stage = requireCurrentStoryAuthority(this.value, context);
-    const validatedRecovery = requireStageRecovery(
-      stage,
-      context,
-      recovery,
-      this.verifyQongRecoveryAuthority,
-    );
-    if (validatedRecovery === null) {
-      requireCanonicalStoryCompletionAuthority(this.value, stage, context);
-    }
-    const nextStage = nextStoryStage(stage);
-    const completedStages = [...this.value.story.completedStages, stage];
-    const currentGame = gameForStoryStage(stage).id;
-    const nextGame =
-      nextStage === "complete" ? null : gameForStoryStage(nextStage).id;
-    const recoveredFormulae =
-      nextGame === currentGame ||
-      this.value.story.recoveredFormulae.includes(currentGame)
-        ? this.value.story.recoveredFormulae
-        : [...this.value.story.recoveredFormulae, currentGame];
-    const debriefedFormulae =
-      validatedRecovery === null &&
-      !isMidChapterStage(stage) &&
-      !this.value.story.debriefedFormulae.includes(currentGame)
-        ? [...this.value.story.debriefedFormulae, currentGame]
-        : this.value.story.debriefedFormulae;
-    const qongSelector =
-      stage === "qong"
-        ? completeQongSelector(this.value, context)
-        : this.value.story.qongSelector;
-    const tutorialRecoveries =
-      validatedRecovery === null
-        ? this.value.story.tutorialRecoveries
-        : {
-            ...this.value.story.tutorialRecoveries,
-            [currentGame]: validatedRecovery,
-          };
-    const inspectOnlyFormulae =
-      validatedRecovery === null
-        ? debriefedFormulae.includes(currentGame)
-          ? this.value.story.inspectOnlyFormulae.filter(
-              (gameId) => gameId !== currentGame,
-            )
-          : this.value.story.inspectOnlyFormulae
-        : this.value.story.inspectOnlyFormulae.filter(
-            (gameId) => gameId !== currentGame,
-          );
-    return this.commit({
-      ...this.value,
-      story: {
-        ...this.value.story,
-        currentStage: nextStage,
-        completedStages,
-        recoveredFormulae,
-        inspectOnlyFormulae,
-        debriefedFormulae,
-        qongSelector,
-        tutorialRecoveries,
-        pendingNarrativeBeat: null,
-        qualifiedRuns: {
-          ...this.value.story.qualifiedRuns,
-          [stage]: context,
-        },
-      },
-    });
-  }
-
   public reset(): QuantumBoxSave {
     this.deferredSave = null;
     this.value = createDefaultSave();
-    this.storage.removeItem(SAVE_STORAGE_KEY);
-    this.storage.removeItem(PREVIOUS_SAVE_STORAGE_KEY);
-    this.storage.removeItem(LEGACY_SAVE_STORAGE_KEY);
-    this.storage.removeItem(EARLIEST_SAVE_STORAGE_KEY);
-    this.storage.removeItem(INITIAL_SAVE_STORAGE_KEY);
+    for (const key of ALL_SAVE_STORAGE_KEYS) this.storage.removeItem(key);
     return this.value;
   }
 
@@ -443,36 +440,14 @@ export class SaveRepository {
   }
 
   private load(): QuantumBoxSave {
-    const candidates = [
-      {
-        key: SAVE_STORAGE_KEY,
-        serialized: this.storage.getItem(SAVE_STORAGE_KEY),
-      },
-      {
-        key: PREVIOUS_SAVE_STORAGE_KEY,
-        serialized: this.storage.getItem(PREVIOUS_SAVE_STORAGE_KEY),
-      },
-      {
-        key: LEGACY_SAVE_STORAGE_KEY,
-        serialized: this.storage.getItem(LEGACY_SAVE_STORAGE_KEY),
-      },
-      {
-        key: EARLIEST_SAVE_STORAGE_KEY,
-        serialized: this.storage.getItem(EARLIEST_SAVE_STORAGE_KEY),
-      },
-      {
-        key: INITIAL_SAVE_STORAGE_KEY,
-        serialized: this.storage.getItem(INITIAL_SAVE_STORAGE_KEY),
-      },
-    ] as const;
-
-    for (const candidate of candidates) {
-      if (candidate.serialized === null) continue;
+    for (const key of ALL_SAVE_STORAGE_KEYS) {
+      const serialized = this.storage.getItem(key);
+      if (serialized === null) continue;
       let validated: QuantumBoxSave;
       try {
-        validated = validateSave(JSON.parse(candidate.serialized) as unknown);
+        validated = validateSave(JSON.parse(serialized) as unknown);
       } catch {
-        this.storage.removeItem(candidate.key);
+        this.storage.removeItem(key);
         continue;
       }
       try {
@@ -482,60 +457,33 @@ export class SaveRepository {
         );
       } catch (error) {
         if (error instanceof QongStoryBankUnavailableError) {
-          this.deferredSave = {
-            storageKey: candidate.key,
-            value: validated,
-          };
+          this.deferredSave = { storageKey: key, value: validated };
           return createLockedProjection(validated);
         }
         if (error instanceof QongRecoveryAuthorityMismatchError) {
           const demoted = demoteMismatchedQongAuthority(validated);
-          try {
-            this.storage.setItem(SAVE_STORAGE_KEY, JSON.stringify(demoted));
-            this.storage.removeItem(PREVIOUS_SAVE_STORAGE_KEY);
-            this.storage.removeItem(LEGACY_SAVE_STORAGE_KEY);
-            this.storage.removeItem(EARLIEST_SAVE_STORAGE_KEY);
-            this.storage.removeItem(INITIAL_SAVE_STORAGE_KEY);
-          } catch {
-            // Preserve the original bytes if the recoverable demotion cannot
-            // be committed. The in-memory projection still exposes all
-            // non-Qong data without treating the old Qong bank as authority.
-          }
+          this.promoteLoadedSave(demoted, key);
           return demoted;
         }
-        this.storage.removeItem(candidate.key);
+        this.storage.removeItem(key);
         continue;
       }
-
-      if (candidate.key === SAVE_STORAGE_KEY) {
-        if (JSON.stringify(validated) !== candidate.serialized) {
-          try {
-            this.storage.setItem(SAVE_STORAGE_KEY, JSON.stringify(validated));
-          } catch {
-            // The validated in-memory migration remains usable; retain the
-            // original bytes when storage cannot accept the safer projection.
-          }
-        }
-        this.storage.removeItem(PREVIOUS_SAVE_STORAGE_KEY);
-        this.storage.removeItem(LEGACY_SAVE_STORAGE_KEY);
-        this.storage.removeItem(EARLIEST_SAVE_STORAGE_KEY);
-        this.storage.removeItem(INITIAL_SAVE_STORAGE_KEY);
-        return validated;
-      }
-
-      try {
-        this.storage.setItem(SAVE_STORAGE_KEY, JSON.stringify(validated));
-        this.storage.removeItem(PREVIOUS_SAVE_STORAGE_KEY);
-        this.storage.removeItem(LEGACY_SAVE_STORAGE_KEY);
-        this.storage.removeItem(EARLIEST_SAVE_STORAGE_KEY);
-        this.storage.removeItem(INITIAL_SAVE_STORAGE_KEY);
-      } catch {
-        // Keep the valid older key intact so a failed migration never loses it.
-      }
+      this.promoteLoadedSave(validated, key);
       return validated;
     }
-
     return createDefaultSave();
+  }
+
+  private promoteLoadedSave(save: QuantumBoxSave, sourceKey: string): void {
+    try {
+      this.storage.setItem(SAVE_STORAGE_KEY, JSON.stringify(save));
+      for (const key of ALL_SAVE_STORAGE_KEYS) {
+        if (key !== SAVE_STORAGE_KEY) this.storage.removeItem(key);
+      }
+    } catch {
+      // Preserve the source key when storage cannot accept the v6 projection.
+      if (sourceKey === SAVE_STORAGE_KEY) return;
+    }
   }
 
   private requireStoryAuthorityAvailable(): void {
@@ -547,106 +495,56 @@ export class SaveRepository {
   }
 }
 
+function firstLossExplanationAlreadyShown(
+  stage: StoryStageId,
+  state: QuantumBoxSave["story"]["firstLossExplanations"],
+): boolean {
+  if (stage === "qong") return state.qong;
+  if (stage === "quantman-hold") return state.quantman;
+  if (stage === "fluxball-global" || stage === "fluxball-individual")
+    return state.fluxball;
+  return false;
+}
+
+const ALL_SAVE_STORAGE_KEYS = Object.freeze([
+  SAVE_STORAGE_KEY,
+  PREVIOUS_SAVE_STORAGE_KEY,
+  LEGACY_SAVE_STORAGE_KEY,
+  EARLIEST_SAVE_STORAGE_KEY,
+  INITIAL_SAVE_STORAGE_KEY,
+  ORIGINAL_SAVE_STORAGE_KEY,
+]);
+
 function createLockedProjection(save: QuantumBoxSave): QuantumBoxSave {
   return validateSave({
     ...createDefaultSave(),
     settings: save.settings,
+    arcadeRecords: save.arcadeRecords,
   });
 }
 
-function requireStageRecovery(
-  stage: Exclude<QuantumBoxSave["story"]["currentStage"], "complete">,
-  context: RunContext,
-  recovery: TutorialRecoveryRecord | null,
-  verifyQongRecoveryAuthority: QongRecoveryAuthorityVerifier,
-): TutorialRecoveryRecord | null {
-  if (isRecoveryOptionalStage(stage)) {
-    if (recovery !== null) {
-      throw new Error(
-        `${stage} uses the canonical Story transition rather than a legacy tutorial recovery.`,
-      );
-    }
-    return null;
+function requireStoryRun(context: RunContext): StoryStageId {
+  if (context.playMode !== "story" || context.storyStage === null) {
+    throw new Error("Only a frozen Story run can mutate Story progression.");
   }
-  if (recovery === null) {
+  if (!isStoryStageId(context.storyStage)) {
     throw new Error(
-      `${stage} completion requires its tutorial recovery record.`,
+      "Legacy Story stage identifiers cannot mutate v6 progress.",
     );
   }
-  const validated = validateTutorialRecoveryRecord(recovery);
-  const expectedGame = gameForStoryStage(stage).id;
-  if (
-    validated.gameId !== expectedGame ||
-    validated.run.runId !== context.runId ||
-    canonicalJson(validated.run) !== canonicalJson(context)
-  ) {
-    throw new Error(
-      `${stage} tutorial recovery does not match the completed Story run.`,
-    );
-  }
-  if (validated.gameId === "qong") {
-    verifyQongRecoveryAuthority(validated as TutorialRecoveryRecord<"qong">);
-  }
-  return validated;
+  return context.storyStage;
 }
 
-function requireCanonicalStoryBeat(stage: StoryStageId, beatId: string): void {
-  const definition = storyV2Stage(stage);
-  parseStoryV2ResumeToken({
-    schemaVersion: STORY_V2_VERSION,
-    stageId: stage,
-    flowId: definition.presentationFlowId,
-    beatId,
-  });
-}
-
-function requireCanonicalStoryCompletionAuthority(
-  save: QuantumBoxSave,
-  stage: StoryStageId,
-  context: RunContext,
-): void {
-  const pending = save.story.pendingNarrativeBeat;
-  if (pending === null) {
-    throw new Error(
-      `${stage} completion requires its qualified canonical Story presentation.`,
-    );
-  }
-  if (
-    pending.stage !== stage ||
-    canonicalJson(pending.qualifiedRun) !== canonicalJson(context)
-  ) {
-    throw new Error(
-      `${stage} completion does not match its qualified Story presentation run.`,
-    );
-  }
-  requireCanonicalStoryBeat(stage, pending.beatId);
-  const flow = storyV2PresentationFlow(storyV2Stage(stage).presentationFlowId);
-  const finalBeat = flow.beats.at(-1);
-  if (!finalBeat || pending.beatId !== finalBeat.id) {
-    throw new Error(
-      `${stage} canonical Story presentation has not reached its completion beat.`,
-    );
-  }
-
-  // V1-V4 progress is normalized by validateSave/load before repository
-  // mutation. Retained recovery records remain available to their validation
-  // and replay compatibility paths, but never authorize a new V2 promotion.
-}
-
-function isMidChapterStage(
-  stage: Exclude<QuantumBoxSave["story"]["currentStage"], "complete">,
-): boolean {
-  return (
-    stage === "skipixl-medium" ||
-    stage === "fluxball-two" ||
-    stage === "quantman-stabilize"
-  );
-}
-
-function isRecoveryOptionalStage(
-  _stage: Exclude<QuantumBoxSave["story"]["currentStage"], "complete">,
-): boolean {
-  return true;
+function isStoryStageId(value: string): value is StoryStageId {
+  return [
+    "qong",
+    "skipixl-feasible",
+    "skipixl-overloaded",
+    "quantman-hold",
+    "fluxball-global",
+    "fluxball-individual",
+    "quarry",
+  ].includes(value);
 }
 
 function verifyInstalledQongRecovery(
@@ -674,26 +572,28 @@ function isInstalledBankMismatch(error: unknown): error is Error {
 function demoteMismatchedQongAuthority(save: QuantumBoxSave): QuantumBoxSave {
   const { qong: _rejectedQongRecovery, ...retainedRecoveries } =
     save.story.tutorialRecoveries;
-  const qongWasAccessible = save.story.recoveredFormulae.includes("qong");
-  const inspectOnlyFormulae = qongWasAccessible
-    ? [
-        ...save.story.inspectOnlyFormulae.filter((gameId) => gameId !== "qong"),
-        "qong" as const,
-      ]
-    : save.story.inspectOnlyFormulae;
   return validateSave({
     ...save,
     story: {
       ...save.story,
-      currentStage: "qong",
-      completedStages: [],
-      inspectOnlyFormulae,
-      qongSelector: {
-        cursor: 0,
-        cycle: 0,
-        recoveredSelection: null,
-      },
+      currentNodeId: "qong-intro",
+      storyCompleted: false,
+      experiencedStages: save.story.experiencedStages.filter(
+        (stage) => stage !== "qong",
+      ),
+      clearedStages: save.story.clearedStages.filter(
+        (stage) => stage !== "qong",
+      ),
+      completedStages: save.story.completedStages.filter(
+        (stage) => stage !== "qong",
+      ),
+      qongSelector: { cursor: 0, cycle: 0, recoveredSelection: null },
       tutorialRecoveries: retainedRecoveries,
+      qualifiedRuns: Object.fromEntries(
+        Object.entries(save.story.qualifiedRuns).filter(
+          ([stage]) => stage !== "qong",
+        ),
+      ),
     },
   });
 }
@@ -716,9 +616,7 @@ function requirePersistedQongAuthority(
 
 function requireQongSelection(context: RunContext): QongPackSelectionReceipt {
   if (context.packSelection === null) {
-    throw new Error(
-      "Qong Story completion lacks its frozen selection receipt.",
-    );
+    throw new Error("Qong Story requires its frozen selection receipt.");
   }
   return validateQongSelectionReceipt(context.packSelection);
 }
@@ -734,7 +632,7 @@ function advanceQongSelector(
     receipt.selectorCycle !== current.cycle
   ) {
     throw new Error(
-      "Qong Story selection does not match the saved selector position.",
+      "Qong selection does not match the saved selector position.",
     );
   }
   return {
@@ -755,7 +653,7 @@ function completeQongSelector(
     current.cycle !== receipt.selectorCycleAfter
   ) {
     throw new Error(
-      "Qong Story completion requires the saved selector position produced when this run started.",
+      "Qong completion requires the selector position produced when its run started.",
     );
   }
   return {
@@ -766,19 +664,3 @@ function completeQongSelector(
 }
 
 export { SAVE_SCHEMA_VERSION };
-
-function requireCurrentStoryAuthority(
-  save: QuantumBoxSave,
-  context: RunContext,
-): Exclude<QuantumBoxSave["story"]["currentStage"], "complete"> {
-  if (context.playMode !== "story" || context.storyStage === null) {
-    throw new Error("Only a frozen Story run can mutate Story progression.");
-  }
-  if (save.story.currentStage === "complete") {
-    throw new Error("Quantum Box Story is already complete.");
-  }
-  if (context.storyStage !== save.story.currentStage) {
-    throw new Error("Story run authority does not match the current stage.");
-  }
-  return save.story.currentStage;
-}

@@ -4,7 +4,6 @@ import {
   QUAG_ARENA,
   quagArenaById,
   quagHorizontalSpan,
-  shortestWrappedDeltaX,
 } from "../../games/quag/QuagArena";
 import {
   quagHudModel,
@@ -22,9 +21,14 @@ import {
 import { BROWN_BOX_PALETTE } from "../BrownBoxTheme";
 import { drawPixelText } from "../PixelText";
 import { drawQGraphCabinetSprite } from "../QGraphCabinetSpriteRaster";
+import {
+  drawNativePixelLine,
+  drawNativePixelRect,
+  snapNativePixel,
+} from "../NativePixelRaster";
 
-const SPRITE_PIXEL = 2;
-const SPRITE_HALF_EXTENT = 20;
+const SPRITE_PIXEL = 1;
+const SPRITE_HALF_EXTENT = 10;
 
 export function drawQuagArena(
   graphics: Phaser.GameObjects.Graphics,
@@ -34,24 +38,47 @@ export function drawQuagArena(
   const g = graphics.clear();
   // The missing vertical walls are intentional: bodies wrap across both open
   // sides, so the arena must not visually imply a collision boundary there.
-  g.lineStyle(2, BROWN_BOX_PALETTE.cream, 1);
-  g.lineBetween(arena.left, arena.ceiling, arena.right, arena.ceiling);
-  g.lineBetween(arena.left, arena.floorTop, arena.right, arena.floorTop);
-  drawWrapMouth(g, arena.left, arena.ceiling, arena.floorTop, -1);
-  drawWrapMouth(g, arena.right, arena.ceiling, arena.floorTop, 1);
+  const left = native(arena.left);
+  const right = native(arena.right);
+  const ceiling = native(arena.ceiling);
+  const floor = native(arena.floorTop);
+  drawNativePixelLine(
+    g,
+    { x: left, y: ceiling },
+    { x: right, y: ceiling },
+    { colour: BROWN_BOX_PALETTE.cream },
+  );
+  drawNativePixelLine(
+    g,
+    { x: left, y: floor },
+    { x: right, y: floor },
+    { colour: BROWN_BOX_PALETTE.cream },
+  );
+  drawWrapMouth(g, left, ceiling, floor, -1);
+  drawWrapMouth(g, right, ceiling, floor, 1);
   for (const platform of arena.platforms) {
-    g.fillStyle(BROWN_BOX_PALETTE.cream, 1).fillRect(
-      platform.left,
-      platform.top,
-      platform.width,
-      2,
+    const platformLeft = native(platform.left);
+    const platformTop = native(platform.top);
+    const platformWidth = Math.max(1, native(platform.width));
+    const thickness = Math.max(1, native(platform.thickness));
+    drawNativePixelRect(
+      g,
+      platformLeft,
+      platformTop,
+      platformWidth,
+      1,
+      BROWN_BOX_PALETTE.cream,
     );
-    g.fillStyle(BROWN_BOX_PALETTE.tobacco, 1).fillRect(
-      platform.left + 4,
-      platform.top + 2,
-      platform.width - 8,
-      platform.thickness - 2,
-    );
+    if (thickness > 1) {
+      drawNativePixelRect(
+        g,
+        platformLeft + 2,
+        platformTop + 1,
+        Math.max(1, platformWidth - 4),
+        thickness - 1,
+        BROWN_BOX_PALETTE.tobacco,
+      );
+    }
   }
 }
 
@@ -87,18 +114,30 @@ function drawHud(
   paused: boolean,
 ): void {
   const hud = quagHudModel(snapshot, paused);
-  g.lineStyle(1, BROWN_BOX_PALETTE.cream, 1).lineBetween(18, 45, 622, 45);
-  for (const x of [128, 256, 384, 512]) g.lineBetween(x, 4, x, 40);
-  drawHudSection(g, "ROUND", hud.round, 64);
-  drawHudSection(g, "SCORE", compactHudPoints(snapshot), 192);
+  drawNativePixelLine(
+    g,
+    { x: 9, y: 22 },
+    { x: 311, y: 22 },
+    { colour: BROWN_BOX_PALETTE.cream },
+  );
+  for (const x of [64, 128, 192, 256]) {
+    drawNativePixelLine(
+      g,
+      { x, y: 2 },
+      { x, y: 20 },
+      { colour: BROWN_BOX_PALETTE.cream },
+    );
+  }
+  drawHudSection(g, "ROUND", hud.round, 32);
+  drawHudSection(g, "SCORE", compactHudPoints(snapshot), 96);
   drawQuarryHudValue(g, hud.targets, snapshot.humanPlayerIds.length);
   drawHudSection(
     g,
     `STATE ${snapshot.graphPhase}`,
     `${Math.ceil(snapshot.ticksUntilRemeasurement / 20)}S`,
-    448,
+    224,
   );
-  drawHudSection(g, paused ? "PAUSED" : "TIME", hud.time, 576);
+  drawHudSection(g, paused ? "PAUSED" : "TIME", hud.time, 288);
 }
 
 function drawQuarryHudValue(
@@ -107,18 +146,18 @@ function drawQuarryHudValue(
   humanCount: number,
 ): void {
   drawPixelText(g, "QUARRY", {
-    x: 320,
-    y: 4,
-    pixel: 2,
+    x: 160,
+    y: 2,
+    pixel: 1,
     colour: BROWN_BOX_PALETTE.cream,
     align: "center",
   });
   const entries = targets.split(" ");
   if (humanCount <= 2) {
     drawPixelText(g, targets, {
-      x: 320,
-      y: humanCount === 1 ? 21 : 24,
-      pixel: 2,
+      x: 160,
+      y: humanCount === 1 ? 11 : 12,
+      pixel: 1,
       colour: BROWN_BOX_PALETTE.cream,
       align: "center",
     });
@@ -130,9 +169,9 @@ function drawQuarryHudValue(
     entries.slice(split).join(" "),
   ].entries()) {
     drawPixelText(g, line, {
-      x: 320,
-      y: 18 + index * 12,
-      pixel: 2,
+      x: 160,
+      y: 9 + index * 6,
+      pixel: 1,
       colour: BROWN_BOX_PALETTE.cream,
       align: "center",
     });
@@ -147,15 +186,15 @@ function drawHudSection(
 ): void {
   drawPixelText(g, label, {
     x: centerX,
-    y: 4,
-    pixel: 2,
+    y: 2,
+    pixel: 1,
     colour: BROWN_BOX_PALETTE.cream,
     align: "center",
   });
   drawPixelText(g, value, {
     x: centerX,
-    y: 21,
-    pixel: 2,
+    y: 11,
+    pixel: 1,
     colour: BROWN_BOX_PALETTE.cream,
     align: "center",
   });
@@ -182,10 +221,12 @@ function drawPlayer(
   arena: QuagArena,
 ): void {
   const copies = [position.x];
-  const span = quagHorizontalSpan(arena);
-  if (position.x - SPRITE_HALF_EXTENT < arena.left)
+  const span = native(quagHorizontalSpan(arena));
+  const arenaLeft = native(arena.left);
+  const arenaRight = native(arena.right);
+  if (position.x - SPRITE_HALF_EXTENT < arenaLeft)
     copies.push(position.x + span);
-  if (position.x + SPRITE_HALF_EXTENT > arena.right)
+  if (position.x + SPRITE_HALF_EXTENT > arenaRight)
     copies.push(position.x - span);
   for (const x of copies) {
     drawQGraphCabinetSprite(
@@ -238,7 +279,7 @@ function drawIdentity(
   arena: QuagArena,
 ): void {
   const isHuman = snapshot.humanPlayerIds.includes(player.id);
-  const labelY = Math.max(arena.ceiling + 3, y - 31);
+  const labelY = Math.max(native(arena.ceiling) + 2, y - 16);
   const humanNumber = QUAG_PLAYER_IDS.indexOf(player.id) + 1;
   drawPixelText(
     g,
@@ -250,21 +291,26 @@ function drawIdentity(
     {
       x,
       y: labelY,
-      pixel: 2,
+      pixel: 1,
       colour: BROWN_BOX_PALETTE.cream,
       align: "center",
     },
   );
   if (!isHuman) return;
-  const markerY = Math.max(arena.ceiling + 10, y - 22);
-  g.fillStyle(BROWN_BOX_PALETTE.cream, 1).fillTriangle(
-    x - 3,
-    markerY,
-    x + 3,
-    markerY,
-    x,
-    markerY + 4,
+  const markerY = Math.max(native(arena.ceiling) + 5, y - 11);
+  drawNativePixelLine(
+    g,
+    { x: x - 2, y: markerY },
+    { x: x + 2, y: markerY },
+    { colour: BROWN_BOX_PALETTE.cream },
   );
+  drawNativePixelLine(
+    g,
+    { x: x - 1, y: markerY + 1 },
+    { x: x + 1, y: markerY + 1 },
+    { colour: BROWN_BOX_PALETTE.cream },
+  );
+  drawNativePixelRect(g, x, markerY + 2, 1, 1, BROWN_BOX_PALETTE.cream);
 }
 
 function drawTargetMarkers(
@@ -282,13 +328,13 @@ function drawTargetMarkers(
     const target = snapshot.players.find((player) => player.id === targetId);
     if (!target || target.knockedOutTicks > 0) continue;
     const position = renderedPosition(target, interpolationAlpha);
-    const markerY = Math.max(position.y, arena.ceiling + 27);
-    drawOpenBrackets(g, position.x, markerY, 25);
-    const span = quagHorizontalSpan(arena);
-    if (position.x - 25 < arena.left)
-      drawOpenBrackets(g, position.x + span, markerY, 25);
-    if (position.x + 25 > arena.right)
-      drawOpenBrackets(g, position.x - span, markerY, 25);
+    const markerY = Math.max(position.y, native(arena.ceiling) + 14);
+    drawOpenBrackets(g, position.x, markerY, 13);
+    const span = native(quagHorizontalSpan(arena));
+    if (position.x - 13 < native(arena.left))
+      drawOpenBrackets(g, position.x + span, markerY, 13);
+    if (position.x + 13 > native(arena.right))
+      drawOpenBrackets(g, position.x - span, markerY, 13);
   }
 }
 
@@ -298,16 +344,8 @@ function drawOpenBrackets(
   y: number,
   extent: number,
 ): void {
-  const corner = 7;
-  g.lineStyle(2, BROWN_BOX_PALETTE.cream, 1);
-  g.lineBetween(x - extent, y - extent, x - extent + corner, y - extent);
-  g.lineBetween(x - extent, y - extent, x - extent, y - extent + corner);
-  g.lineBetween(x + extent, y - extent, x + extent - corner, y - extent);
-  g.lineBetween(x + extent, y - extent, x + extent, y - extent + corner);
-  g.lineBetween(x - extent, y + extent, x - extent + corner, y + extent);
-  g.lineBetween(x - extent, y + extent, x - extent, y + extent - corner);
-  g.lineBetween(x + extent, y + extent, x + extent - corner, y + extent);
-  g.lineBetween(x + extent, y + extent, x + extent, y + extent - corner);
+  const corner = 4;
+  drawCorners(g, x, y, extent, corner, BROWN_BOX_PALETTE.cream);
 }
 
 function renderedPosition(
@@ -325,13 +363,13 @@ function renderedPosition(
   if (x < QUAG_ARENA.left - 14) x += span;
   else if (x > QUAG_ARENA.right + 14) x -= span;
   return Object.freeze({
-    x: Math.round(x),
+    x: snapNativePixel(x / 2),
     y: Math.round(
       Phaser.Math.Linear(
         player.previousYSubpixels / QUAG_SUBPIXELS,
         player.ySubpixels / QUAG_SUBPIXELS,
         interpolationAlpha,
-      ),
+      ) / 2,
     ),
   });
 }
@@ -342,17 +380,44 @@ function drawGraceMarker(
   centerY: number,
   tick: number,
 ): void {
-  const extent = 23 + (Math.floor(tick / 4) % 2) * 2;
-  const segment = 8;
-  g.lineStyle(2, BROWN_BOX_PALETTE.cream, 1);
-  g.lineBetween(centerX - extent, centerY, centerX - extent, centerY - segment);
-  g.lineBetween(centerX - extent, centerY, centerX - extent, centerY + segment);
-  g.lineBetween(centerX + extent, centerY, centerX + extent, centerY - segment);
-  g.lineBetween(centerX + extent, centerY, centerX + extent, centerY + segment);
-  g.lineBetween(centerX, centerY - extent, centerX - segment, centerY - extent);
-  g.lineBetween(centerX, centerY - extent, centerX + segment, centerY - extent);
-  g.lineBetween(centerX, centerY + extent, centerX - segment, centerY + extent);
-  g.lineBetween(centerX, centerY + extent, centerX + segment, centerY + extent);
+  const extent = 12 + (Math.floor(tick / 4) % 2);
+  const segment = 4;
+  const colour = BROWN_BOX_PALETTE.cream;
+  for (const [start, end] of [
+    [
+      { x: centerX - extent, y: centerY },
+      { x: centerX - extent, y: centerY - segment },
+    ],
+    [
+      { x: centerX - extent, y: centerY },
+      { x: centerX - extent, y: centerY + segment },
+    ],
+    [
+      { x: centerX + extent, y: centerY },
+      { x: centerX + extent, y: centerY - segment },
+    ],
+    [
+      { x: centerX + extent, y: centerY },
+      { x: centerX + extent, y: centerY + segment },
+    ],
+    [
+      { x: centerX, y: centerY - extent },
+      { x: centerX - segment, y: centerY - extent },
+    ],
+    [
+      { x: centerX, y: centerY - extent },
+      { x: centerX + segment, y: centerY - extent },
+    ],
+    [
+      { x: centerX, y: centerY + extent },
+      { x: centerX - segment, y: centerY + extent },
+    ],
+    [
+      { x: centerX, y: centerY + extent },
+      { x: centerX + segment, y: centerY + extent },
+    ],
+  ] as const)
+    drawNativePixelLine(g, start, end, { colour });
 }
 
 function drawImpactBurst(
@@ -360,19 +425,32 @@ function drawImpactBurst(
   centerX: number,
   centerY: number,
 ): void {
-  g.fillStyle(BROWN_BOX_PALETTE.cream, 1);
-  g.fillRect(centerX - 2, centerY - 2, 4, 4);
+  drawNativePixelRect(
+    g,
+    centerX - 1,
+    centerY - 1,
+    2,
+    2,
+    BROWN_BOX_PALETTE.cream,
+  );
   for (const [x, y] of [
-    [-16, 0],
-    [16, 0],
-    [0, -16],
-    [0, 16],
-    [-11, -11],
-    [11, -11],
-    [-11, 11],
-    [11, 11],
+    [-8, 0],
+    [8, 0],
+    [0, -8],
+    [0, 8],
+    [-6, -6],
+    [6, -6],
+    [-6, 6],
+    [6, 6],
   ] as const) {
-    g.fillRect(centerX + x - 2, centerY + y - 2, 4, 4);
+    drawNativePixelRect(
+      g,
+      centerX + x - 1,
+      centerY + y - 1,
+      2,
+      2,
+      BROWN_BOX_PALETTE.cream,
+    );
   }
 }
 
@@ -384,9 +462,18 @@ function drawGraphShiftPulse(
   const elapsed = snapshot.activeTick - snapshot.lastGraphShiftTick!;
   if (Math.floor(elapsed / 2) % 2 !== 0) return;
   const arena = quagArenaById(snapshot.arenaId);
-  g.lineStyle(4, BROWN_BOX_PALETTE.cream, 1);
-  g.lineBetween(arena.left, arena.ceiling, arena.right, arena.ceiling);
-  g.lineBetween(arena.left, arena.floorTop, arena.right, arena.floorTop);
+  drawNativePixelLine(
+    g,
+    { x: native(arena.left), y: native(arena.ceiling) },
+    { x: native(arena.right), y: native(arena.ceiling) },
+    { colour: BROWN_BOX_PALETTE.cream, thickness: 2 },
+  );
+  drawNativePixelLine(
+    g,
+    { x: native(arena.left), y: native(arena.floorTop) },
+    { x: native(arena.right), y: native(arena.floorTop) },
+    { colour: BROWN_BOX_PALETTE.cream, thickness: 2 },
+  );
 }
 
 function graphShiftIsRecent(snapshot: QuagSnapshot): boolean {
@@ -400,29 +487,29 @@ function drawReadyPanel(
   g: Phaser.GameObjects.Graphics,
   snapshot: QuagSnapshot,
 ): void {
-  g.lineStyle(2, BROWN_BOX_PALETTE.cream, 1).strokeRect(214, 153, 212, 69);
+  drawFrame(g, 107, 77, 106, 35, BROWN_BOX_PALETTE.cream);
   drawPixelText(
     g,
     `READY ${Math.max(1, Math.ceil(snapshot.readyTicksRemaining / 20))}`,
     {
-      x: 320,
-      y: 163,
-      pixel: 3,
+      x: 160,
+      y: 82,
+      pixel: 1,
       colour: BROWN_BOX_PALETTE.cream,
       align: "center",
     },
   );
   drawPixelText(g, `QUARRY ${quagHudModel(snapshot, false).targets}`, {
-    x: 320,
-    y: 188,
-    pixel: snapshot.humanPlayerIds.length > 1 ? 1 : 2,
+    x: 160,
+    y: 94,
+    pixel: 1,
     colour: BROWN_BOX_PALETTE.cream,
     align: "center",
   });
   drawPixelText(g, "CATCH FROM ABOVE", {
-    x: 320,
-    y: 205,
-    pixel: 2,
+    x: 160,
+    y: 103,
+    pixel: 1,
     colour: BROWN_BOX_PALETTE.cream,
     align: "center",
   });
@@ -433,32 +520,32 @@ function drawResultPanel(
   snapshot: QuagSnapshot,
 ): void {
   const hud = quagHudModel(snapshot, false);
-  g.lineStyle(2, BROWN_BOX_PALETTE.cream, 1).strokeRect(202, 139, 236, 92);
+  drawFrame(g, 101, 70, 118, 46, BROWN_BOX_PALETTE.cream);
   drawPixelText(g, hud.notice, {
-    x: 320,
-    y: 151,
-    pixel: 3,
+    x: 160,
+    y: 76,
+    pixel: 1,
     colour: BROWN_BOX_PALETTE.cream,
     align: "center",
   });
   drawPixelText(g, `ROUNDS ${compactRoundWins(snapshot)}`, {
-    x: 320,
-    y: 177,
-    pixel: 2,
+    x: 160,
+    y: 89,
+    pixel: 1,
     colour: BROWN_BOX_PALETTE.cream,
     align: "center",
   });
   drawPixelText(g, `POINTS ${compactPoints(snapshot)}`, {
-    x: 320,
-    y: 195,
-    pixel: 2,
+    x: 160,
+    y: 98,
+    pixel: 1,
     colour: BROWN_BOX_PALETTE.cream,
     align: "center",
   });
   drawPixelText(g, "SPACE EXIT · X RETRY", {
-    x: 320,
-    y: 213,
-    pixel: 2,
+    x: 160,
+    y: 107,
+    pixel: 1,
     colour: BROWN_BOX_PALETTE.cream,
     align: "center",
   });
@@ -472,11 +559,11 @@ function drawRoundBreakPanel(
     snapshot.roundWinnerIds.length === 1
       ? `${snapshot.roundWinnerIds[0]} WINS ROUND ${snapshot.roundNumber}`
       : `ROUND ${snapshot.roundNumber} DRAW`;
-  g.lineStyle(2, BROWN_BOX_PALETTE.cream, 1).strokeRect(204, 148, 232, 72);
+  drawFrame(g, 102, 74, 116, 36, BROWN_BOX_PALETTE.cream);
   drawPixelText(g, winner, {
-    x: 320,
-    y: 160,
-    pixel: 2,
+    x: 160,
+    y: 80,
+    pixel: 1,
     colour: BROWN_BOX_PALETTE.cream,
     align: "center",
   });
@@ -484,9 +571,9 @@ function drawRoundBreakPanel(
     g,
     `R ${compactRoundWins(snapshot)} · P ${compactPoints(snapshot)}`,
     {
-      x: 320,
-      y: 181,
-      pixel: 2,
+      x: 160,
+      y: 91,
+      pixel: 1,
       colour: BROWN_BOX_PALETTE.cream,
       align: "center",
     },
@@ -495,9 +582,9 @@ function drawRoundBreakPanel(
     g,
     `NEXT ROUND ${Math.max(1, Math.ceil(snapshot.roundBreakTicksRemaining / 20))}`,
     {
-      x: 320,
-      y: 202,
-      pixel: 2,
+      x: 160,
+      y: 101,
+      pixel: 1,
       colour: BROWN_BOX_PALETTE.cream,
       align: "center",
     },
@@ -527,24 +614,28 @@ function drawDirectedRelations(
     const source = positions.get(sourceId);
     const target = positions.get(targetId);
     if (!source || !target) continue;
-    const dx = shortestWrappedDeltaX(source.x, target.x, arena);
+    const span = native(quagHorizontalSpan(arena));
+    let dx = target.x - source.x;
+    if (dx > span / 2) dx -= span;
+    else if (dx < -span / 2) dx += span;
     const dy = target.y - source.y;
     const distance = Math.hypot(dx, dy);
     if (distance < 1) continue;
     const ux = dx / distance;
     const uy = dy / distance;
-    const startX = source.x + ux * 22;
-    const startY = source.y + uy * 22;
-    const endX = source.x + dx - ux * 22;
-    const endY = target.y - uy * 22;
-    g.lineStyle(1, BROWN_BOX_PALETTE.cream, 1);
+    const startX = source.x + ux * 11;
+    const startY = source.y + uy * 11;
+    const endX = source.x + dx - ux * 11;
+    const endY = target.y - uy * 11;
     if (relation.sourceKind === "human") {
-      g.lineBetween(startX, startY, endX, endY);
+      drawNativePixelLine(g, point(startX, startY), point(endX, endY), {
+        colour: BROWN_BOX_PALETTE.cream,
+      });
     } else {
-      drawDashedLine(g, startX, startY, endX, endY, 3, 3);
+      drawDashedLine(g, startX, startY, endX, endY, 2, 2);
     }
-    drawRelationArrow(g, startX, startY, endX, endY, 0.62, 6);
-    drawRelationArrow(g, startX, startY, endX, endY, 1, 7);
+    drawRelationArrow(g, startX, startY, endX, endY, 0.62, 3);
+    drawRelationArrow(g, startX, startY, endX, endY, 1, 4);
   }
 }
 
@@ -557,20 +648,10 @@ function drawDashedLine(
   dash: number,
   gap: number,
 ): void {
-  const dx = endX - startX;
-  const dy = endY - startY;
-  const distance = Math.hypot(dx, dy);
-  if (distance <= 0) return;
-  for (let offset = 0; offset < distance; offset += dash + gap) {
-    const from = offset / distance;
-    const to = Math.min(distance, offset + dash) / distance;
-    g.lineBetween(
-      startX + dx * from,
-      startY + dy * from,
-      startX + dx * to,
-      startY + dy * to,
-    );
-  }
+  drawNativePixelLine(g, point(startX, startY), point(endX, endY), {
+    colour: BROWN_BOX_PALETTE.cream,
+    dash: { on: dash, off: gap },
+  });
 }
 
 function drawRelationArrow(
@@ -592,8 +673,18 @@ function drawRelationArrow(
   const y = startY + dy * progress;
   const wingX = -uy * size;
   const wingY = ux * size;
-  g.lineBetween(x, y, x - ux * size + wingX, y - uy * size + wingY);
-  g.lineBetween(x, y, x - ux * size - wingX, y - uy * size - wingY);
+  drawNativePixelLine(
+    g,
+    point(x, y),
+    point(x - ux * size + wingX, y - uy * size + wingY),
+    { colour: BROWN_BOX_PALETTE.cream },
+  );
+  drawNativePixelLine(
+    g,
+    point(x, y),
+    point(x - ux * size - wingX, y - uy * size - wingY),
+    { colour: BROWN_BOX_PALETTE.cream },
+  );
 }
 
 function drawWrapMouth(
@@ -604,9 +695,101 @@ function drawWrapMouth(
   direction: -1 | 1,
 ): void {
   const center = Math.round((top + bottom) / 2);
-  const inner = x + direction * 8;
-  g.lineStyle(2, BROWN_BOX_PALETTE.cream, 1);
-  g.lineBetween(x, center - 12, inner, center - 4);
-  g.lineBetween(inner, center - 4, x, center + 4);
-  g.lineBetween(x, center + 4, inner, center + 12);
+  const inner = x + direction * 4;
+  const colour = BROWN_BOX_PALETTE.cream;
+  drawNativePixelLine(
+    g,
+    { x, y: center - 6 },
+    { x: inner, y: center - 2 },
+    { colour },
+  );
+  drawNativePixelLine(
+    g,
+    { x: inner, y: center - 2 },
+    { x, y: center + 2 },
+    { colour },
+  );
+  drawNativePixelLine(
+    g,
+    { x, y: center + 2 },
+    { x: inner, y: center + 6 },
+    { colour },
+  );
+}
+
+function native(value: number): number {
+  return snapNativePixel(value / 2);
+}
+
+function point(x: number, y: number): Readonly<{ x: number; y: number }> {
+  return Object.freeze({ x: snapNativePixel(x), y: snapNativePixel(y) });
+}
+
+function drawFrame(
+  g: Phaser.GameObjects.Graphics,
+  x: number,
+  y: number,
+  width: number,
+  height: number,
+  colour: number,
+): void {
+  drawNativePixelLine(g, { x, y }, { x: x + width, y }, { colour });
+  drawNativePixelLine(g, { x, y }, { x, y: y + height }, { colour });
+  drawNativePixelLine(
+    g,
+    { x: x + width, y },
+    { x: x + width, y: y + height },
+    { colour },
+  );
+  drawNativePixelLine(
+    g,
+    { x, y: y + height },
+    { x: x + width, y: y + height },
+    { colour },
+  );
+}
+
+function drawCorners(
+  g: Phaser.GameObjects.Graphics,
+  x: number,
+  y: number,
+  radius: number,
+  corner: number,
+  colour: number,
+): void {
+  for (const [start, end] of [
+    [
+      { x: x - radius, y: y - radius },
+      { x: x - radius + corner, y: y - radius },
+    ],
+    [
+      { x: x - radius, y: y - radius },
+      { x: x - radius, y: y - radius + corner },
+    ],
+    [
+      { x: x + radius, y: y - radius },
+      { x: x + radius - corner, y: y - radius },
+    ],
+    [
+      { x: x + radius, y: y - radius },
+      { x: x + radius, y: y - radius + corner },
+    ],
+    [
+      { x: x - radius, y: y + radius },
+      { x: x - radius + corner, y: y + radius },
+    ],
+    [
+      { x: x - radius, y: y + radius },
+      { x: x - radius, y: y + radius - corner },
+    ],
+    [
+      { x: x + radius, y: y + radius },
+      { x: x + radius - corner, y: y + radius },
+    ],
+    [
+      { x: x + radius, y: y + radius },
+      { x: x + radius, y: y + radius - corner },
+    ],
+  ] as const)
+    drawNativePixelLine(g, start, end, { colour });
 }

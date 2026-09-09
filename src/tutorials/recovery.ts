@@ -6,9 +6,10 @@ import { FLUXBALL_PLAYABLE_RULE_BANK } from "../games/fluxball/fluxballControlPa
 import { FluxballSession } from "../games/fluxball/FluxballSession";
 import {
   FLUXBALL_LEGACY_RULES_VERSION,
+  FLUXBALL_OLDEST_RULES_VERSION,
   FLUXBALL_OLDER_RULES_VERSION,
 } from "../games/fluxball/types";
-import { GAME_IDS, type GameId, type StoryStageId } from "../games/registry";
+import { GAME_IDS, type GameId, type StoryRunStageId } from "../games/registry";
 import { validateQongSelectionReceipt } from "../games/qong/qongStoryPackBank";
 import {
   changedQuantmanDoorIds,
@@ -75,7 +76,7 @@ const WORLD_ID_BY_GAME: TutorialWorldIdByGame = Object.freeze({
   quantman: "quantman-topology-room",
 });
 
-const STORY_STAGE_BY_GAME: Readonly<Record<GameId, StoryStageId>> =
+const STORY_STAGE_BY_GAME: Readonly<Record<GameId, StoryRunStageId>> =
   Object.freeze({
     qong: "qong",
     skipixl: "skipixl",
@@ -325,7 +326,8 @@ function runMatchesPack(
     run.rulesVersion === pack.rulesVersion ||
     (pack.gameId === "fluxball" &&
       (run.rulesVersion === FLUXBALL_LEGACY_RULES_VERSION ||
-        run.rulesVersion === FLUXBALL_OLDER_RULES_VERSION));
+        run.rulesVersion === FLUXBALL_OLDER_RULES_VERSION ||
+        run.rulesVersion === FLUXBALL_OLDEST_RULES_VERSION));
   return (
     rulesMatch &&
     canonicalJson(run.pack) ===
@@ -918,7 +920,8 @@ function validateSkiPixlEvidence(value: Record<string, unknown>): void {
       value["decoderVersion"] === "skipixl-triplet-residual-cuts-v4" ||
       value["decoderVersion"] === "skipixl-triplet-residual-slalom-v5" ||
       value["decoderVersion"] === "skipixl-triplet-residual-slalom-v6" ||
-      value["decoderVersion"] === "skipixl-triplet-residual-slalom-v7"
+      value["decoderVersion"] === "skipixl-triplet-residual-slalom-v7" ||
+      value["decoderVersion"] === "skipixl-triplet-residual-slalom-v8"
         ? [
             ...legacyHazardKeys,
             "x",
@@ -964,7 +967,8 @@ function validateSkiPixlEvidence(value: Record<string, unknown>): void {
       value["decoderVersion"] === "skipixl-triplet-residual-cuts-v4" ||
         value["decoderVersion"] === "skipixl-triplet-residual-slalom-v5" ||
         value["decoderVersion"] === "skipixl-triplet-residual-slalom-v6" ||
-        value["decoderVersion"] === "skipixl-triplet-residual-slalom-v7"
+        value["decoderVersion"] === "skipixl-triplet-residual-slalom-v7" ||
+        value["decoderVersion"] === "skipixl-triplet-residual-slalom-v8"
         ? [
             ...legacyObstacleKeys,
             "baseDistance",

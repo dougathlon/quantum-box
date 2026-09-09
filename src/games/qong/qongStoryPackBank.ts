@@ -1,4 +1,4 @@
-import installedBankArtifact from "./packs/qong-story-pack-bank-v1.json";
+import installedBankArtifact from "./packs/qong-story-pack-bank-v1.json" with { type: "json" };
 
 import { canonicalJson, sha256CanonicalJson } from "../../core/canonicalJson";
 import { asUint32Seed, deriveSeed } from "../../core/determinism";

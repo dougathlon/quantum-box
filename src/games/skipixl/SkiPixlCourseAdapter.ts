@@ -1,9 +1,10 @@
-import legacyCatalogRecord from "./data/skipixl-chaos-schedules-v1.json";
-import priorResidualCutCatalogRecord from "./data/skipixl-residual-cuts-v4.json";
-import earlierResidualCutCatalogRecord from "./data/skipixl-residual-cuts-v5.json";
-import previousResidualCutCatalogRecord from "./data/skipixl-residual-cuts-v6.json";
-import residualCutCatalogRecord from "./data/skipixl-residual-cuts-v7.json";
-import segmentBankRecord from "./data/qpixl-b3-segments-v1.json";
+import legacyCatalogRecord from "./data/skipixl-chaos-schedules-v1.json" with { type: "json" };
+import priorResidualCutCatalogRecord from "./data/skipixl-residual-cuts-v4.json" with { type: "json" };
+import earlierResidualCutCatalogRecord from "./data/skipixl-residual-cuts-v5.json" with { type: "json" };
+import v6ResidualCutCatalogRecord from "./data/skipixl-residual-cuts-v6.json" with { type: "json" };
+import previousResidualCutCatalogRecord from "./data/skipixl-residual-cuts-v7.json" with { type: "json" };
+import residualCutCatalogRecord from "./data/skipixl-residual-cuts-v8.json" with { type: "json" };
+import segmentBankRecord from "./data/qpixl-b3-segments-v1.json" with { type: "json" };
 import { canonicalJson } from "../../core/canonicalJson";
 import { PACK_SCHEMA_VERSION, type CommittedPack } from "../../packs/types";
 import { validateCommittedPack } from "../../packs/validatePack";
@@ -14,6 +15,7 @@ import {
   SKIPIXL_PRIOR_RULES_VERSION,
   SKIPIXL_RULES_VERSION,
   SKIPIXL_V5_RULES_VERSION,
+  SKIPIXL_V6_RULES_VERSION,
   type SkiPixlCourseReceipt,
   type SkiPixlCutId,
   type SkiPixlDesignerEvidence,
@@ -33,8 +35,9 @@ const EXPECTED_BANK_SHA256 =
 const CAPTURE_BANK_DECODER_VERSION = "skipixl-segment-ranked-residual-v3";
 const LEGACY_DECODER_VERSION = "skipixl-bank-percentile-chaos-v4";
 export const SKIPIXL_DECODER_VERSION =
-  "skipixl-triplet-residual-slalom-v7" as const;
-const PREVIOUS_DECODER_VERSION = "skipixl-triplet-residual-slalom-v6" as const;
+  "skipixl-triplet-residual-slalom-v8" as const;
+const PREVIOUS_DECODER_VERSION = "skipixl-triplet-residual-slalom-v7" as const;
+const V6_DECODER_VERSION = "skipixl-triplet-residual-slalom-v6" as const;
 const EARLIER_DECODER_VERSION = "skipixl-triplet-residual-slalom-v5" as const;
 const PRIOR_DECODER_VERSION = "skipixl-triplet-residual-cuts-v4" as const;
 export const SKIPIXL_CUTS = Object.freeze([
@@ -46,8 +49,9 @@ const CORRIDOR_MIN_X = 96;
 const CORRIDOR_MAX_X = 544;
 const ROW_SPACING = 70;
 const EASY_ROW_SPACING = 47;
-const EASY_TARGET_SECONDS = 60;
-const TARGET_SECONDS = 75;
+const CURRENT_ADVANCED_ROW_SPACING = 63;
+const TARGET_SECONDS = 60;
+const PREVIOUS_TARGET_SECONDS = 75;
 const DENSE_ROW_HAZARD_COUNT = 8;
 const GATE_COUNTS: Readonly<Record<SkiPixlCutId, number>> = Object.freeze({
   P90: 0,
@@ -149,6 +153,10 @@ const PREVIOUS_CUT_CATALOG = validateCutCatalog(
   previousResidualCutCatalogRecord as unknown,
   PREVIOUS_DECODER_VERSION,
 );
+const V6_CUT_CATALOG = validateCutCatalog(
+  v6ResidualCutCatalogRecord as unknown,
+  V6_DECODER_VERSION,
+);
 const EARLIER_CUT_CATALOG = validateCutCatalog(
   earlierResidualCutCatalogRecord as unknown,
   EARLIER_DECODER_VERSION,
@@ -163,6 +171,9 @@ const COURSE_SETS = deepFreeze(
 );
 const PREVIOUS_COURSE_SETS = deepFreeze(
   SEGMENT_BANK.schedules.map((schedule) => buildPreviousCutSet(schedule)),
+);
+const V6_COURSE_SETS = deepFreeze(
+  SEGMENT_BANK.schedules.map((schedule) => buildV6CutSet(schedule)),
 );
 const EARLIER_COURSE_SETS = deepFreeze(
   SEGMENT_BANK.schedules.map((schedule) => buildEarlierCutSet(schedule)),
@@ -209,6 +220,9 @@ export function findInstalledSkiPixlPack(
     ...PREVIOUS_COURSE_SETS.flatMap((set) =>
       SKIPIXL_CUTS.map(({ cutId }) => set.packs[cutId]),
     ),
+    ...V6_COURSE_SETS.flatMap((set) =>
+      SKIPIXL_CUTS.map(({ cutId }) => set.packs[cutId]),
+    ),
     ...EARLIER_COURSE_SETS.flatMap((set) =>
       SKIPIXL_CUTS.map(({ cutId }) => set.packs[cutId]),
     ),
@@ -237,7 +251,7 @@ export function decodeSkiPixlCourse(
   const gates = decodeGates(decoded.obstacles, cutId, courseLength);
   const targetSeconds = targetSecondsForCut(cutId);
   const receipt = Object.freeze({
-    schemaVersion: "skipixl-course-receipt-v7",
+    schemaVersion: "skipixl-course-receipt-v8",
     bankId: SEGMENT_BANK.bankId,
     bankContentSha256: SEGMENT_BANK.bankContentSha256,
     decoderVersion: SKIPIXL_DECODER_VERSION,
@@ -252,7 +266,7 @@ export function decodeSkiPixlCourse(
     courseLengthRule:
       cutId === "P90"
         ? "Easy compresses all sixty QPixl-derived rows to 47 distance units per row for a shorter hill"
-        : "Medium and Hard retain all sixty QPixl-derived rows at 70 distance units per row",
+        : "Medium and Hard preserve all sixty QPixl-derived rows at 63 distance units per row for the common 60-second trial",
     gateRule:
       cutId === "P90"
         ? "Easy is a gate-free downhill descent"
@@ -266,8 +280,7 @@ export function decodeSkiPixlCourse(
     denseRowCount: decoded.denseRowCount,
     saturatedRowCount: decoded.saturatedRowCount,
     difficultyScore: decoded.difficultyScore,
-    timeRule:
-      "60-second qualification limit for Easy; Medium and Hard retain 75 seconds",
+    timeRule: "fixed 60-second qualification limit for every residual cut",
     segments: Object.freeze(
       segments.map((segment, order) => segmentReceipt(segment, order)),
     ),
@@ -308,6 +321,9 @@ export function validateSkiPixlPayload(value: unknown): SkiPixlPackPayload {
     return validateV5SkiPixlPayload(payload);
   }
   if (payload.receipt?.schemaVersion === "skipixl-course-receipt-v6") {
+    return validateV6SkiPixlPayload(payload);
+  }
+  if (payload.receipt?.schemaVersion === "skipixl-course-receipt-v7") {
     return validatePreviousSkiPixlPayload(payload);
   }
   const expectedRowSpacing = isCutId(payload.cutId)
@@ -319,7 +335,7 @@ export function validateSkiPixlPayload(value: unknown): SkiPixlPackPayload {
     payload.decoderVersion !== SKIPIXL_DECODER_VERSION ||
     !isCutId(payload.cutId) ||
     typeof payload.tripletId !== "string" ||
-    payload.receipt.schemaVersion !== "skipixl-course-receipt-v7" ||
+    payload.receipt.schemaVersion !== "skipixl-course-receipt-v8" ||
     typeof payload.receipt.courseLengthRule !== "string" ||
     payload.receipt.cutId !== payload.cutId ||
     payload.receipt.tripletId !== payload.tripletId ||
@@ -328,6 +344,8 @@ export function validateSkiPixlPayload(value: unknown): SkiPixlPackPayload {
     payload.corridorMinX !== CORRIDOR_MIN_X ||
     payload.corridorMaxX !== CORRIDOR_MAX_X ||
     payload.winSeconds !== targetSecondsForCut(payload.cutId) ||
+    payload.cruiseSpeed !== 72 ||
+    payload.maxSpeed !== 92 ||
     payload.parSeconds !== 65 ||
     payload.rowSpacing !== expectedRowSpacing ||
     payload.receipt.bankContentSha256 !== EXPECTED_BANK_SHA256 ||
@@ -339,7 +357,7 @@ export function validateSkiPixlPayload(value: unknown): SkiPixlPackPayload {
     payload.receipt.segments.length !== 3
   ) {
     throw new Error(
-      "SkiPixl payload violates the residual-slalom v7 contract.",
+      "SkiPixl payload violates the residual-slalom v8 contract.",
     );
   }
   validateV6Obstacles(payload);
@@ -354,19 +372,44 @@ export function validatePreviousSkiPixlPayload(
   const payload = value as unknown as SkiPixlPackPayload;
   if (
     payload.decoderVersion !== PREVIOUS_DECODER_VERSION ||
-    payload.receipt?.schemaVersion !== "skipixl-course-receipt-v6" ||
+    payload.receipt?.schemaVersion !== "skipixl-course-receipt-v7" ||
     payload.receipt.bankContentSha256 !== EXPECTED_BANK_SHA256 ||
     !isCutId(payload.cutId) ||
     payload.courseLength !==
-      courseLengthForSpacing(rowSpacingForCut(payload.cutId)) ||
-    payload.rowSpacing !== rowSpacingForCut(payload.cutId) ||
-    payload.winSeconds !== TARGET_SECONDS ||
+      courseLengthForSpacing(legacyRowSpacingForCut(payload.cutId)) ||
+    payload.rowSpacing !== legacyRowSpacingForCut(payload.cutId) ||
+    payload.winSeconds !== previousTargetSecondsForCut(payload.cutId) ||
+    payload.maxSpeed !== 78 ||
     !Array.isArray(payload.obstacles) ||
     !Array.isArray(payload.gates) ||
     !Array.isArray(payload.receipt.segments) ||
     payload.receipt.segments.length !== 3
   ) {
-    throw new Error("Previous SkiPixl v6 payload is invalid.");
+    throw new Error("Previous SkiPixl v7 payload is invalid.");
+  }
+  validateV6Obstacles(payload);
+  validateV6Gates(payload);
+  return deepFreeze(payload);
+}
+
+export function validateV6SkiPixlPayload(value: unknown): SkiPixlPackPayload {
+  if (!isRecord(value)) throw new Error("SkiPixl v6 payload is invalid.");
+  const payload = value as unknown as SkiPixlPackPayload;
+  if (
+    payload.decoderVersion !== V6_DECODER_VERSION ||
+    payload.receipt?.schemaVersion !== "skipixl-course-receipt-v6" ||
+    payload.receipt.bankContentSha256 !== EXPECTED_BANK_SHA256 ||
+    !isCutId(payload.cutId) ||
+    payload.courseLength !==
+      courseLengthForSpacing(legacyRowSpacingForCut(payload.cutId)) ||
+    payload.rowSpacing !== legacyRowSpacingForCut(payload.cutId) ||
+    payload.winSeconds !== PREVIOUS_TARGET_SECONDS ||
+    !Array.isArray(payload.obstacles) ||
+    !Array.isArray(payload.gates) ||
+    !Array.isArray(payload.receipt.segments) ||
+    payload.receipt.segments.length !== 3
+  ) {
+    throw new Error("SkiPixl v6 payload is invalid.");
   }
   validateV6Obstacles(payload);
   validateV6Gates(payload);
@@ -383,7 +426,7 @@ export function validateV5SkiPixlPayload(value: unknown): SkiPixlPackPayload {
     !isCutId(payload.cutId) ||
     payload.courseLength !== courseLengthForSpacing(ROW_SPACING) ||
     payload.rowSpacing !== ROW_SPACING ||
-    payload.winSeconds !== TARGET_SECONDS ||
+    payload.winSeconds !== PREVIOUS_TARGET_SECONDS ||
     !Array.isArray(payload.obstacles) ||
     !Array.isArray(payload.gates) ||
     !Array.isArray(payload.receipt.segments) ||
@@ -504,6 +547,16 @@ function buildPreviousCutSet(schedule: ScheduleRecord): SkiPixlCutSet {
   return deepFreeze({ tripletId: schedule.scheduleId, packs });
 }
 
+function buildV6CutSet(schedule: ScheduleRecord): SkiPixlCutSet {
+  const packs = Object.fromEntries(
+    SKIPIXL_CUTS.map(({ cutId }) => [
+      cutId,
+      buildV6CommittedPack(schedule, cutId),
+    ]),
+  ) as Record<SkiPixlCutId, SkiPixlCommittedPack>;
+  return deepFreeze({ tripletId: schedule.scheduleId, packs });
+}
+
 function buildEarlierCutSet(schedule: ScheduleRecord): SkiPixlCutSet {
   const packs = Object.fromEntries(
     SKIPIXL_CUTS.map(({ cutId }) => [
@@ -604,7 +657,7 @@ function buildPreviousCommittedPack(
     throw new Error(
       `Previous SkiPixl cut catalog omits ${schedule.scheduleId} ${cutId}.`,
     );
-  const payload = decodePreviousCourse(schedule, cutId);
+  const payload = decodeV7Course(schedule, cutId);
   assertCatalogMetrics(payload, catalog);
   return validateCommittedPack(
     {
@@ -616,12 +669,45 @@ function buildPreviousCommittedPack(
       contentSha256: catalog.contentSha256,
       rulesVersion: SKIPIXL_PREVIOUS_RULES_VERSION,
       warnings: Object.freeze([
-        "Previous SkiPixl v6 short-Easy packs retained for deterministic save compatibility.",
+        "Previous SkiPixl v7 course packs retained for deterministic save compatibility.",
       ]),
       mothEvidence: null,
       payload,
     },
     validatePreviousSkiPixlPayload,
+  );
+}
+
+function buildV6CommittedPack(
+  schedule: ScheduleRecord,
+  cutId: SkiPixlCutId,
+): SkiPixlCommittedPack {
+  const catalog = V6_CUT_CATALOG.schedules.find(
+    (candidate) =>
+      candidate.scheduleId === schedule.scheduleId && candidate.cutId === cutId,
+  );
+  if (!catalog)
+    throw new Error(
+      `SkiPixl v6 catalog omits ${schedule.scheduleId} ${cutId}.`,
+    );
+  const payload = decodePreviousCourse(schedule, cutId);
+  assertCatalogMetrics(payload, catalog);
+  return validateCommittedPack(
+    {
+      schemaVersion: PACK_SCHEMA_VERSION,
+      packId: payload.courseId,
+      gameId: "skipixl",
+      engineId: "qpixl-v1",
+      source: "moth-platform-qpu-capture",
+      contentSha256: catalog.contentSha256,
+      rulesVersion: SKIPIXL_V6_RULES_VERSION,
+      warnings: Object.freeze([
+        "SkiPixl v6 short-Easy packs retained for deterministic save compatibility.",
+      ]),
+      mothEvidence: null,
+      payload,
+    },
+    validateV6SkiPixlPayload,
   );
 }
 
@@ -828,6 +914,29 @@ function decodeObstacles(
   return courseMetrics(obstacles, rows);
 }
 
+function decodeV7Course(
+  schedule: ScheduleRecord,
+  cutId: SkiPixlCutId,
+): SkiPixlPackPayload {
+  const previous = decodePreviousCourse(schedule, cutId);
+  if (previous.receipt.schemaVersion !== "skipixl-course-receipt-v6") {
+    throw new Error("Previous SkiPixl decoder did not produce a v6 receipt.");
+  }
+  return deepFreeze({
+    ...previous,
+    decoderVersion: PREVIOUS_DECODER_VERSION,
+    maxSpeed: 78,
+    winSeconds: previousTargetSecondsForCut(cutId),
+    receipt: {
+      ...previous.receipt,
+      schemaVersion: "skipixl-course-receipt-v7" as const,
+      decoderVersion: PREVIOUS_DECODER_VERSION,
+      timeRule:
+        "60-second qualification limit for Easy; Medium and Hard retain 75 seconds",
+    },
+  });
+}
+
 function decodePreviousCourse(
   schedule: ScheduleRecord,
   cutId: SkiPixlCutId,
@@ -836,7 +945,7 @@ function decodePreviousCourse(
   const cut = SKIPIXL_CUTS.find((candidate) => candidate.cutId === cutId);
   if (!cut) throw new Error(`Unknown previous SkiPixl cut ${cutId}.`);
   const threshold = tripletThreshold(segments, cut.percentile);
-  const rowSpacing = rowSpacingForCut(cutId);
+  const rowSpacing = legacyRowSpacingForCut(cutId);
   const decoded = decodeObstacles(segments, threshold, cutId, "v6", rowSpacing);
   const difficulty = difficultyForCut(cutId);
   const courseLength = courseLengthForSpacing(rowSpacing);
@@ -845,7 +954,7 @@ function decodePreviousCourse(
     schemaVersion: "skipixl-course-receipt-v6",
     bankId: SEGMENT_BANK.bankId,
     bankContentSha256: SEGMENT_BANK.bankContentSha256,
-    decoderVersion: PREVIOUS_DECODER_VERSION,
+    decoderVersion: V6_DECODER_VERSION,
     tripletId: schedule.scheduleId,
     cutId,
     difficulty,
@@ -879,7 +988,7 @@ function decodePreviousCourse(
   return deepFreeze({
     courseId: `${schedule.scheduleId}-${cutId.toLowerCase()}`,
     courseLabel: `${difficulty.toUpperCase()} / ${schedule.scheduleId.split("-").at(-1)?.toUpperCase() ?? "RUN"}`,
-    decoderVersion: PREVIOUS_DECODER_VERSION,
+    decoderVersion: V6_DECODER_VERSION,
     tripletId: schedule.scheduleId,
     cutId,
     difficulty,
@@ -888,9 +997,9 @@ function decodePreviousCourse(
     corridorMaxX: CORRIDOR_MAX_X,
     cruiseSpeed: SKIPIXL_CHALLENGE_PROFILE.speed.cruise,
     minSpeed: SKIPIXL_CHALLENGE_PROFILE.speed.minimum,
-    maxSpeed: SKIPIXL_CHALLENGE_PROFILE.speed.maximum,
+    maxSpeed: 78,
     parSeconds: 65,
-    winSeconds: TARGET_SECONDS,
+    winSeconds: PREVIOUS_TARGET_SECONDS,
     difficultyScore: decoded.difficultyScore,
     rowSpacing,
     obstacles: decoded.obstacles,
@@ -961,9 +1070,9 @@ function decodeV5Course(
     corridorMaxX: CORRIDOR_MAX_X,
     cruiseSpeed: SKIPIXL_CHALLENGE_PROFILE.speed.cruise,
     minSpeed: SKIPIXL_CHALLENGE_PROFILE.speed.minimum,
-    maxSpeed: SKIPIXL_CHALLENGE_PROFILE.speed.maximum,
+    maxSpeed: 78,
     parSeconds: 65,
-    winSeconds: TARGET_SECONDS,
+    winSeconds: PREVIOUS_TARGET_SECONDS,
     difficultyScore: decoded.difficultyScore,
     rowSpacing: ROW_SPACING,
     obstacles: decoded.obstacles,
@@ -1018,9 +1127,9 @@ function decodePriorCourse(
     corridorMaxX: CORRIDOR_MAX_X,
     cruiseSpeed: SKIPIXL_CHALLENGE_PROFILE.speed.cruise,
     minSpeed: SKIPIXL_CHALLENGE_PROFILE.speed.minimum,
-    maxSpeed: SKIPIXL_CHALLENGE_PROFILE.speed.maximum,
+    maxSpeed: 78,
     parSeconds: 65,
-    winSeconds: TARGET_SECONDS,
+    winSeconds: PREVIOUS_TARGET_SECONDS,
     difficultyScore: decoded.difficultyScore,
     rowSpacing: ROW_SPACING,
     obstacles: decoded.obstacles,
@@ -1095,11 +1204,19 @@ function difficultyForCut(cutId: SkiPixlCutId): SkiPixlDifficulty {
 }
 
 function rowSpacingForCut(cutId: SkiPixlCutId): number {
+  return cutId === "P90" ? EASY_ROW_SPACING : CURRENT_ADVANCED_ROW_SPACING;
+}
+
+function legacyRowSpacingForCut(cutId: SkiPixlCutId): number {
   return cutId === "P90" ? EASY_ROW_SPACING : ROW_SPACING;
 }
 
-function targetSecondsForCut(cutId: SkiPixlCutId): number {
-  return cutId === "P90" ? EASY_TARGET_SECONDS : TARGET_SECONDS;
+function targetSecondsForCut(_cutId: SkiPixlCutId): number {
+  return TARGET_SECONDS;
+}
+
+function previousTargetSecondsForCut(cutId: SkiPixlCutId): number {
+  return cutId === "P90" ? 60 : PREVIOUS_TARGET_SECONDS;
 }
 
 function courseLengthForSpacing(rowSpacing: number): number {
@@ -1427,7 +1544,8 @@ function assertCatalogMetrics(
     catalog.gateCount !== undefined &&
     (payload.receipt.schemaVersion === "skipixl-course-receipt-v5" ||
       payload.receipt.schemaVersion === "skipixl-course-receipt-v6" ||
-      payload.receipt.schemaVersion === "skipixl-course-receipt-v7") &&
+      payload.receipt.schemaVersion === "skipixl-course-receipt-v7" ||
+      payload.receipt.schemaVersion === "skipixl-course-receipt-v8") &&
     payload.receipt.gateCount !== catalog.gateCount
   )
     throw new Error(`${payload.courseId} gateCount drifted from its catalog.`);

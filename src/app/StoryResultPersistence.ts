@@ -43,18 +43,21 @@ export function persistSkiPixlStoryResult(
     throw new Error("Only a Story SkiPixl result can update cut progress.");
   }
   const stageId = context.storyStage;
-  if (stageId !== "skipixl-medium" && stageId !== "skipixl") {
+  if (stageId !== "skipixl-feasible" && stageId !== "skipixl-overloaded") {
     throw new Error("SkiPixl Story result has no active SkiPixl stage.");
   }
   const receipt = pack.payload.receipt;
   if (
-    receipt.schemaVersion !== "skipixl-course-receipt-v7" ||
+    (receipt.schemaVersion !== "skipixl-course-receipt-v7" &&
+      receipt.schemaVersion !== "skipixl-course-receipt-v8") ||
     pack.payload.cutId === undefined ||
     pack.payload.tripletId === undefined ||
     receipt.cutId !== pack.payload.cutId ||
     receipt.tripletId !== pack.payload.tripletId
   ) {
-    throw new Error("SkiPixl Story progress requires an exact v7 cut receipt.");
+    throw new Error(
+      "SkiPixl Story progress requires an exact v7 or v8 cut receipt.",
+    );
   }
   const passedGateCount = snapshot.gateResults.filter(
     ({ passed }) => passed,
@@ -113,7 +116,7 @@ export function persistSkiPixlStoryResult(
 
 export function isInstalledFluxballStoryRun(
   savedRun: RunContext | null,
-  stage: Extract<StoryStageId, "fluxball-two" | "fluxball-four">,
+  stage: Extract<StoryStageId, "fluxball-global" | "fluxball-individual">,
   format: FluxballFormat,
 ): boolean {
   if (!savedRun) return false;
@@ -172,14 +175,14 @@ export function resolveInstalledQongStoryRun(
 /** Return the installed course only when it recreates the exact saved run. */
 export function resolveInstalledSkiPixlStoryRun(
   savedRun: RunContext | null,
-  stage: Extract<StoryStageId, "skipixl-medium" | "skipixl">,
+  stage: Extract<StoryStageId, "skipixl-feasible" | "skipixl-overloaded">,
 ): SkiPixlCommittedPack | null {
   if (!savedRun) return null;
   const pack = findInstalledSkiPixlPack(
     savedRun.pack.packId,
     savedRun.pack.contentSha256,
   );
-  const expectedCut = stage === "skipixl-medium" ? "P84" : "P78";
+  const expectedCut = stage === "skipixl-feasible" ? "P84" : "P78";
   if (!pack || pack.payload.cutId !== expectedCut) return null;
   const expected = createRunContext({
     gameId: "skipixl",
@@ -194,7 +197,7 @@ export function resolveInstalledSkiPixlStoryRun(
 
 export function isInstalledQuantmanStoryRun(
   savedRun: RunContext | null,
-  stage: Extract<StoryStageId, "quantman-stabilize" | "quantman">,
+  stage: Extract<StoryStageId, "quantman-hold">,
   fixture: LabyrinthFixture,
 ): boolean {
   if (!savedRun) return false;
@@ -249,10 +252,23 @@ export function resolveStoryRetryLaunch(
   activeStoryReplay: boolean,
 ): StoryRetryLaunch | null {
   if (context.playMode !== "story" || context.storyStage === null) return null;
+  if (!isCurrentStoryStage(context.storyStage)) return null;
   return Object.freeze({
     stage: context.storyStage,
     replay: activeStoryReplay,
   });
+}
+
+function isCurrentStoryStage(value: string): value is StoryStageId {
+  return [
+    "qong",
+    "skipixl-feasible",
+    "skipixl-overloaded",
+    "quantman-hold",
+    "fluxball-global",
+    "fluxball-individual",
+    "quarry",
+  ].includes(value);
 }
 
 function exactRunMatches(expected: RunContext, saved: RunContext): boolean {

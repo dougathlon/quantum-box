@@ -105,7 +105,7 @@ describe("native cabinet HUD presentation", () => {
       {
         competitorCount: 2,
         ruleMode: "individual",
-        roundSeconds: 60,
+        roundSeconds: 40,
         humanPlayerIds: ["A"],
       },
     );
@@ -113,7 +113,7 @@ describe("native cabinet HUD presentation", () => {
 
     expect(fluxballHudModel(snapshot, false)).toMatchObject({
       round: "R 1/4",
-      time: "60",
+      time: "40",
       goals: { A: "0", B: "0", C: "0", D: "0" },
       roundWins: { A: "0", B: "0", C: "0", D: "0" },
       activePlayerIds: ["A", "B"],

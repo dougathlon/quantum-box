@@ -23,3 +23,43 @@ scripts/build_qgraph_cabinet_assets.py export-ignore
 scripts/build_qgraph_screenshot_matrix.py export-ignore
 scripts/build_qgraph_sprite_comparison.py export-ignore
 scripts/compare_qgraph_visual_regression.py export-ignore
+
+# Superseded physical Story presentation. Save-v5 compatibility schemas remain
+# public, but the former walk-around scenes, morph assets, and their private QA
+# fixtures do not belong in the collaborator or Pages source snapshot.
+src/qongDesigner.css export-ignore
+src/audio/assets/fluxball-01-open-field-likeness-65-region-03-repeated.wav export-ignore
+src/assets/designer-professor export-ignore
+src/assets/canonical-runtime-assets-v2/assets/designer export-ignore
+src/assets/canonical-runtime-assets-v2/assets/morphs export-ignore
+src/assets/canonical-runtime-assets-v2/assets/player export-ignore
+src/debug/DesignerEncounterFixtures.ts export-ignore
+src/display/views/DesignerEncounterView.ts export-ignore
+src/display/views/TutorialWorldView.ts export-ignore
+src/display/views/WorkshopView.ts export-ignore
+src/story/DesignerEncounter.ts export-ignore
+src/story/QongDesignerLesson.ts export-ignore
+src/story/storyContent.ts export-ignore
+src/story/v2 export-ignore
+tests/fixtures/designer-responsive-harness.html export-ignore
+tests/unit/designerEncounter.test.ts export-ignore
+tests/unit/designerEncounterFixtures.test.ts export-ignore
+tests/unit/qongDesignerLesson.test.ts export-ignore
+tests/unit/qongStorySequence.test.ts export-ignore
+tests/unit/storyContent.test.ts export-ignore
+tests/unit/storyV2Evidence.test.ts export-ignore
+tests/unit/storyV2Presentation.test.ts export-ignore
+tests/unit/storyV2Registry.test.ts export-ignore
+tests/unit/storyV2TerminalAndAssets.test.ts export-ignore
+tests/unit/storyV2WalkMachine.test.ts export-ignore
+tests/unit/tutorialWorldView.test.ts export-ignore
+tests/unit/tutorialWorldEvidenceFixtures.ts export-ignore
+tests/unit/fluxballClubhouseTutorialWorld.test.ts export-ignore
+tests/unit/qongWorkshopTutorialWorld.test.ts export-ignore
+tests/unit/quantmanTopologyRoomTutorialWorld.test.ts export-ignore
+tests/unit/recoveredReplayFixture.test.ts export-ignore
+tests/unit/skiPixlLodgeTutorialWorld.test.ts export-ignore
+tests/unit/tutorialEvidenceFailClosed.test.ts export-ignore
+tests/unit/tutorialRecoveryRecord.test.ts export-ignore
+tests/unit/tutorialRecoveryReplay.test.ts export-ignore
+tests/unit/tutorialRegistry.test.ts export-ignore

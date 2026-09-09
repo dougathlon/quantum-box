@@ -33,6 +33,7 @@ import {
 import {
   FLUXBALL_RULES_VERSION,
   FLUXBALL_LEGACY_RULES_VERSION,
+  FLUXBALL_OLDEST_RULES_VERSION,
   FLUXBALL_OLDER_RULES_VERSION,
   FLUXBALL_TICKS_PER_SECOND,
   FLUXBALL_TOTAL_ROUNDS,
@@ -125,6 +126,17 @@ export class FluxballSession {
         })),
       ),
     );
+    if (
+      this.schedules.some((schedule) =>
+        schedule.some(
+          (state) => state.trace.acquisitionSource !== "moth-qgraph-qpu",
+        ),
+      )
+    ) {
+      throw new Error(
+        "Fluxball runtime authority requires a complete recorded QPU schedule.",
+      );
+    }
     this.roundWins = createScoreBoard(this.activePlayerIds);
     this.startRound();
   }
@@ -246,7 +258,8 @@ export class FluxballSession {
               playerId.charCodeAt(0),
             ),
           ),
-          this.context.playMode === "arcade" ? ARCADE_CPU_TUNING : undefined,
+          ARCADE_CPU_TUNING,
+          this.cpuPlayerIds,
         ),
       ]),
     );
@@ -436,37 +449,52 @@ function validateContext(context: RunContext, format: FluxballFormat): void {
     context.gameId !== "fluxball" ||
     (context.rulesVersion !== FLUXBALL_RULES_VERSION &&
       context.rulesVersion !== FLUXBALL_LEGACY_RULES_VERSION &&
-      context.rulesVersion !== FLUXBALL_OLDER_RULES_VERSION)
+      context.rulesVersion !== FLUXBALL_OLDER_RULES_VERSION &&
+      context.rulesVersion !== FLUXBALL_OLDEST_RULES_VERSION)
   ) {
     throw new Error(
       "Fluxball requires a Fluxball run context and matching rules version.",
     );
   }
   const currentDuration = context.rulesVersion === FLUXBALL_RULES_VERSION;
+  const uniformMinuteDuration =
+    context.rulesVersion === FLUXBALL_LEGACY_RULES_VERSION;
+  const legacySplitDuration = !currentDuration && !uniformMinuteDuration;
   if (
-    (currentDuration && format.roundSeconds !== 60) ||
-    (!currentDuration &&
+    (currentDuration && format.roundSeconds !== 40) ||
+    (uniformMinuteDuration && format.roundSeconds !== 60) ||
+    (legacySplitDuration &&
       ((format.competitorCount === 2 && format.roundSeconds !== 40) ||
         (format.competitorCount === 4 && format.roundSeconds !== 60)))
   ) {
     throw new Error(
       currentDuration
-        ? "Quantum Box Fluxball v4 requires 60-second rounds in every format."
-        : "Legacy Quantum Box Fluxball requires 2P/40s or 4P/60s rounds.",
+        ? "Quantum Box Fluxball v5 requires 40-second rounds in every format."
+        : uniformMinuteDuration
+          ? "Quantum Box Fluxball v4 requires 60-second rounds in every format."
+          : "Older Quantum Box Fluxball requires 2P/40s or 4P/60s rounds.",
     );
   }
+  if (context.playMode !== "story") return;
+  const currentStoryFormat =
+    context.storyStage === "fluxball-global"
+      ? format.competitorCount === 2 && format.ruleMode === "global"
+      : context.storyStage === "fluxball-individual"
+        ? format.competitorCount === 2 && format.ruleMode === "individual"
+        : false;
+  const legacyStoryFormat =
+    context.storyStage === "fluxball-two"
+      ? format.competitorCount === 2
+      : context.storyStage === "fluxball-four"
+        ? format.competitorCount === 4
+        : false;
   if (
-    context.playMode === "story" &&
-    ((context.storyStage === "fluxball-two" && format.competitorCount !== 2) ||
-      (context.storyStage === "fluxball-four" &&
-        format.competitorCount !== 4) ||
-      (context.storyStage !== "fluxball-two" &&
-        context.storyStage !== "fluxball-four"))
-  ) {
+    (currentDuration && !currentStoryFormat) ||
+    (!currentDuration && !legacyStoryFormat)
+  )
     throw new Error(
       "Fluxball Story authority does not match the match format.",
     );
-  }
 }
 
 function validateHumanPlayers(

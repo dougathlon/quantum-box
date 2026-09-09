@@ -17,6 +17,7 @@ import { renderQuantmanSynthetic } from "../display/views/QuantmanSyntheticView"
 import type { QuantmanSyntheticRuntimeSnapshot } from "../games/quantmanSynthetic";
 import type { QuagSnapshot } from "../games/quag/types";
 import { drawQuagArena, renderQuag } from "../display/views/QuagView";
+import { drawNativePixelLine } from "../display/NativePixelRaster";
 
 export const SCREEN_SCENE_KEY = "quantum-box-screen";
 export const LOGICAL_SCREEN = BROWN_BOX_LOGICAL_SCREEN;
@@ -41,8 +42,8 @@ export class ScreenScene extends Phaser.Scene {
 
   public create(): void {
     this.cameras.main.setRoundPixels(true);
-    this.quagArena = this.display.createLegacyCabinetPlane().setDepth(0);
-    this.background = this.display.createLegacyCabinetPlane().setDepth(1);
+    this.quagArena = this.display.createNativePixelPlane().setDepth(0);
+    this.background = this.display.createNativePixelPlane().setDepth(1);
     this.drawLibraryField();
     this.game.canvas.setAttribute("aria-hidden", "true");
   }
@@ -123,6 +124,29 @@ export class ScreenScene extends Phaser.Scene {
 
   private drawLibraryField(): void {
     const g = this.background.clear();
-    g.lineStyle(1, PALETTE.cream, 1).strokeRect(13, 10, 614, 340);
+    drawNativePixelLine(
+      g,
+      { x: 7, y: 5 },
+      { x: 313, y: 5 },
+      { colour: PALETTE.cream },
+    );
+    drawNativePixelLine(
+      g,
+      { x: 7, y: 5 },
+      { x: 7, y: 175 },
+      { colour: PALETTE.cream },
+    );
+    drawNativePixelLine(
+      g,
+      { x: 313, y: 5 },
+      { x: 313, y: 175 },
+      { colour: PALETTE.cream },
+    );
+    drawNativePixelLine(
+      g,
+      { x: 7, y: 175 },
+      { x: 313, y: 175 },
+      { colour: PALETTE.cream },
+    );
   }
 }

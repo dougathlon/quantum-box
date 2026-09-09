@@ -412,6 +412,12 @@ const GLYPHS: Readonly<Record<string, PixelGlyph>> = Object.freeze({
 #####
 #.#.#
 #####`),
+  "™": glyph(`
+###.#.#
+.#.###.
+.#.#.#.
+.......
+.......`),
 });
 
 const FALLBACK_GLYPH = GLYPHS["?"] as PixelGlyph;
@@ -471,6 +477,19 @@ export function pixelTextRects(
     spacing?: number;
   }>,
 ): readonly PixelTextRect[] {
+  for (const [name, value] of [
+    ["x", options.x],
+    ["y", options.y],
+    ["pixel", options.pixel],
+    ["spacing", options.spacing ?? options.pixel],
+  ] as const) {
+    if (
+      !Number.isInteger(value) ||
+      (name !== "x" && name !== "y" && value <= 0)
+    ) {
+      throw new Error(`Pixel text ${name} must use a native integer.`);
+    }
+  }
   const normalized = normalizePixelText(text);
   const spacing = options.spacing ?? options.pixel;
   const rectangles: PixelTextRect[] = [];

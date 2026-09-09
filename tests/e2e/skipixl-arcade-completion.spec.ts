@@ -1,14 +1,15 @@
 import { expect, test, type Page } from "@playwright/test";
 
-import { DEFAULT_ARCADE_RUN_SEED } from "../../src/app/arcade";
-import type { QuantumBoxSave } from "../../src/save/types";
-import { captureExternalRequests } from "./support/spatialTutorial";
+import { captureExternalRequests } from "./support/network";
 import {
   createArcadeSkiPixlBrowserPlan,
   type SkiPixlSteeringTransition,
 } from "./support/skipixlStory";
 
-const SAVE_STORAGE_KEY = "quantum-box/save-v5";
+// Keep browser tests independent of Vite-only production modules. These public
+// contract values are asserted independently by the unit suite.
+const DEFAULT_ARCADE_RUN_SEED = 260_823;
+const SAVE_STORAGE_KEY = "quantum-box/save-v6";
 
 test("Arcade SkiPixl completes the production QPixl descent without Story authority", async ({
   page,
@@ -52,6 +53,7 @@ test("Arcade SkiPixl completes the production QPixl descent without Story author
 
   let heldSteer: -1 | 0 | 1 = 0;
   try {
+    await page.keyboard.down("ArrowDown");
     for (const transition of plan.transitions) {
       await waitUntilPlanOffset(page, startedAt, transition.atMs);
       heldSteer = await applySteeringTransition(page, heldSteer, transition);
@@ -67,6 +69,7 @@ test("Arcade SkiPixl completes the production QPixl descent without Story author
       },
     );
   } finally {
+    await page.keyboard.up("ArrowDown");
     await releaseSteering(page, heldSteer);
   }
 
@@ -106,7 +109,7 @@ test("Arcade SkiPixl completes the production QPixl descent without Story author
     kind: "skipixl",
     difficulty: "easy",
     initials: "YOU",
-    rulesVersion: "skipixl-rules-v7",
+    rulesVersion: "skipixl-rules-v8",
     pack: {
       packId: plan.packId,
       contentSha256: plan.packContentSha256,
@@ -180,10 +183,7 @@ function formatSkiPixlTime(elapsedSeconds: number): string {
   return `${minutes}:${seconds}`;
 }
 
-async function readSaveState(page: Page): Promise<{
-  readonly snapshot: QuantumBoxSave | undefined;
-  readonly serialized: string | null;
-}> {
+async function readSaveState(page: Page) {
   return page.evaluate(
     (storageKey) => ({
       snapshot: window.__QUANTUM_BOX_TEST__?.getSave(),

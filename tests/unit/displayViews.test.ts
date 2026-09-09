@@ -9,14 +9,11 @@ import {
 } from "../../src/display/views/CabinetDisplayViews";
 import { LIBRARY_ORDER } from "../../src/display/views/LibraryView";
 import { TITLE_VIEW_COPY } from "../../src/display/views/TitleView";
-import { workshopBayViews } from "../../src/display/views/WorkshopView";
 import type { FluxballSnapshot } from "../../src/games/fluxball/types";
 import type { QongSnapshot } from "../../src/games/qong/types";
 import type { QuantmanSnapshot } from "../../src/games/quantman/types";
 import { selectStorySkiPixlPack } from "../../src/games/skipixl/SkiPixlCourseAdapter";
 import type { SkiPixlSnapshot } from "../../src/games/skipixl/types";
-import { createDefaultSave, validateSave } from "../../src/save/types";
-import { qongWorkshopRunInput } from "./tutorialWorldEvidenceFixtures";
 
 describe("Brown Box display models", () => {
   it("keeps the title and library ordering explicit", () => {
@@ -26,74 +23,6 @@ describe("Brown Box display models", () => {
       assistiveHint: "Any player action key",
     });
     expect(LIBRARY_ORDER).toEqual(["qong", "skipixl", "fluxball", "quantman"]);
-  });
-
-  it("derives Workshop labels from immutable save authority", async () => {
-    const empty = workshopBayViews(createDefaultSave());
-    expect(empty.map(({ title }) => title)).toEqual([
-      "QONG",
-      "SKIPIXL",
-      "FLUXBALL",
-      "QUANTMAN",
-      "QUARRY",
-    ]);
-    expect(empty.every(({ recovered }) => !recovered)).toBe(true);
-
-    const qong = await qongWorkshopRunInput();
-    if (qong.context.packSelection === null) {
-      throw new Error("Qong Workshop fixture lacks its selection receipt.");
-    }
-    const recovered = workshopBayViews(
-      validateSave({
-        ...createDefaultSave(),
-        story: {
-          ...createDefaultSave().story,
-          currentStage: "fluxball-two",
-          completedStages: ["qong", "skipixl-medium", "skipixl"],
-          recoveredFormulae: ["qong", "skipixl"],
-          debriefedFormulae: ["qong", "skipixl"],
-          attempts: { qong: 1, "skipixl-medium": 1, skipixl: 1 },
-          qongSelector: {
-            cursor: qong.context.packSelection.selectorCursorAfter,
-            cycle: qong.context.packSelection.selectorCycleAfter,
-            recoveredSelection: qong.context.packSelection,
-          },
-          tutorialRecoveries: {},
-        },
-      }),
-    );
-    expect(recovered.map(({ title }) => title)).toEqual([
-      "RULE STATE",
-      "RESIDUAL DESCENT",
-      "FLUXBALL",
-      "QUANTMAN",
-      "QUARRY",
-    ]);
-    expect(recovered.map(({ recovered: isRecovered }) => isRecovered)).toEqual([
-      true,
-      true,
-      false,
-      false,
-      false,
-    ]);
-    expect(Object.isFrozen(recovered)).toBe(true);
-
-    const completedStory = createDefaultSave();
-    const quarry = workshopBayViews({
-      ...completedStory,
-      story: {
-        ...completedStory.story,
-        currentStage: "complete",
-        completedStages: ["quarry"],
-      },
-    });
-    expect(quarry.at(-1)).toMatchObject({
-      gameId: "quarry",
-      number: "05",
-      title: "PURSUIT ECOLOGY",
-      engineId: "graph-v1",
-      recovered: true,
-    });
   });
 
   it("maps Qong's unresolved public rule state without exposing its internal rule", () => {
