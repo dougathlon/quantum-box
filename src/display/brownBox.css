@@ -748,6 +748,7 @@
 }
 
 .qb-page,
+.qb-shell:not([data-view="cabinet"]) .qb-page,
 .qb-shell[data-page="main"] .qb-page,
 .qb-shell[data-page="arcade"] .qb-page {
   top: 18cqh;

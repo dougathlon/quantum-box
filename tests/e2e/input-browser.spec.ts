@@ -393,17 +393,16 @@ async function observeCanonicalSprite(
             ((red === 214 && green === 189 && blue === 139) ||
               (red === 86 && green === 67 && blue === 48));
           if (isVisibleInk) {
-            for (let scaledY = 0; scaledY < pixelScale; scaledY += 1) {
-              for (let scaledX = 0; scaledX < pixelScale; scaledX += 1) {
-                points.push({
-                  x: x * pixelScale + scaledX,
-                  y: y * pixelScale + scaledY,
-                  red,
-                  green,
-                  blue,
-                });
-              }
-            }
+            // Sprites remain on the logical grid even with the finer text
+            // framebuffer. Sample one pixel per solid source pixel, avoiding
+            // redundant 2x2 comparisons that can stall the live simulation.
+            points.push({
+              x: x * pixelScale,
+              y: y * pixelScale,
+              red,
+              green,
+              blue,
+            });
           }
         }
       }
@@ -424,12 +423,12 @@ async function observeCanonicalSprite(
       for (
         let top = Math.max(0, definition.search.top * pixelScale);
         top <= maxY;
-        top += 1
+        top += pixelScale
       ) {
         for (
           let left = Math.max(0, definition.search.left * pixelScale);
           left <= maxX;
-          left += 1
+          left += pixelScale
         ) {
           let matches = 0;
           for (const point of points) {
