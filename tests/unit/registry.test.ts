@@ -19,8 +19,8 @@ describe("Quantum Box registry", () => {
     expect(ARCADE_CABINET_IDS).toEqual([
       "qong",
       "skipixl",
-      "fluxball",
       "quantman",
+      "fluxball",
       "quarry",
     ]);
     expect(STORY_CHAPTER_IDS).toEqual([
