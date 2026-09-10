@@ -44,7 +44,7 @@ async function checkReadingChoices(page: Page) {
             text.bottom <= box.bottom + 1 &&
             text.left >= box.left - 1 &&
             text.right <= box.right + 1,
-          audit: canvas.dataset.explicitTextFitAudit,
+          audit: canvas.dataset["explicitTextFitAudit"],
         };
       });
       expect(report, (await button.textContent()) ?? "").toEqual({
