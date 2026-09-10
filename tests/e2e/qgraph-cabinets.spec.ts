@@ -160,7 +160,7 @@ test("Quarry introduces Player A and freezes its 60-second clock during orientat
     "YOU ARE A",
   );
   await expect(region.locator("[data-quag='controls']")).toHaveText(
-    "A/D OR ARROWS · W/SPACE/UP FLAP",
+    "MOVE · A/D / ←→",
   );
   await expect(region.locator("[data-quag='controls']")).toBeVisible();
   await expect(page.locator("[data-ui='game']")).toHaveAttribute(
@@ -168,7 +168,10 @@ test("Quarry introduces Player A and freezes its 60-second clock during orientat
     "active",
     { timeout: 4_500 },
   );
-  await expect(region.locator("[data-quag='controls']")).toBeHidden();
+  await expect(region.locator("[data-quag='controls']")).toBeVisible();
+  await expect(
+    region.getByText("FLAP · SPACE / A", { exact: true }),
+  ).toBeVisible();
 });
 
 test("all five Arcade cabinets fit and keyboard navigation reaches Quarry", async ({
