@@ -111,8 +111,8 @@ test("Arcade overview contains five cabinets and every cabinet opens a terminal-
     const number = await row.locator(".qb-arcade-select-number").boundingBox();
     const icon = await row.locator(".qb-arcade-preview").boundingBox();
     const title = await row.locator("strong").boundingBox();
-    expect(number!.x + number!.width).toBeLessThanOrEqual(icon!.x);
-    expect(icon!.x + icon!.width).toBeLessThanOrEqual(title!.x);
+    expect(number!.x + number!.width).toBeLessThanOrEqual(title!.x);
+    expect(title!.x + title!.width).toBeLessThanOrEqual(icon!.x);
     expect(Math.abs(number!.y - title!.y)).toBeLessThanOrEqual(1);
   }
 

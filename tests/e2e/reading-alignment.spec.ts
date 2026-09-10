@@ -95,3 +95,29 @@ test("reading choices align their selectors and fit in every menu", async ({
     "dotted",
   );
 });
+
+test("Terminal and Arcade share number and title columns", async ({ page }) => {
+  await page.goto("/");
+  await page.getByRole("button", { name: "PRESS START", exact: true }).click();
+  await page.getByRole("button", { name: "ARCADE", exact: true }).click();
+  const arcade = await page
+    .locator(".qb-arcade-select-row")
+    .first()
+    .evaluate((row) => ({
+      number: row
+        .querySelector(".qb-arcade-select-number")!
+        .getBoundingClientRect().left,
+      title: row.querySelector("strong")!.getBoundingClientRect().left,
+    }));
+  await page
+    .getByRole("button", { name: "BACK · ESC / B", exact: true })
+    .click();
+  await page.getByRole("button", { name: "TERMINAL", exact: true }).click();
+  for (const row of await page.locator(".qb-terminal-index li").all()) {
+    const terminal = await row.evaluate((el) => ({
+      number: el.querySelector("span")!.getBoundingClientRect().left,
+      title: el.querySelector("strong")!.getBoundingClientRect().left,
+    }));
+    expect(terminal).toEqual(arcade);
+  }
+});
