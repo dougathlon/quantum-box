@@ -1,3 +1,4 @@
+import { terminalGlyphRects, terminalTextWidth } from "./TerminalTypeface";
 import Phaser from "phaser";
 
 export type PixelTextAlign = "left" | "center" | "right";
@@ -468,7 +469,65 @@ export function drawCanvasPixelText(
   return Object.freeze({ left, top: options.y, width, height });
 }
 
+const compactGlyphCache = new Map<string, PixelTextRect[]>();
+
 export function pixelTextRects(
+  text: string,
+  options: Readonly<{ x: number; y: number; pixel: number; spacing?: number }>,
+): readonly PixelTextRect[] {
+  for (const value of [
+    options.x,
+    options.y,
+    options.pixel,
+    options.spacing ?? options.pixel,
+  ])
+    if (!Number.isInteger(value))
+      throw new Error("Pixel text placement must use a native integer.");
+  if (options.pixel <= 0 || (options.spacing ?? options.pixel) <= 0)
+    throw new Error("Pixel text size must be positive.");
+  const result: PixelTextRect[] = [];
+  let x = options.x;
+  for (const character of normalizePixelText(text)) {
+    const width = pixelTextWidth(character, 1, 1);
+    let cells = compactGlyphCache.get(character);
+    if (!cells) {
+      cells = [];
+      const sourceWidth = terminalTextWidth(character);
+      const ink = new Set(
+        terminalGlyphRects(character).map((r) => `${r.x * 2},${r.y * 2}`),
+      );
+      // Compact optical size: preserve cabinet measures, sample the shared face
+      // onto ten physical rows. No fractional physical pixels or antialiasing.
+      for (let dy = 0; dy < 10; dy++)
+        for (let dx = 0; dx < width * 2; dx++) {
+          const sx = Math.min(
+            sourceWidth * 2 - 1,
+            Math.floor(((dx + 0.5) * sourceWidth) / width),
+          );
+          const sy = Math.min(13, Math.floor(((dy + 0.5) * 14) / 10));
+          if (ink.has(`${sx},${sy}`))
+            cells.push({
+              x: dx / 2,
+              y: dy / 2,
+              width: 0.5,
+              height: 0.5,
+            });
+        }
+      compactGlyphCache.set(character, cells);
+    }
+    for (const r of cells)
+      result.push({
+        x: x + r.x * options.pixel,
+        y: options.y + r.y * options.pixel,
+        width: r.width * options.pixel,
+        height: r.height * options.pixel,
+      });
+    x += width * options.pixel + (options.spacing ?? options.pixel);
+  }
+  return result;
+}
+
+export function legacyPixelTextRects(
   text: string,
   options: Readonly<{
     x: number;

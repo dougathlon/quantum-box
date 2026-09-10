@@ -269,16 +269,16 @@ export class QuantumBoxApp {
     this.game = new Phaser.Game({
       type: Phaser.AUTO,
       parent: this.shell.getCanvasHost(),
-      width: LOGICAL_SCREEN.width,
-      height: LOGICAL_SCREEN.height,
+      width: LOGICAL_SCREEN.width * 2,
+      height: LOGICAL_SCREEN.height * 2,
       transparent: true,
       scene: [ScreenScene],
       render: { antialias: false, pixelArt: true, roundPixels: true },
       scale: {
         mode: Phaser.Scale.FIT,
         autoCenter: Phaser.Scale.CENTER_BOTH,
-        width: LOGICAL_SCREEN.width,
-        height: LOGICAL_SCREEN.height,
+        width: LOGICAL_SCREEN.width * 2,
+        height: LOGICAL_SCREEN.height * 2,
       },
       banner: false,
     });

@@ -8,7 +8,7 @@
 
 ## Implemented
 
-- Native `320×180` Brown Box framebuffer, integer nearest-neighbour scaling,
+- `320×180` logical layout with a `640×360` Brown Box text/graphics raster, integer nearest-neighbour scaling,
   bitmap UI, animated selectable background programmes, and a field-based title.
 - Home routes: Story (Continue/New Story), Arcade, Terminal, and Settings.
 - Spatial keyboard/gamepad focus, selectable footer actions, and controller-only

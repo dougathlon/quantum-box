@@ -12,7 +12,7 @@ describe("original title lettering", () => {
       width: 320,
       height: 180,
     });
-    expect(TITLE_LETTERING_CONTRACT.raster).toBe("five-by-seven-field-grid-v5");
+    expect(TITLE_LETTERING_CONTRACT.raster).toBe("refined-five-by-seven-v1");
     expect(TITLE_LETTERING_CONTRACT.title.pixel).toBe(3);
     expect(TITLE_LETTERING_CONTRACT.prompt.pixel).toBe(2);
     const title = TITLE_LETTERING_CONTRACT.title;
@@ -48,10 +48,6 @@ describe("original title lettering", () => {
         expect(Number.isInteger(height)).toBe(true);
         expect(width).toBeGreaterThan(0);
         expect(height).toBeGreaterThan(0);
-        expect((x + 11) % pixelScale).toBe(0);
-        expect((y - 7) % pixelScale).toBe(0);
-        expect(width % pixelScale).toBe(0);
-        expect(height % pixelScale).toBe(0);
       }
     }
   });

@@ -1,3 +1,6 @@
+import { storyTextLayout } from "../display/StoryTextLayout";
+import { terminalTextWidth } from "../display/TerminalTypeface";
+import { ARCADE_INSTRUCTIONS } from "./ArcadeInstructions";
 import type {
   ArcadeCabinetId,
   GameId,
@@ -180,6 +183,8 @@ export class QuantumBoxShell {
   private cabinetActive = false;
   private cabinetPlayMode: "story" | "arcade" = "arcade";
   private terminalView: StoryTerminalView | null = null;
+  private terminalSheets: readonly StoryTerminalView[] = [];
+  private terminalSheetIndex = 0;
   private terminalVisibleCharacters = 0;
   private terminalTypingTimer: number | null = null;
   private settingsSection: SettingsSection = "display";
@@ -351,7 +356,12 @@ export class QuantumBoxShell {
     if (!this.entered || this.cabinetActive) return;
     this.status.textContent = "";
     this.storyUnavailableMessage = null;
-    this.terminalView = view;
+    const layout = storyTextLayout(view.page);
+    this.terminalSheets = [
+      { ...view, page: { ...view.page, body: layout.body } },
+    ];
+    this.terminalSheetIndex = 0;
+    this.terminalView = this.terminalSheets[0]!;
     this.page = "story-terminal";
     this.actions.onPageChanged(this.page);
     this.startTerminalTyping();
@@ -961,8 +971,24 @@ export class QuantumBoxShell {
       this.settingsPlayerId,
       this.arcadeInitialsDraft.join(""),
     );
+    // Primary choices share the terminal reading face; metadata stays compact.
+    for (const element of this.pageRoot.querySelectorAll(
+      ".qb-primary-menu-row > span, .qb-primary-menu-row strong, .qb-arcade-select-number, .qb-arcade-select-row > strong, .qb-arcade-mode > button, .qb-page-panel h1:not(.qb-visually-hidden)",
+    ))
+      element.setAttribute("data-bitmap-flow", "");
     const breadcrumb = required(this.root, "[data-ui='breadcrumb']");
     breadcrumb.textContent = PAGE_TITLES[this.page];
+    const terminalArticle =
+      this.pageRoot.querySelector<HTMLElement>(".qb-terminal-page");
+    if (terminalArticle) {
+      terminalArticle.dataset["readingSheet"] = String(this.terminalSheetIndex);
+      if (this.terminalSheets.length > 1) {
+        const position = document.createElement("span");
+        position.className = "qb-reading-position";
+        position.textContent = `${this.terminalSheetIndex + 1} / ${this.terminalSheets.length}`;
+        terminalArticle.append(position);
+      }
+    }
     const terminalLayout =
       this.page === "story-start" ||
       this.page === "story-terminal" ||
@@ -1079,6 +1105,13 @@ export class QuantumBoxShell {
     } else if (action === "story-terminal-action") {
       if (!this.terminalTypingComplete()) {
         this.completeTerminalTyping();
+        return;
+      }
+      if (!button.isConnected) return;
+      if (this.terminalSheetIndex < this.terminalSheets.length - 1) {
+        this.terminalSheetIndex++;
+        this.terminalView = this.terminalSheets[this.terminalSheetIndex]!;
+        this.startTerminalTyping();
         return;
       }
       const terminalAction = button.dataset["terminalAction"];
@@ -1695,6 +1728,14 @@ function terminalIndexMarkup(save: QuantumBoxSave): string {
   return `<div class="qb-page-panel qb-terminal-index"><h1 class="qb-visually-hidden" tabindex="-1">TERMINAL</h1><p class="qb-visually-hidden">Completed Story program transcripts and independent retries.</p><ol data-scroll-list>${rows}</ol>${scrollPositionMarkup()}</div>`;
 }
 
+function terminalBodyTop(header: readonly string[]): number {
+  return (
+    5 +
+    header.reduce((count, line) => count + line.split("\n").length, 0) * 6 +
+    10
+  );
+}
+
 function terminalPageMarkup(
   view: StoryTerminalView,
   visibleCharacters: number,
@@ -1719,14 +1760,14 @@ function terminalPageMarkup(
     ? page.actions
         .map(
           ({ id, label }) =>
-            `<button type="button" data-action="story-terminal-action" data-terminal-action="${id}" data-terminal-node="${escapeHtml(view.nodeId)}">${label} <span class="qb-terminal-cursor" aria-hidden="true">█</span></button>`,
+            `<button type="button" data-action="story-terminal-action" data-terminal-action="${id}" data-terminal-node="${escapeHtml(view.nodeId)}" aria-label="${label} · ENTER / A"><span data-bitmap-flow class="qb-terminal-prompt-label" style="width: ${(terminalTextWidth("> " + label) + 4) / 3.2}cqw">&gt; ${label}</span><span class="qb-terminal-cursor" aria-hidden="true"></span></button>`,
         )
         .join("")
     : "";
   const accessible = [...page.header, ...page.body]
     .join("\n\n")
     .replaceAll("\n", " ");
-  return `<article class="qb-page-panel qb-terminal-page" data-terminal-page="${escapeHtml(page.id)}" data-terminal-density="${terminalDensity(page)}" data-terminal-complete="${complete}" data-reduced-motion="${reducedMotion}" aria-label="${escapeHtml(accessible)}"><header aria-hidden="true">${visibleHeader.map(terminalTextBlock).join("")}${transcriptPosition}</header><div class="qb-terminal-top-rule" aria-hidden="true" data-visible="${headerFinished}"></div><section class="qb-terminal-body" aria-hidden="true">${visibleBody.map(terminalTextBlock).join("")}</section><div class="qb-terminal-actions">${actions}</div><p class="qb-visually-hidden">${escapeHtml(accessible)}</p></article>`;
+  return `<article class="qb-page-panel qb-terminal-page" data-terminal-page="${escapeHtml(page.id)}" style="--story-gap: ${(storyTextLayout(page).gap / 1.8).toFixed(4)}cqh; --reading-top: ${(terminalBodyTop(page.header) / 1.8).toFixed(4)}cqh; --reading-rule: ${((terminalBodyTop(page.header) - 6) / 1.8).toFixed(4)}cqh" data-terminal-density="${terminalDensity(page)}" data-terminal-complete="${complete}" data-reduced-motion="${reducedMotion}" aria-label="${escapeHtml(accessible)}"><header aria-hidden="true">${visibleHeader.map((text) => terminalTextBlock(text)).join("")}${transcriptPosition}</header><div class="qb-terminal-top-rule" aria-hidden="true" data-visible="${headerFinished}"></div><div class="qb-terminal-reading"><section class="qb-terminal-body" aria-hidden="true">${visibleBody.map((text) => terminalTextBlock(text, true)).join("")}</section><div class="qb-terminal-actions">${actions}</div></div><p class="qb-visually-hidden">${escapeHtml(accessible)}</p></article>`;
 }
 
 function terminalDensity(
@@ -1741,8 +1782,8 @@ function terminalDensity(
   return "long";
 }
 
-function terminalTextBlock(value: string): string {
-  return `<p ${bitmapTextAttribute(value)}>${escapeHtml(value).replaceAll("\n", "<br>")}</p>`;
+function terminalTextBlock(value: string, reading = false): string {
+  return `<p ${reading ? "data-bitmap-flow" : ""} ${bitmapTextAttribute(value)}>${escapeHtml(value).replaceAll("\n", "<br>")}</p>`;
 }
 
 function textGroupCharacterCount(lines: readonly string[]): number {
@@ -1807,7 +1848,7 @@ function arcadeSelectionMarkup(): string {
 
 function arcadeSelectionRow(gameId: ShippedArcadeCabinetId): string {
   const game = ARCADE_CABINET_DEFINITIONS[gameId];
-  return `<button class="qb-arcade-select-row" type="button" data-action="open-arcade-cabinet" data-game-id="${gameId}" aria-label="${escapeHtml(game.title)} · OPEN">${arcadePreview(gameId)}<span class="qb-arcade-select-number">${game.model.slice(-2)}</span><strong>${escapeHtml(game.title)}</strong><span class="qb-arcade-select-status">OPEN</span></button>`;
+  return `<button class="qb-arcade-select-row" type="button" data-action="open-arcade-cabinet" data-game-id="${gameId}" aria-label="${escapeHtml(game.title)}">${arcadePreview(gameId)}<span class="qb-arcade-select-number">${game.model.slice(-2)}</span><strong>${escapeHtml(game.title)}</strong></button>`;
 }
 
 function scrollPositionMarkup(): string {
@@ -1817,7 +1858,10 @@ function scrollPositionMarkup(): string {
 function arcadeGameMarkup(gameId: ShippedArcadeCabinetId): string {
   const game = ARCADE_CABINET_DEFINITIONS[gameId];
   const engineLabel = `${game.model} / ${game.engineId.toUpperCase()}`;
-  return `<section class="qb-page-panel qb-arcade-detail qb-arcade-detail--${gameId}" data-arcade-detail="${gameId}" aria-labelledby="arcade-${gameId}" aria-describedby="arcade-${gameId}-source"><header class="qb-arcade-detail-header"><div><h1 id="arcade-${gameId}" tabindex="-1" ${bitmapTextAttribute(game.title)}>${escapeHtml(game.title)}</h1><p ${bitmapTextAttribute(engineLabel)}>${escapeHtml(engineLabel)}</p></div>${arcadePreview(gameId)}</header><div class="qb-arcade-detail-rule qb-terminal-top-rule" aria-hidden="true"></div><div class="qb-arcade-detail-body"><section class="qb-arcade-tutorial" aria-labelledby="arcade-${gameId}-tutorial"><h2 id="arcade-${gameId}-tutorial" data-bitmap-text="TUTORIAL">TUTORIAL</h2><p data-bitmap-flow ${bitmapTextAttribute(game.brief.premise)}>${escapeHtml(game.brief.premise)}</p><dl><div><dt data-bitmap-text="OBJECT">OBJECT</dt><dd data-bitmap-flow ${bitmapTextAttribute(game.brief.object)}>${escapeHtml(game.brief.object)}</dd></div><div><dt data-bitmap-text="CONDITION">CONDITION</dt><dd data-bitmap-flow ${bitmapTextAttribute(game.brief.condition)}>${escapeHtml(game.brief.condition)}</dd></div><div><dt data-bitmap-text="CONTROLS">CONTROLS</dt><dd data-bitmap-flow ${bitmapTextAttribute(game.brief.controls)}>${escapeHtml(game.brief.controls)}</dd></div></dl></section><section class="qb-arcade-trials" aria-label="${escapeHtml(game.title)} trials"><h2 data-bitmap-text="TRIALS">TRIALS</h2><div class="qb-arcade-launches">${game.arcadeModes
+  const tutorial = ARCADE_INSTRUCTIONS[gameId]
+    .map((text) => terminalTextBlock(text, true))
+    .join("");
+  return `<section class="qb-page-panel qb-arcade-detail qb-arcade-detail--${gameId}" data-arcade-detail="${gameId}" aria-labelledby="arcade-${gameId}" aria-describedby="arcade-${gameId}-source"><header class="qb-arcade-detail-header"><div><h1 id="arcade-${gameId}" tabindex="-1" ${bitmapTextAttribute(game.title)}>${escapeHtml(game.title)}</h1><p ${bitmapTextAttribute(engineLabel)}>${escapeHtml(engineLabel)}</p></div>${arcadePreview(gameId)}</header><div class="qb-arcade-detail-rule qb-terminal-top-rule" aria-hidden="true"></div><div class="qb-arcade-detail-body"><section class="qb-arcade-tutorial" aria-label="Tutorial">${tutorial}</section><section class="qb-arcade-trials" aria-label="${escapeHtml(game.title)} trials"><h2 data-bitmap-text="PLAY">PLAY</h2><div class="qb-arcade-launches">${game.arcadeModes
     .map((mode, index) => {
       const label = arcadeModeLabel(mode);
       const placement = arcadeModePlacement(gameId, index);

@@ -84,8 +84,8 @@ comprehension or game feel by themselves.
 
 ### Visual and interaction system
 
-- All game-display geometry uses a logical `320×180` framebuffer and integer
-  nearest-neighbour scaling.
+- All game-display geometry uses a logical `320×180` layout with `640×360` text/graphics backing rasters.
+  Use nearest-neighbour scaling; 2×, 4× and 6× logical scales preserve uniform text pixels.
 - Use only the Brown Box palette and binary alpha. Do not add blur, smoothing,
   gradients, bloom, extra accents, or fractional sprite placement.
 - Semantic DOM controls own focus, forms, keyboard, pointer, and accessibility;
@@ -132,7 +132,7 @@ Browser journeys execute separately:
 pnpm test:e2e
 ```
 
-For visible work, inspect native `320×180` and served `1280×720`; run a larger
+For visible work, inspect the `640×360` raster and served `1280×720`; run a larger
 desktop viewport before release. Exercise keyboard focus, gamepad navigation,
 pause, mute, blur/release, reduced motion, retry, save/reload, and return paths.
 

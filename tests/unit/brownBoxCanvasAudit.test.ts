@@ -2,8 +2,8 @@ import { describe, expect, it } from "vitest";
 
 import { auditBrownBoxPixelBuffer } from "../../src/debug/BrownBoxCanvasAudit";
 
-const WIDTH = 320;
-const HEIGHT = 180;
+const WIDTH = 640;
+const HEIGHT = 360;
 
 describe("Brown Box native canvas palette audit", () => {
   it("accepts an exact logical frame using only the three approved opaque colours", () => {
@@ -55,11 +55,11 @@ describe("Brown Box native canvas palette audit", () => {
     ]);
   });
 
-  it("fails closed when the renderer is not natively 320 by 180", () => {
+  it("fails closed when the renderer is not natively 640 by 360", () => {
     const report = auditBrownBoxPixelBuffer(
-      640,
-      360,
-      new Uint8ClampedArray(640 * 360 * 4).fill(255),
+      320,
+      180,
+      new Uint8ClampedArray(320 * 180 * 4).fill(255),
     );
 
     expect(report.logicalResolutionMatches).toBe(false);
@@ -69,7 +69,7 @@ describe("Brown Box native canvas palette audit", () => {
   it("rejects a malformed RGBA buffer", () => {
     expect(() =>
       auditBrownBoxPixelBuffer(WIDTH, HEIGHT, new Uint8ClampedArray(4)),
-    ).toThrow(/does not match 320×180 RGBA/);
+    ).toThrow(/does not match 640×360 RGBA/);
   });
 });
 

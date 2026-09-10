@@ -121,16 +121,16 @@ describe("semantic DOM bitmap mirror", () => {
     const text =
       "A LINE CROSSING COUNTS AT THE FAR GOAL OR YOUR OWN. OBSERVE EARLY, OR LET THE CROSSING RESOLVE IT.";
     const height = bitmapFlowTextHeight(text, 135);
-    expect(height).toBe(18);
+    expect(height).toBe(50);
     expect(
-      wrapBitmapText(text, 135, 1, 1, Math.floor(height / 6)).join(" "),
+      wrapBitmapText(text, 135, 1, 1, Math.floor(height / 10), true).join(" "),
     ).toBe(text);
     expect(
       bitmapFlowTextHeight(
         "A PADDLE MATCH WHOSE GOAL RULE IS UNRESOLVED.",
         135,
       ),
-    ).toBe(12);
+    ).toBe(20);
   });
 
   it("retains a blank column between letters instead of compressing labels", () => {

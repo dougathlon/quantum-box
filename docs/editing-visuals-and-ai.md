@@ -22,8 +22,8 @@ the underlying game or recorded quantum data.
 | Arcade tutorial wording and modes                      | [registry.ts](../src/games/registry.ts)                                                            |
 | Audio routing and browser unlock                       | [SynthAudio.ts](../src/audio/SynthAudio.ts), [QuantumBoxApp.ts](../src/app/QuantumBoxApp.ts)       |
 
-The visible UI uses a 320×180 integer raster with three colours and binary
-alpha. Semantic HTML owns input and accessibility underneath. A button painted
+The visible UI uses a 640×360 text raster over 320×180 logical geometry, with
+three colours and binary alpha. Semantic HTML owns input and accessibility underneath. A button painted
 on the canvas still needs a real focusable control. Use ENTER / A for menu
 selection and SPACE / A for Player A's gameplay action.
 
@@ -105,3 +105,41 @@ code; older similarly named adapters are not the default editing target.
 See [deployment](deployment.md) before publishing. Public main deploys Pages;
 internal QA fixtures, screenshots, acquisition state and credentials do not
 belong in that source tree.
+
+## Refined terminal typography
+
+The shared alphabet is [TerminalTypeface.ts](../src/display/TerminalTypeface.ts):
+5×7 proportions with binary corner refinement on a doubled grid. Story/tutorial
+body text uses 7 logical pixels of cap height and a 10-pixel line step.
+Primary menu numbers and labels, Arcade play modes, and page headings share
+this reading size. Numerals align with labels; metadata and footer controls stay compact. Compact HUDs use the same source face sampled into their
+existing advances and 5-pixel cap height; this preserves cabinet layout.
+[PixelText.ts](../src/display/PixelText.ts) caches the compact glyph raster.
+[TitleLettering.ts](../src/display/TitleLettering.ts) uses the full face at title scale.
+
+[StoryTextLayout.ts](../src/display/StoryTextLayout.ts) reflows explicitly reviewed
+soft line breaks while preserving every authored paragraph and word. Story uses
+4, 6 or 8 logical pixels between paragraphs according to available height; all
+41 source pages fit without added subpages. Actions follow the final paragraph
+with a continuously blinking cursor (steady for reduced motion).
+[ArcadeInstructions.ts](../src/ui/ArcadeInstructions.ts) owns concise Arcade
+instructions adapted from Story, with mode-specific guidance. Fluxball and Quarry
+copy is drafted there because their Story tutorials remain placeholders. Each
+cabinet stays on one page, using the same 7-pixel face and 6-pixel paragraph gap;
+play modes and scores remain below it. Update the instruction fit test and browser
+fixture when editing copy. The registry briefs remain historical lab/reference
+content and no longer supply the live Arcade instruction pages.
+
+All Story source text can be inspected in `src/story/terminal/content.ts`.
+Nine Fluxball/Quarry source pages remain placeholders; Arcade instructions are
+separate, reviewed adaptations.
+
+The graphics planes and bitmap UI have 640×360 backing rasters; game positions,
+sprites and physics retain 320×180 logical coordinates. Presentation uses nearest
+neighbour scaling. Even logical display scales (2×, 4×, 6×) give equal-size text
+pixels; odd scales use uneven nearest-neighbour steps. Source artwork and recorded
+provider assets are unchanged.
+
+Verify `readingPages`, `pixelText`, `bitmapDomText` and `titleLettering` unit tests,
+then inspect Story, tutorial, Settings and cabinet text in the browser. The local
+QA corpus runner is developer-only and is not part of the production entry.

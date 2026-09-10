@@ -1,3 +1,4 @@
+import { terminalGlyphRects, terminalTextWidth } from "./TerminalTypeface";
 import {
   drawCanvasPixelText,
   normalizePixelText,
@@ -13,6 +14,8 @@ const DARK_TOBACCO = "#2B1C14";
 export const BITMAP_DOM_TEXT_CONTRACT = Object.freeze({
   width: LOGICAL_WIDTH,
   height: LOGICAL_HEIGHT,
+  rasterWidth: LOGICAL_WIDTH * 2,
+  rasterHeight: LOGICAL_HEIGHT * 2,
   palette: Object.freeze([DARK_TOBACCO, MUTED_TAN, CREAM]),
   binaryAlpha: Object.freeze([0, 255]),
   imageSmoothingEnabled: false,
@@ -54,7 +57,10 @@ export interface BitmapTextLayout {
 
 /** Reflowing copy reserves rows using the same glyph measure as its raster. */
 export function bitmapFlowTextHeight(source: string, maxWidth: number): number {
-  return wrapBitmapText(normalizePixelText(source), maxWidth, 1, 1).length * 6;
+  return (
+    wrapBitmapText(normalizePixelText(source), maxWidth, 1, 1, Infinity, true)
+      .length * 10
+  );
 }
 
 /** Prefers larger glyphs without ever collapsing adjacent letter cells together. */
@@ -137,8 +143,8 @@ export function integerLogicalRect(rect: LogicalRect): IntegerLogicalRect {
 }
 
 /**
- * Draws the visible text of the semantic HTML layer into one native 320x180
- * bitmap plane. The HTML remains in normal layout and retains focus, pointer,
+ * Draws the visible text of the semantic HTML layer into one 640x360
+ * bitmap plane using 320x180 logical layout. The HTML remains in normal layout and retains focus, pointer,
  * keyboard and accessibility semantics, but is wholly transparent. Gameplay
  * HUD mirrors already marked visually hidden are never copied into this plane.
  */
@@ -158,8 +164,8 @@ export class BitmapDomTextRenderer {
     private readonly canvas: HTMLCanvasElement,
     private readonly semanticRoots: readonly HTMLElement[],
   ) {
-    canvas.width = LOGICAL_WIDTH;
-    canvas.height = LOGICAL_HEIGHT;
+    canvas.width = LOGICAL_WIDTH * 2;
+    canvas.height = LOGICAL_HEIGHT * 2;
     const context = canvas.getContext("2d", {
       alpha: true,
       desynchronized: false,
@@ -168,8 +174,10 @@ export class BitmapDomTextRenderer {
     if (!context)
       throw new Error("Bitmap UI canvas 2D context is unavailable.");
     this.context = context;
+    context.scale(2, 2);
     this.context.imageSmoothingEnabled = false;
-    canvas.dataset["nativeResolution"] = `${LOGICAL_WIDTH}x${LOGICAL_HEIGHT}`;
+    canvas.dataset["nativeResolution"] =
+      `${LOGICAL_WIDTH * 2}x${LOGICAL_HEIGHT * 2}`;
     canvas.dataset["scaling"] = "integer-nearest-neighbour-only";
 
     for (const root of semanticRoots) root.classList.add("qb-bitmap-semantic");
@@ -263,7 +271,12 @@ export class BitmapDomTextRenderer {
   }
 
   public readPixels(): ImageData {
-    return this.context.getImageData(0, 0, LOGICAL_WIDTH, LOGICAL_HEIGHT);
+    return this.context.getImageData(
+      0,
+      0,
+      LOGICAL_WIDTH * 2,
+      LOGICAL_HEIGHT * 2,
+    );
   }
 
   private publishAudit(): void {
@@ -304,14 +317,13 @@ export class BitmapDomTextRenderer {
   };
 
   private hasVisibleAnimation(): boolean {
-    for (const root of this.semanticRoots) {
-      if (!isElementLayoutVisible(root, this.frame)) continue;
-      for (const element of semanticElements(root)) {
-        if (!isElementLayoutVisible(element, this.frame)) continue;
-        if (getComputedStyle(element).animationName !== "none") return true;
-      }
-    }
-    return false;
+    // A visibility animation still needs frames during its hidden phase.
+    // The browser also handles paused, finished and display:none animations.
+    return this.semanticRoots.some((root) =>
+      root
+        .getAnimations({ subtree: true })
+        .some((animation) => animation.playState === "running"),
+    );
   }
 
   private drawElementGeometry(root: HTMLElement, frameRect: DOMRect): void {
@@ -685,16 +697,28 @@ export class BitmapDomTextRenderer {
     )
       ? { pixel: 1, spacing: 1 }
       : bitmapTextLayout(normalized, roundedWidth, rect.height);
+    const flow = owner.matches("[data-bitmap-flow]");
+    const reading =
+      flow ||
+      (rect.height >= 10 &&
+        !normalized.includes("\n") &&
+        terminalTextWidth(normalized) <= roundedWidth &&
+        !owner.closest(
+          ".qb-cabinet-ui, .qb-terminal-page header, .qb-terminal-footer, .qb-screen-footer",
+        ));
+    const lineHeight = reading ? 10 : pixel * 6;
+    const capHeight = reading ? 7 : pixel * 5;
     const maxLines = Math.max(
       1,
-      Math.floor((rect.height + pixel) / (pixel * 6)),
+      Math.floor((rect.height + lineHeight - capHeight) / lineHeight),
     );
     const lines = wrapBitmapText(
       normalized,
       roundedWidth,
-      pixel,
-      spacing,
+      reading ? 1 : pixel,
+      reading ? 1 : spacing,
       maxLines,
+      reading,
     );
     if (
       owner.dataset["bitmapText"] !== undefined &&
@@ -703,13 +727,14 @@ export class BitmapDomTextRenderer {
     ) {
       this.explicitTextOverflowCount += 1;
     }
-    const lineHeight = pixel * 6;
-    const totalHeight = lines.length * lineHeight - pixel;
+    const totalHeight = (lines.length - 1) * lineHeight + capHeight;
     const top = Math.max(
       0,
       Math.min(
         LOGICAL_HEIGHT - totalHeight,
-        Math.round(rect.top + (rect.height - totalHeight) / 2),
+        Math.round(
+          flow ? rect.top : rect.top + (rect.height - totalHeight) / 2,
+        ),
       ),
     );
     const style = getComputedStyle(owner);
@@ -746,8 +771,16 @@ export class BitmapDomTextRenderer {
     );
     this.context.clip();
     lines.forEach((line, index) => {
-      const lineWidth = pixelTextWidth(line, pixel, spacing);
+      const lineWidth = reading
+        ? terminalTextWidth(line)
+        : pixelTextWidth(line, pixel, spacing);
       const x = bitmapTextLineLeft(rect.left, rect.right, lineWidth, align);
+      if (reading) {
+        this.context.fillStyle = textColour(owner);
+        for (const r of terminalGlyphRects(line, x, top + index * lineHeight))
+          this.context.fillRect(r.x, r.y, r.width, r.height);
+        return;
+      }
       drawCanvasPixelText(this.context, line, {
         x,
         y: top + index * lineHeight,
@@ -761,6 +794,7 @@ export class BitmapDomTextRenderer {
   }
 
   private drawFocusCursor(owner: HTMLElement): void {
+    if (owner.closest(".qb-terminal-actions")) return;
     const active = document.activeElement;
     if (!(active instanceof HTMLElement)) return;
     const activeControl =
@@ -837,6 +871,7 @@ export function wrapBitmapText(
   pixel = 1,
   spacing = pixel,
   maxLines = Number.POSITIVE_INFINITY,
+  reading = false,
 ): readonly string[] {
   const authoredLines = normalizePixelText(source).split(/\r?\n/);
   const lines: string[] = [];
@@ -855,13 +890,22 @@ export function wrapBitmapText(
     }
     for (const word of words) {
       const candidate = line.length === 0 ? word : `${line} ${word}`;
-      if (pixelTextWidth(candidate, pixel, spacing) <= maxWidth) {
+      if (
+        (reading ? terminalTextWidth : pixelTextWidth)(
+          candidate,
+          pixel,
+          spacing,
+        ) <= maxWidth
+      ) {
         line = candidate;
         continue;
       }
       if (line.length > 0 && !push(line)) break;
       line = "";
-      if (pixelTextWidth(word, pixel, spacing) <= maxWidth) {
+      if (
+        (reading ? terminalTextWidth : pixelTextWidth)(word, pixel, spacing) <=
+        maxWidth
+      ) {
         line = word;
         continue;
       }
@@ -870,7 +914,8 @@ export function wrapBitmapText(
         const next = `${chunk}${character}`;
         if (
           chunk.length > 0 &&
-          pixelTextWidth(next, pixel, spacing) > maxWidth
+          (reading ? terminalTextWidth : pixelTextWidth)(next, pixel, spacing) >
+            maxWidth
         ) {
           if (!push(chunk)) break;
           chunk = character;

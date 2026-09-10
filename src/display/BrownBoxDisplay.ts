@@ -17,9 +17,9 @@ export class BrownBoxDisplay {
   }
 
   public createNativePixelPlane(): Phaser.GameObjects.Graphics {
-    const graphics = this.scene.add.graphics().setDepth(0);
+    const graphics = this.scene.add.graphics().setDepth(0).setScale(2);
     graphics.setDataEnabled();
-    graphics.setData("nativeResolution", "320x180");
+    graphics.setData("nativeResolution", "640x360");
     graphics.setData("integerPixelContract", true);
     return graphics;
   }

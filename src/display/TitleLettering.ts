@@ -1,127 +1,11 @@
+import { terminalGlyphRects, terminalTextWidth } from "./TerminalTypeface";
 export const TITLE_LETTERING_CONTRACT = Object.freeze({
   logicalScreen: Object.freeze({ width: 320, height: 180 }),
   screenCentreX: 160,
   colour: "#D6BD8B",
-  raster: "five-by-seven-field-grid-v5",
+  raster: "refined-five-by-seven-v1",
   title: Object.freeze({ text: "QUANTUM BOX", y: 55, pixel: 3, tracking: 3 }),
   prompt: Object.freeze({ text: "PRESS START", y: 99, pixel: 2, tracking: 2 }),
-});
-
-type FiveBySevenGlyph = readonly string[];
-
-const glyph = (source: string): FiveBySevenGlyph =>
-  Object.freeze(source.trim().split("\n"));
-
-/**
- * An original 5x7 face for the native Brown Box opening.
- * It borrows the constraints of 1970s terminal character generators, not the
- * outline of any one historical typeface. Internal UI text remains 3x5.
- */
-const TITLE_GLYPHS: Readonly<Record<string, FiveBySevenGlyph>> = Object.freeze({
-  A: glyph(`
-.###.
-#...#
-#...#
-#####
-#...#
-#...#
-#...#`),
-  B: glyph(`
-####.
-#...#
-#...#
-####.
-#...#
-#...#
-####.`),
-  E: glyph(`
-#####
-#....
-#....
-####.
-#....
-#....
-#####`),
-  M: glyph(`
-#...#
-##.##
-#.#.#
-#.#.#
-#...#
-#...#
-#...#`),
-  N: glyph(`
-#...#
-##..#
-##..#
-#.#.#
-#..##
-#..##
-#...#`),
-  O: glyph(`
-.###.
-#...#
-#...#
-#...#
-#...#
-#...#
-.###.`),
-  P: glyph(`
-####.
-#...#
-#...#
-####.
-#....
-#....
-#....`),
-  Q: glyph(`
-.###.
-#...#
-#...#
-#...#
-#.#.#
-#..##
-.####`),
-  R: glyph(`
-####.
-#...#
-#...#
-####.
-#.#..
-#..#.
-#...#`),
-  S: glyph(`
-.####
-#....
-#....
-.###.
-....#
-....#
-####.`),
-  T: glyph(`
-#####
-..#..
-..#..
-..#..
-..#..
-..#..
-..#..`),
-  U: glyph(`
-#...#
-#...#
-#...#
-#...#
-#...#
-#...#
-.###.`),
-  X: glyph(`
-#...#
-.#.#.
-.#.#.
-..#..
-.#.#.
-.#.#.
-#...#`),
 });
 
 export interface TitleLetteringRect {
@@ -138,45 +22,20 @@ export function titleLetteringRects(
   tracking = pixel,
 ): readonly TitleLetteringRect[] {
   const normalized = text.toUpperCase();
-  const widths = [...normalized].map((character) =>
-    character === " " ? 3 : 5,
-  );
-  const totalWidth =
-    widths.reduce((sum, width) => sum + width * pixel, 0) +
-    Math.max(0, widths.length - 1) * tracking;
-  let cursorX =
-    TITLE_LETTERING_CONTRACT.screenCentreX - Math.floor(totalWidth / 2);
-  const rects: TitleLetteringRect[] = [];
-
-  for (
-    let characterIndex = 0;
-    characterIndex < normalized.length;
-    characterIndex += 1
-  ) {
-    const character = normalized[characterIndex]!;
-    if (character === " ") {
-      cursorX += 3 * pixel;
-    } else {
-      const pattern = TITLE_GLYPHS[character];
-      if (!pattern) throw new Error(`Unsupported title glyph: ${character}.`);
-      for (let row = 0; row < pattern.length; row += 1) {
-        for (let column = 0; column < pattern[row]!.length; column += 1) {
-          if (pattern[row]![column] !== "#") continue;
-          rects.push(
-            Object.freeze({
-              x: cursorX + column * pixel,
-              y: y + row * pixel,
-              width: pixel,
-              height: pixel,
-            }),
-          );
-        }
-      }
-      cursorX += 5 * pixel;
-    }
-    if (characterIndex < normalized.length - 1) cursorX += tracking;
+  let cursor =
+    160 - Math.floor(terminalTextWidth(normalized, pixel, tracking) / 2);
+  const result: TitleLetteringRect[] = [];
+  for (const character of normalized) {
+    for (const r of terminalGlyphRects(character))
+      result.push({
+        x: cursor + r.x * pixel,
+        y: y + r.y * pixel,
+        width: r.width * pixel,
+        height: r.height * pixel,
+      });
+    cursor += terminalTextWidth(character, pixel) + tracking;
   }
-  return Object.freeze(rects);
+  return result;
 }
 
 export function drawTitleLettering(
@@ -206,10 +65,12 @@ export function drawTitleLettering(
   context.fillStyle = TITLE_LETTERING_CONTRACT.colour;
   for (const rect of rects) {
     context.fillRect(
-      fieldX + rect.x * pixelScale,
-      fieldY + rect.y * pixelScale,
-      rect.width * pixelScale,
-      rect.height * pixelScale,
+      fieldX + Math.round(rect.x * pixelScale),
+      fieldY + Math.round(rect.y * pixelScale),
+      Math.round((rect.x + rect.width) * pixelScale) -
+        Math.round(rect.x * pixelScale),
+      Math.round((rect.y + rect.height) * pixelScale) -
+        Math.round(rect.y * pixelScale),
     );
   }
   context.restore();

@@ -14,7 +14,7 @@ home: Story · Arcade · Terminal · Settings
        ├─ Arcade → five-cabinet index → trial sheet → game / scores
        └─ Terminal → transcript or independent retry of earliest uncleared stage
        ↓
-native 320×180 raster + transparent semantic controls + one local audio cue
+320×180 logical layout / 640×360 raster + transparent semantic controls + one local audio cue
 ```
 
 The simulation owns time, collisions, scores, rules, and outcomes. The renderer

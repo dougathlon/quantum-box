@@ -82,12 +82,39 @@ test("Space enters the archive and Enter opens the Story session menu", async ({
   await expect(page.locator(".qb-story-select")).toHaveCount(0);
 });
 
+test("main menu numbers and labels share the reading baseline", async ({
+  page,
+}) => {
+  await page.goto("/");
+  await page.getByRole("button", { name: "PRESS START", exact: true }).click();
+  const rows = page.locator(".qb-primary-menu-row");
+  await expect(rows).toHaveCount(4);
+  for (let index = 0; index < 4; index++) {
+    const row = rows.nth(index);
+    await expect(row.locator("span")).toHaveAttribute("data-bitmap-flow", "");
+    await expect(row.locator("strong")).toHaveAttribute("data-bitmap-flow", "");
+    const number = await row.locator("span").boundingBox();
+    const label = await row.locator("strong").boundingBox();
+    expect(Math.abs(number!.y - label!.y)).toBeLessThanOrEqual(1);
+  }
+});
+
 test("Arcade overview contains five cabinets and every cabinet opens a terminal-style detail page", async ({
   page,
 }) => {
   await enterArcade(page);
   const rows = page.locator(".qb-arcade-select-row");
   await expect(rows).toHaveCount(5);
+  await expect(page.locator(".qb-arcade-select-status")).toHaveCount(0);
+  for (let index = 0; index < 5; index++) {
+    await expect(rows.nth(index).locator("strong")).toHaveAttribute(
+      "data-bitmap-flow",
+      "",
+    );
+    await expect(
+      rows.nth(index).locator(".qb-arcade-select-number"),
+    ).toHaveAttribute("data-bitmap-flow", "");
+  }
 
   for (const [gameId, title, engineId] of [
     ["qong", "QONG", "COIN-TOSS-V1"],
@@ -99,7 +126,8 @@ test("Arcade overview contains five cabinets and every cabinet opens a terminal-
     const detail = await openArcadeCabinet(page, gameId);
     await expect(detail.getByRole("heading", { name: title })).toBeVisible();
     await expect(detail).toContainText(engineId);
-    await expect(detail.getByText("TUTORIAL", { exact: true })).toBeVisible();
+    await expect(detail.locator(".qb-arcade-tutorial p")).not.toHaveCount(0);
+    await expect(detail.locator(".qb-tutorial-pagination")).toHaveCount(0);
     await expect(detail.locator(".qb-terminal-top-rule")).toHaveCount(1);
     await expect(detail.locator(".qb-terminal-bottom-rule")).toHaveCount(0);
     const titleBox = await detail

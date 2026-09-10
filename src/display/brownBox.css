@@ -1897,7 +1897,7 @@
 .qb-story-select-row,
 .qb-arcade-select-row {
   display: grid;
-  grid-template-columns: 13cqw 6cqw minmax(0, 1fr) 15cqw;
+  grid-template-columns: 13cqw 6cqw minmax(0, 1fr);
   align-items: center;
   gap: 1.5cqw;
   min-width: 0;
@@ -2085,6 +2085,8 @@
 }
 
 .qb-terminal-position {
+  min-width: 12cqw;
+  text-align: right;
   position: absolute;
   top: 0;
   right: 0;
@@ -2428,4 +2430,132 @@
 .qb-internal .qb-bitmap-semantic {
   opacity: 0 !important;
   text-shadow: none !important;
+}
+
+/* Refined terminal face: 640x360 text raster over the unchanged 320x180 world. */
+.qb-terminal-page {
+  position: relative;
+  display: block;
+  height: 100%;
+}
+.qb-terminal-page header {
+  position: absolute;
+  top: 2.7778cqh;
+  left: 0;
+  right: 0;
+  gap: 0;
+}
+.qb-terminal-page header p {
+  height: 3.3334cqh;
+  min-height: 3.3334cqh;
+  line-height: 1 !important;
+}
+.qb-terminal-page .qb-terminal-top-rule {
+  position: absolute;
+  top: var(--reading-rule);
+}
+.qb-terminal-reading {
+  position: absolute;
+  top: var(--reading-top);
+  left: 0;
+  right: 0;
+}
+.qb-terminal-page .qb-terminal-body {
+  position: static;
+  width: 100%;
+  max-width: none;
+  height: auto;
+  padding: 0;
+}
+.qb-terminal-page .qb-terminal-actions {
+  position: static;
+  justify-content: flex-start;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2.2223cqh;
+  margin-top: 4.4445cqh;
+  min-height: 5.5556cqh;
+}
+.qb-terminal-actions button {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.9375cqw;
+  text-align: left;
+  min-height: 5.5556cqh;
+}
+.qb-terminal-prompt-label {
+  display: block;
+  flex: none;
+}
+.qb-terminal-actions .qb-terminal-cursor {
+  flex: none;
+  width: 0.625cqw;
+  height: 3.8889cqh;
+  background: var(--qb-cream);
+}
+.qb-reading-position {
+  position: absolute;
+  bottom: 1cqh;
+  right: 0;
+  width: 10cqw;
+  height: 5cqh;
+  text-align: right;
+}
+.qb-arcade-detail-body {
+  position: relative;
+  display: block;
+  overflow: hidden;
+}
+.qb-arcade-tutorial {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  gap: 3.3334cqh;
+}
+.qb-arcade-tutorial p {
+  line-height: 1 !important;
+}
+.qb-arcade-trials {
+  position: absolute;
+  top: 51cqh;
+  left: 0;
+  right: 0;
+  grid-template-columns: 14cqw 1fr;
+  align-items: start;
+}
+.qb-arcade-detail .qb-arcade-launches {
+  min-height: 11cqh;
+  gap: 1cqh 2cqw;
+}
+
+.qb-terminal-page[data-terminal-density] .qb-terminal-body {
+  padding: 0;
+  gap: 3.3334cqh;
+}
+.qb-terminal-body p,
+.qb-arcade-tutorial p {
+  width: 100%;
+  max-width: none;
+}
+
+.qb-terminal-page[data-terminal-density] .qb-terminal-body {
+  gap: var(--story-gap, 4.4445cqh);
+}
+.qb-arcade-tutorial {
+  gap: 3.3334cqh;
+}
+
+/* Primary choices use the same reading size as terminal prose. */
+.qb-primary-menu-row > span,
+.qb-primary-menu-row strong,
+.qb-arcade-select-number,
+.qb-arcade-select-row > strong,
+.qb-arcade-mode > button,
+.qb-page-panel h1:not(.qb-visually-hidden) {
+  min-height: 5.556cqh;
+}
+.qb-primary-menu-row > span {
+  align-self: center;
+  height: 5.556cqh;
 }

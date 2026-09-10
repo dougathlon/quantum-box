@@ -113,8 +113,8 @@ export function auditBrownBoxPixelBuffer(
     ({ rgba }) => !APPROVED_RGBA.has(rgbaKey(rgba)),
   );
   const logicalResolutionMatches =
-    width === BROWN_BOX_LOGICAL_SCREEN.width &&
-    height === BROWN_BOX_LOGICAL_SCREEN.height;
+    width === BROWN_BOX_LOGICAL_SCREEN.width * 2 &&
+    height === BROWN_BOX_LOGICAL_SCREEN.height * 2;
   return Object.freeze({
     width,
     height,

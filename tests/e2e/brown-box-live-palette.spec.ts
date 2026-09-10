@@ -109,8 +109,8 @@ async function assertCurrentSurface(
   ) as LivePaletteReport;
   expect(report.schemaVersion).toBe("quantum-box-live-palette-audit-v1");
   expect(report.canvas).toMatchObject({
-    width: 320,
-    height: 180,
+    width: 640,
+    height: 360,
     logicalResolutionMatches: true,
     unexpectedColours: [],
     passed: true,
