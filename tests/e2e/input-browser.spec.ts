@@ -188,12 +188,13 @@ test("keyboard held action changes each cabinet and keyup applies cabinet releas
       "data-phase",
       "paused",
     );
-    await region.getByRole("button", { name: "PAUSE · P" }).click();
+    await region.getByRole("button", { name: "RESUME · P / START" }).click();
     await expect(page.locator("[data-ui='game']")).not.toHaveAttribute(
       "data-phase",
       "paused",
     );
-    await region.getByRole("button", { name: "BACK · ESC / B" }).click();
+    await region.getByRole("button", { name: "PAUSE · ESC / B" }).click();
+    await region.getByRole("button", { name: "EXIT · ESC / B" }).click();
     await expect(region).toBeHidden();
     await page
       .getByRole("button", { name: "BACK · ESC / B", exact: true })

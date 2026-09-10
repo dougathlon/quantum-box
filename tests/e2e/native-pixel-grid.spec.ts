@@ -73,7 +73,10 @@ test("moving frames from all five cabinets remain on the native grid", async ({
     await page.waitForTimeout(40);
     await assertUniformLogicalBlocks(page, 4);
     await page
-      .getByRole("button", { name: "BACK · ESC / B", exact: true })
+      .getByRole("button", { name: "PAUSE · ESC / B", exact: true })
+      .click();
+    await page
+      .getByRole("button", { name: "EXIT · ESC / B", exact: true })
       .click();
     await page
       .getByRole("button", { name: "BACK · ESC / B", exact: true })

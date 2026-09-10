@@ -241,8 +241,9 @@ test("Qong Arcade is playable without mutating Story authority", async ({
   const game = page.getByRole("region", { name: "Qong game" });
   await expect(game).toBeVisible();
   await expect(game).toContainText("RULE STATE: UNRESOLVED");
-  await expect(game).toContainText("OBS 3");
-  await game.getByRole("button", { name: "BACK · ESC / B" }).click();
+  await expect(game).toContainText("REVEALS LEFT 3/3");
+  await game.getByRole("button", { name: "PAUSE · ESC / B" }).click();
+  await game.getByRole("button", { name: "EXIT · ESC / B" }).click();
   expect(
     await page.evaluate(() => window.__QUANTUM_BOX_TEST__?.getSave()),
   ).toEqual(saveBefore);
@@ -288,11 +289,12 @@ test("Fluxball uses three 40-second rounds and keeps hidden rule authority out o
     await expect(game).toBeVisible();
     await expect(game).toContainText("R 1/3");
     await expect(game).toContainText("40");
-    await expect(game).toContainText("PRESS SPACE / A TO CHANGE RULES");
+    await expect(game).toContainText("CHANGE RULES · SPACE / A");
     await expect(game).not.toContainText(
       /\bDIRECT\b|\bINVERTED\b|\bCARRY\b|\bSTRIKE\b|\bOPPOSITE\b|\bOWN\b|\bFIXTURE\b/u,
     );
-    await game.getByRole("button", { name: "BACK · ESC / B" }).click();
+    await game.getByRole("button", { name: "PAUSE · ESC / B" }).click();
+    await game.getByRole("button", { name: "EXIT · ESC / B" }).click();
   }
 });
 
@@ -313,9 +315,9 @@ test("Settings persist sound and motion and omit obsolete default initials", asy
   await expect(page.getByText("BACKGROUND FIELD", { exact: true })).toHaveCount(
     0,
   );
-  await expect(page.locator(".qb-background-summary strong")).toHaveText(
-    "STANDARD",
-  );
+  await expect(page.locator(".qb-background-summary")).toHaveCount(0);
+  await expect(page.getByLabel("STANDARD", { exact: true })).toBeChecked();
+  await expect(page.getByLabel("FULL SCREEN", { exact: true })).toBeVisible();
   await page.getByRole("button", { name: "03 CONTROLS" }).click();
   await expect(
     page.getByText(

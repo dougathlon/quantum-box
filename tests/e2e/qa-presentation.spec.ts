@@ -21,7 +21,7 @@ for (const [cabinet, mode] of [
         .click();
     }
     await page
-      .getByRole("button", { name: "PAUSE · P / START", exact: true })
+      .getByRole("button", { name: "PAUSE · ESC / B", exact: true })
       .click();
     await expect(page.locator('[data-ui="game"]')).toHaveAttribute(
       "data-phase",
@@ -35,7 +35,7 @@ for (const [cabinet, mode] of [
       "paused",
     );
     await expect(
-      page.getByRole("button", { name: "PAUSE · P / START", exact: true }),
+      page.getByRole("button", { name: "PAUSE · ESC / B", exact: true }),
     ).toBeVisible();
   });
 }

@@ -61,25 +61,26 @@ test("Quarry pauses, restarts, exits, leaves Story unchanged, and stays provider
     { timeout: 4_500 },
   );
 
-  await region.getByRole("button", { name: "PAUSE · P" }).click();
+  await region.getByRole("button", { name: "PAUSE · ESC / B" }).click();
   await expect(page.locator("[data-ui='game']")).toHaveAttribute(
     "data-phase",
     "paused",
   );
-  await region.getByRole("button", { name: "RESUME · P" }).click();
+  await region.getByRole("button", { name: "RESUME · P / START" }).click();
   await expect(page.locator("[data-ui='game']")).not.toHaveAttribute(
     "data-phase",
     "paused",
   );
 
-  await region.getByRole("button", { name: "PAUSE · P" }).click();
+  await region.getByRole("button", { name: "PAUSE · ESC / B" }).click();
   await expect(page.locator("[data-ui='game']")).toHaveAttribute(
     "data-phase",
     "paused",
   );
-  await region.getByRole("button", { name: "RESTART · X" }).click();
+  await region.getByRole("button", { name: "RESTART", exact: true }).click();
   await expect(region).toBeVisible();
-  await region.getByRole("button", { name: "BACK · ESC / B" }).click();
+  await region.getByRole("button", { name: "PAUSE · ESC / B" }).click();
+  await region.getByRole("button", { name: "EXIT · ESC / B" }).click();
   await expect(region).toBeHidden();
   await expect(page.locator('[data-arcade-detail="quarry"]')).toBeVisible();
 

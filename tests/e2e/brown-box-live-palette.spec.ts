@@ -73,7 +73,10 @@ test("the live menu and every Arcade cabinet render inside the exact Brown Box p
       cabinet: cabinet.id === "quarry" ? "quag" : cabinet.id,
     });
     await page
-      .getByRole("button", { name: "BACK · ESC / B", exact: true })
+      .getByRole("button", { name: "PAUSE · ESC / B", exact: true })
+      .click();
+    await page
+      .getByRole("button", { name: "EXIT · ESC / B", exact: true })
       .click();
     await assertCurrentSurface(page, {
       page: "arcade-detail",

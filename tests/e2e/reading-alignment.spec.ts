@@ -181,10 +181,7 @@ test("reading choices align their selectors and fit in every menu", async ({
       await expect(
         page.getByLabel("ADAPTIVE STRONGER", { exact: true }),
       ).toBeVisible();
-      await expect(page.locator(".qb-background-summary")).toHaveCSS(
-        "border-top-style",
-        "none",
-      );
+      await expect(page.locator(".qb-background-summary")).toHaveCount(0);
       await expect(page.locator(".qb-settings-panel label").last()).toHaveCSS(
         "border-bottom-style",
         "dotted",
