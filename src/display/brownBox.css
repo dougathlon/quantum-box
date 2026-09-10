@@ -765,7 +765,7 @@
 
 .qb-screen-footer {
   right: 5cqw;
-  bottom: 3cqh;
+  bottom: 4cqh;
   left: 5cqw;
   min-height: 5cqh;
   background-color: var(--qb-charcoal);
@@ -1809,7 +1809,7 @@
   gap: 1.5cqw;
   min-height: 8cqh;
   margin-top: 1cqh;
-  border-top: 1px dotted var(--qb-muted-tan);
+  border-top: 0;
   padding-top: 1cqh;
   color: var(--qb-cream);
   font-size: 1.25cqw;
@@ -2181,10 +2181,11 @@
 }
 
 .qb-terminal-footer {
+  align-self: end;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  min-height: 7cqh;
+  min-height: 6cqh;
 }
 
 .qb-terminal-footer button {

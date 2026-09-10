@@ -89,6 +89,16 @@ test("reading choices align their selectors and fit in every menu", async ({
       )
       .click();
     await checkReadingChoices(page);
+    if (section === "background") {
+      await expect(page.locator(".qb-background-summary")).toHaveCSS(
+        "border-top-style",
+        "none",
+      );
+      await expect(page.locator(".qb-settings-panel label").last()).toHaveCSS(
+        "border-bottom-style",
+        "dotted",
+      );
+    }
   }
   await expect(page.locator(".qb-settings-data .qb-action").first()).toHaveCSS(
     "border-bottom-style",
@@ -187,4 +197,17 @@ test("right footer cursor follows its painted label", async ({ page }) => {
     return ink[0]! - start;
   });
   expect(gap).toBeGreaterThan(20);
+});
+
+test("Home and Story use identical footer geometry", async ({ page }) => {
+  await page.goto("/");
+  await page.getByRole("button", { name: "PRESS START", exact: true }).click();
+  const home = await page
+    .locator(".qb-screen-footer button")
+    .first()
+    .boundingBox();
+  await page.getByRole("button", { name: "STORY", exact: true }).click();
+  expect(
+    await page.locator(".qb-terminal-footer button").first().boundingBox(),
+  ).toEqual(home);
 });

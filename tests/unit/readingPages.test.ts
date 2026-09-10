@@ -13,6 +13,14 @@ import { STORY_TERMINAL_PAGES } from "../../src/story/terminal/content";
 import { ARCADE_CABINET_DEFINITIONS } from "../../src/games/registry";
 
 describe("shared refined reading face", () => {
+  it("renders a separated five-row trademark at reading size", () => {
+    const rows = TERMINAL_GLYPHS["™"]!.split("/");
+    expect(rows.slice(0, 5).every((row) => row.includes("1"))).toBe(true);
+    expect(rows.every((row) => row[3] === "0")).toBe(true);
+    expect(terminalTextWidth("™")).toBe(9);
+    expect(normalizePixelText("QRNG™")).toBe("QRNG™");
+  });
+
   it("distinguishes D from O with a continuous square left stem at both sizes", () => {
     for (const render of [
       (text: string) => terminalGlyphRects(text),
