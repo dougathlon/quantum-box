@@ -2576,7 +2576,7 @@
   text-align: left;
 }
 
-.qb-settings-data .qb-action {
+.qb-settings-page .qb-settings-data .qb-action {
   border-bottom: 1px dotted var(--qb-muted-tan);
 }
 

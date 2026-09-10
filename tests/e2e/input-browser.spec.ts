@@ -148,9 +148,25 @@ test("keyboard held action changes each cabinet and keyup applies cabinet releas
     const releaseEnd = await expectCanonicalSprite(page, cabinet.probe);
     expect(await inputSampleCount(page)).toBe(afterRelease);
     if (cabinet.release === "stop-position") {
-      expect(spriteDistance(releaseStart, releaseEnd)).toBeLessThanOrEqual(
-        0.75,
-      );
+      // Wait for the simulation to consume release instead of assuming the
+      // first screenshot after 80 ms is already a settled frame on CI.
+      await expect
+        .poll(
+          async () => {
+            const settledStart = await expectCanonicalSprite(
+              page,
+              cabinet.probe,
+            );
+            await page.waitForTimeout(220);
+            const settledEnd = await expectCanonicalSprite(page, cabinet.probe);
+            return spriteDistance(settledStart, settledEnd);
+          },
+          {
+            message: cabinet.gameId + " should settle after keyup",
+            timeout: 3000,
+          },
+        )
+        .toBeLessThanOrEqual(0.75);
     } else if (cabinet.release === "return-to-centre") {
       // The current session decelerates lateral velocity after release.
       await expect
