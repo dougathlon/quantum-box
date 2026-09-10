@@ -3,7 +3,7 @@
   "sourceFilename": "QUANTUM BOX text notes.docx",
   "sourceSha256": "a5d193623eeb1361f430db50e249180871e5752d756906ec483c7dc72a212148",
   "authorityThrough": "end-of-quantman",
-  "runtimePageCorpusSha256": "6be7714bbd277ea1377e77fe16b9f29f13cfe53018b0a15c36b0c1c021f3d6a3",
+  "runtimePageCorpusSha256": "ed3bee3b4cc24fc04ec7b28c2e3466ca4a88460ca9f3183ca4971fb6cc4fca05",
   "normalization": {
     "actionMarkers": ["CONTINUE", "PLAY", "RETRY"],
     "excludedEditorialLabels": [
@@ -24,6 +24,13 @@
         "from": "PRESS SPACE TO OBSERVE THE RULE.",
         "to": "PRESS SPACE / A TO OBSERVE THE RULE.",
         "reason": "Doug requested live cabinet keyboard/gamepad action vocabulary in the corrective pass. The source DOCX is unchanged."
+      },
+      {
+        "date": "2026-09-09",
+        "pages": ["qong-debrief-2"],
+        "from": "QRNG™!",
+        "to": "QRNG™ (QUANTUM RANDOM NUMBER GENERATION)!",
+        "reason": "Doug requested the expanded QRNG line during typography review. The source DOCX is unchanged."
       }
     ]
   },
