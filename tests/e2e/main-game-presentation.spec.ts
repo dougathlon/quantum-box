@@ -59,7 +59,7 @@ test("switching programmes keeps hidden title and internal fields on one epoch",
   await page.goto("/");
   await page.getByRole("button", { name: "PRESS START" }).click();
   await page.getByRole("button", { name: "SETTINGS" }).click();
-  await page.getByRole("button", { name: "02 FIELD" }).click();
+  await page.getByRole("button", { name: "01 DISPLAY" }).click();
   await page.getByLabel("ADAPTIVE DIRECT", { exact: true }).click();
 
   const fields = page.locator(".qb-title-field-surface, .qb-field-surface");

@@ -843,10 +843,15 @@ export class BitmapDomTextRenderer {
       control.getBoundingClientRect(),
       frameRect,
     );
-    const placement = bitmapFocusCursorPlacement(
-      owner.closest("footer") ? textLeft : controlRect.left,
-      controlRect.right,
-    );
+    // Adjacent boxed controls have no outside gutter for a focus marker.
+    const placement = control.matches(
+      ".qb-keymap-players button, .qb-key-binding",
+    )
+      ? { x: Math.ceil(controlRect.left) + 3 }
+      : bitmapFocusCursorPlacement(
+          owner.closest("footer") ? textLeft : controlRect.left,
+          controlRect.right,
+        );
     if (!placement) return;
     const readingAnchor = control.matches("[data-bitmap-flow]")
       ? control

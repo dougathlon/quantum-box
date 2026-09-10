@@ -238,6 +238,7 @@ export interface SkiPixlCollision {
 }
 
 export interface SkiPixlSnapshot {
+  readonly boostHeld: boolean;
   readonly phase: SkiPixlPhase;
   readonly tick: number;
   readonly readyTicksRemaining: number;

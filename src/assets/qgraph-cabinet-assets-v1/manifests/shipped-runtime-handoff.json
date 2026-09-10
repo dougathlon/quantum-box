@@ -1204,7 +1204,7 @@
             "x": 20,
             "y": 23
           },
-          "derivationMethod": "original-platform-miniature-from-player-masks-v5",
+          "derivationMethod": "four-bird-miniature-from-player-masks-v6",
           "frameId": "thumbnail",
           "order": 0,
           "parents": [
@@ -1223,7 +1223,7 @@
       ],
       "kind": "single-frame-runtime-sprite",
       "relativePath": "assets/quag/quag-cabinet-thumbnail-40x24.png",
-      "sha256": "3ef7a64502aa7b133fe790f1ab048def8613c55b628d85a6946a573d754b9f43"
+      "sha256": "2b0e7040aedb0b0acbba4d8a7e430aef7e998173aefbc49dd58d4be1a41d43b5"
     },
     {
       "dimensions": {

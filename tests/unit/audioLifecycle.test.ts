@@ -56,6 +56,8 @@ class FakeAudioBuffer {
 
 class FakeAudioBufferSourceNode extends EventTarget {
   public buffer: AudioBuffer | null = null;
+  public readonly playbackRate = new FakeAudioParam();
+  public disconnected = false;
   public loop = false;
   public loopStart = 0;
   public loopEnd = 0;
@@ -63,7 +65,9 @@ class FakeAudioBufferSourceNode extends EventTarget {
   public stopCalls = 0;
 
   public connect(): void {}
-  public disconnect(): void {}
+  public disconnect(): void {
+    this.disconnected = true;
+  }
 
   public start(when = 0): void {
     this.starts.push(when);
@@ -169,6 +173,35 @@ class FakeAudioContext extends EventTarget {
 afterEach(() => vi.unstubAllGlobals());
 
 describe("background audio lifecycle", () => {
+  it("loads the sampled quack once and keeps flap/death sources on the master lifecycle", async () => {
+    const fetchSample = vi.fn(async () => ({
+      ok: true,
+      arrayBuffer: async () => new ArrayBuffer(4),
+    }));
+    vi.stubGlobal("fetch", fetchSample);
+    const context = new FakeAudioContext();
+    const audio = new SynthAudio(
+      { soundMuted: false, soundVolume: 0.35 },
+      () => context as unknown as AudioContext,
+    );
+    await audio.unlock();
+    await audio.unlock();
+    expect(fetchSample).toHaveBeenCalledTimes(1);
+    audio.play("quag-flap");
+    expect(context.sources[0]!.playbackRate.value).toBe(1.25);
+    expect(context.sources[0]!.stopCalls).toBe(1);
+    expect(context.sources[0]!.disconnected).toBe(true);
+    audio.play("quag-capture");
+    const death = context.sources[1]!;
+    expect(death.playbackRate.value).toBe(1);
+    expect(context.gains.at(-1)!.gain.value).toBe(0.3);
+    audio.setPaused(true);
+    expect(death.stopCalls).toBe(1);
+    audio.play("quag-capture");
+    expect(context.sources).toHaveLength(2);
+    audio.destroy();
+  });
+
   it("boosts music by 12 dB once and releases each media graph", async () => {
     vi.useFakeTimers();
     try {

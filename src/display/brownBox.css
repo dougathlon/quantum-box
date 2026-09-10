@@ -1582,7 +1582,8 @@
     .qb-quantman-controls button,
     .qb-qgraph-controls button,
     .qb-screen-footer button,
-    .qb-arcade-game button
+    .qb-arcade-game button,
+    .qb-arcade-detail button
   ) {
   background-color: transparent !important;
   background-image: none !important;
@@ -1594,6 +1595,7 @@
     .qb-primary-menu-row,
     .qb-action,
     .qb-arcade-game button,
+    .qb-arcade-detail button,
     .qb-qong-controls button,
     .qb-skipixl-controls button,
     .qb-fluxball-controls button,
@@ -1722,8 +1724,13 @@
 }
 
 .qb-settings-page .qb-settings label {
-  min-height: 5cqh;
+  min-height: 6.6667cqh;
   border-bottom: 1px dotted var(--qb-muted-tan);
+}
+
+.qb-settings-page .qb-settings label:not(.qb-volume) {
+  align-items: flex-start;
+  padding-top: 1.1111cqh;
 }
 
 .qb-settings-page :is(.qb-key-binding, .qb-action) {
@@ -1733,7 +1740,7 @@
 
 .qb-settings-page .qb-keymap {
   display: grid;
-  grid-template-rows: auto auto auto auto;
+  grid-template-rows: auto auto auto;
   gap: 1.4cqh;
   margin: 0;
 }
@@ -1777,7 +1784,7 @@
   align-items: center;
   min-height: 8cqh;
   border: 1px solid var(--qb-muted-tan);
-  padding: 0.5cqh 1cqw;
+  padding: 0.5cqh 1cqw 0.5cqh 2.5cqw;
   font-size: 1.25cqw;
   text-align: left;
 }
@@ -1790,16 +1797,12 @@
   text-align: center;
 }
 
-.qb-settings-page .qb-keymap > p {
-  margin: 0;
-  color: var(--qb-muted-tan);
-  font-size: 1cqw;
-  line-height: 1.25;
-  letter-spacing: 0.08em;
+.qb-settings-scroll > .qb-settings + .qb-settings {
+  margin-top: 0;
 }
 
 .qb-settings-page .qb-background-programmes {
-  gap: 1cqh;
+  gap: 0;
 }
 
 .qb-settings-page .qb-background-summary {

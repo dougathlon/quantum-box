@@ -1,3 +1,4 @@
+import quarryQuackUrl from "../assets/audio/quarry/duck-quack.mp3?url";
 import type { QuantumBoxSettings } from "../save/types";
 import KEY_IS_OPAQUE_ASSET_URL from "./assets/key-is-opaque-backing-loop.wav?url";
 import SPARE_KEY_ASSET_URL from "./assets/spare-key-loop.wav?url";
@@ -256,15 +257,15 @@ const VOICES: Readonly<Record<SynthCue, readonly SynthVoiceProfile[]>> =
       voice(0.22, 0.16, 73, 0.06, "triangle", 55),
     ]),
     "quag-flap": Object.freeze([
-      voice(0, 0.055, 210, 0.055, "square", 320),
-      voice(0.038, 0.05, 420, 0.035, "triangle", 520),
+      voice(0, 0.085, 430, 0.055, "sawtooth", 190),
+      voice(0.012, 0.065, 860, 0.018, "square", 380),
     ]),
     "quag-land": Object.freeze([voice(0, 0.06, 96, 0.065, "triangle", 58)]),
     "quag-wrap": Object.freeze([voice(0, 0.09, 155, 0.05, "triangle", 310)]),
     "quag-capture": Object.freeze([
-      voice(0, 0.16, 360, 0.08, "sawtooth", 132),
-      voice(0.11, 0.12, 220, 0.055, "square", 330),
-      voice(0.19, 0.09, 165, 0.05, "square", 118),
+      voice(0, 0.21, 540, 0.12, "sawtooth", 105),
+      voice(0.018, 0.18, 1080, 0.04, "square", 210),
+      voice(0.19, 0.15, 270, 0.07, "sawtooth", 80),
     ]),
     "quag-shift": Object.freeze([
       voice(0, 0.18, 92, 0.055, "triangle", 130),
@@ -306,7 +307,9 @@ export class SynthAudio {
   private backgroundGeneration = 0;
   private backgroundAutoplayPending = false;
   private documentVisible = true;
-  private readonly transientSources = new Set<OscillatorNode>();
+  private readonly transientSources = new Set<
+    OscillatorNode | AudioBufferSourceNode
+  >();
   private readonly onContextStateChange = (): void => {
     const context = this.context;
     if (!context || context.state === "closed") return;
@@ -316,6 +319,29 @@ export class SynthAudio {
     }
     if (this.requestedBackgroundCue) void this.resumeExistingContext(context);
   };
+
+  private quarryQuack: AudioBuffer | null = null;
+  private quarryQuackLoading: Promise<void> | null = null;
+
+  private loadQuarryQuack(context: AudioContext): Promise<void> {
+    if (!this.quarryQuackLoading) {
+      this.quarryQuackLoading = fetch(quarryQuackUrl)
+        .then((response) => {
+          if (!response.ok)
+            throw new Error(`Quarry quack HTTP ${response.status}`);
+          return response.arrayBuffer();
+        })
+        .then((bytes) => context.decodeAudioData(bytes))
+        .then((buffer) => {
+          if (this.context === context) this.quarryQuack = buffer;
+        })
+        .catch((error) => {
+          this.quarryQuackLoading = null;
+          console.warn("Quarry quack could not load", error);
+        });
+    }
+    return this.quarryQuackLoading;
+  }
 
   public constructor(
     settings: Pick<QuantumBoxSettings, "soundMuted" | "soundVolume">,
@@ -355,6 +381,7 @@ export class SynthAudio {
     const context = this.context;
     if (context.state !== "running") await this.resumeExistingContext(context);
     this.retryBackgroundPlayback();
+    await this.loadQuarryQuack(context);
     return context.state === "running";
   }
 
@@ -444,6 +471,36 @@ export class SynthAudio {
       this.muted ||
       this.paused
     ) {
+      return;
+    }
+    if (cue === "quag-flap" || cue === "quag-capture") {
+      if (!this.quarryQuack) return;
+      const source = context.createBufferSource();
+      const gain = context.createGain();
+      source.buffer = this.quarryQuack;
+      source.playbackRate.value = cue === "quag-flap" ? 1.25 : 1;
+      gain.gain.value = cue === "quag-flap" ? 0.18 : 0.3;
+      source.connect(gain);
+      gain.connect(master);
+      this.transientSources.add(source);
+      source.addEventListener(
+        "ended",
+        () => {
+          this.transientSources.delete(source);
+          source.disconnect();
+          gain.disconnect();
+        },
+        { once: true },
+      );
+      if (cue === "quag-flap") {
+        const now = context.currentTime;
+        gain.gain.setValueAtTime(0, now);
+        gain.gain.linearRampToValueAtTime(0.18, now + 0.005);
+        gain.gain.setValueAtTime(0.18, now + 0.11);
+        gain.gain.linearRampToValueAtTime(0, now + 0.14);
+        source.start(now, 0.02);
+        source.stop(now + 0.14);
+      } else source.start();
       return;
     }
     const start = context.currentTime + 0.006;

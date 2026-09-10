@@ -107,10 +107,7 @@ function scoreLine(snapshot: QuagSnapshot): string {
   const wins = snapshot.players
     .map((player) => `${player.id}${player.roundWins}`)
     .join(" ");
-  const points = snapshot.players
-    .map((player) => `${player.id}${String(player.score).padStart(2, "0")}`)
-    .join(" ");
-  return `W ${wins} · P ${points}`;
+  return `WINS ${wins}`;
 }
 
 function roundOutcome(snapshot: QuagSnapshot): string {

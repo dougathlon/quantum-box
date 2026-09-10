@@ -31,7 +31,7 @@ describe("QGraph production boundary", () => {
     expect(QGRAPH_CABINET_MANIFEST_HASHES).toEqual(
       expect.objectContaining({
         shippedRuntimeHandoff:
-          "01ea293ab0fda90d61a92f283d7472878fbd58e40dde6d68246fd3381a202719",
+          "d8f9e8a66298477c303476c2b096551cf731b8b316a013c8b50a6cfb20d420ca",
       }),
     );
   });

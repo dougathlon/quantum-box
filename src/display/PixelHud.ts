@@ -16,8 +16,16 @@ export function drawCabinetPauseHeader(
   graphics: Phaser.GameObjects.Graphics,
   headerHeight = 24,
 ): void {
+  drawCabinetStatusHeader(graphics, "PAUSED", headerHeight);
+}
+
+export function drawCabinetStatusHeader(
+  graphics: Phaser.GameObjects.Graphics,
+  text: string,
+  headerHeight = 24,
+): void {
   const paddingY = Math.min(5, Math.floor((headerHeight - 14) / 2));
-  drawCenteredPixelPanel(graphics, "PAUSED", {
+  drawCenteredPixelPanel(graphics, text, {
     centerX: 160,
     y: 1 + paddingY,
     pixel: 2,

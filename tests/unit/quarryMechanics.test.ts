@@ -20,6 +20,26 @@ import {
 } from "../../src/games/quag/types";
 
 describe("Quarry current-context and multiplayer mechanics", () => {
+  it("keeps equal round wins tied despite unequal total points", () => {
+    const session = new QuagSession(
+      quarryContext("arcade", 901),
+      QUAG_SYNTHETIC_QGRAPH_PACK,
+      {
+        readyTicks: 0,
+        roundTicks: 1,
+        totalRounds: 1,
+        cpuEnabled: false,
+        players: [
+          { id: "A", x: 100, y: 100, score: 99, roundWins: 1 },
+          { id: "B", x: 400, y: 100, score: 1, roundWins: 1 },
+        ],
+      },
+    );
+    const result = session.step({ horizontal: 0, flapPressed: false });
+    expect(result.phase).toBe("complete");
+    expect(result.winnerIds).toEqual(["A", "B"]);
+  });
+
   it("freezes render interpolation outside active play", () => {
     expect(quagRenderInterpolationAlpha("active", false, 0.25)).toBe(0.25);
     expect(quagRenderInterpolationAlpha("active", true, 0.25)).toBe(1);

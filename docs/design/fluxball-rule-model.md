@@ -1,6 +1,6 @@
 # Fluxball rule model
 
-Status: canonical gameplay contract for `fluxball-rules-v5`.
+Status: canonical gameplay contract for `fluxball-rules-v6`.
 
 Fluxball has two variants. Their rule models must remain distinct.
 
@@ -44,7 +44,7 @@ the opening state and the possible successor. Active play is provider-free.
 Goals are local to a timed round and reset when the next round starts. A unique
 highest goal total earns exactly one round win; a tied highest total is a drawn
 round and earns no round win. The match result is determined by round wins,
-not cumulative goals. Every format uses four 40-second rounds. In four-player
+not cumulative goals. Every format uses three 40-second rounds. In four-player
 formats the north/south apertures are scaled to the court width, rather than
 reusing the narrower side-goal measurement.
 
@@ -56,3 +56,5 @@ reusing the narrower side-goal measurement.
 - **Individual Fluxball:** players infer different hidden rules coupled through
   a joint QGraph state; the shared change opportunity transitions that joint
   state without revealing either configuration.
+
+Historical v5 recordings retain four 40-second rounds; earlier versions retain their original durations. New Story seed selection is checked against the three-round schedule.

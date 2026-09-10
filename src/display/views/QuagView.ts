@@ -140,7 +140,7 @@ function drawHud(g: Phaser.GameObjects.Graphics, snapshot: QuagSnapshot): void {
     for (const [y, text] of [
       [1, metadata[index]!],
       [9, hunts[index]!],
-      [16, `${owner} ${player.score} PTS`],
+      [16, `${owner} ${player.roundWins} WINS`],
     ] as const) {
       drawPixelText(g, text, {
         x: centers[index]!,
@@ -151,12 +151,6 @@ function drawHud(g: Phaser.GameObjects.Graphics, snapshot: QuagSnapshot): void {
       });
     }
   }
-}
-
-function compactPoints(snapshot: QuagSnapshot): string {
-  return snapshot.players
-    .map((player) => `${player.id}${String(player.score).padStart(2, "0")}`)
-    .join(" ");
 }
 
 function drawPlayer(
@@ -389,7 +383,7 @@ function drawRoundNotice(
   drawFrame(g, 50, 0, 220, 22, BROWN_BOX_PALETTE.cream);
   for (const [index, line] of [
     title,
-    `R ${compactRoundWins(snapshot)} · P ${compactPoints(snapshot)}`,
+    `WINS ${compactRoundWins(snapshot)}`,
     action,
   ].entries()) {
     drawPixelText(g, line, {

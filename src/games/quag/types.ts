@@ -1,4 +1,4 @@
-export const QUAG_RULES_VERSION = "quarry-rules-v4";
+export const QUAG_RULES_VERSION = "quarry-rules-v5";
 export const QUAG_TICKS_PER_SECOND = 20;
 export const QUAG_TOTAL_ROUNDS = 3;
 export const QUAG_ROUND_SECONDS = 60;

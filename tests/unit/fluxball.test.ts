@@ -308,27 +308,39 @@ describe("Quantum Box Fluxball round contract", () => {
     expect(trace.activePlayerIds).toEqual(["A", "B", "C", "D"]);
   });
 
-  it("runs one four-round 2P match at forty seconds per round", () => {
+  it("runs one three-round 2P match at forty seconds per round", () => {
     const session = twoPlayerSession();
     expect(session.snapshot().sport?.roundTicks).toBe(800);
-    for (let round = 1; round <= 4; round += 1) {
+    for (let round = 1; round <= 3; round += 1) {
       const reveal = advanceToReveal(session);
       expect(reveal.roundNumber).toBe(round);
       expect(reveal.phase).toBe("reveal");
       const next = session.continueAfterReveal();
-      expect(next.phase).toBe(round === 4 ? "complete" : "active");
+      expect(next.phase).toBe(round === 3 ? "complete" : "active");
     }
   });
 
-  it("runs one four-round 4P match at forty seconds per round", () => {
-    const session = fourPlayerSession();
+  it("retains four 40-second rounds for v5 recorded runs", () => {
+    const session = twoPlayerSession(6, "fluxball-rules-v5");
+    expect(session.snapshot().totalRounds).toBe(4);
     expect(session.snapshot().sport?.roundTicks).toBe(800);
     for (let round = 1; round <= 4; round += 1) {
+      advanceToReveal(session);
+      expect(session.continueAfterReveal().phase).toBe(
+        round === 4 ? "complete" : "active",
+      );
+    }
+  });
+
+  it("runs one three-round 4P match at forty seconds per round", () => {
+    const session = fourPlayerSession();
+    expect(session.snapshot().sport?.roundTicks).toBe(800);
+    for (let round = 1; round <= 3; round += 1) {
       const reveal = advanceToReveal(session);
       expect(reveal.roundNumber).toBe(round);
       expect(reveal.phase).toBe("reveal");
       const next = session.continueAfterReveal();
-      expect(next.phase).toBe(round === 4 ? "complete" : "active");
+      expect(next.phase).toBe(round === 3 ? "complete" : "active");
     }
   });
 
@@ -363,7 +375,6 @@ describe("Quantum Box Fluxball round contract", () => {
       { A: 99, B: 0 },
       { A: 0, B: 1 },
       { A: 0, B: 1 },
-      { A: 0, B: 1 },
     ] as const;
 
     for (const [index, score] of roundScores.entries()) {
@@ -371,11 +382,11 @@ describe("Quantum Box Fluxball round contract", () => {
       const result = finishCurrentRound(session);
       expect(result.phase).toBe("reveal");
       const continued = session.continueAfterReveal();
-      expect(continued.phase).toBe(index === 3 ? "complete" : "active");
+      expect(continued.phase).toBe(index === 2 ? "complete" : "active");
     }
 
     expect(session.snapshot()).toMatchObject({
-      roundWins: { A: 1, B: 3 },
+      roundWins: { A: 1, B: 2 },
       winnerIds: ["B"],
     });
   });
@@ -386,7 +397,6 @@ describe("Quantum Box Fluxball round contract", () => {
       { A: 2, B: 0 },
       { A: 0, B: 3 },
       { A: 0, B: 0 },
-      { A: 4, B: 4 },
     ] as const;
 
     for (const score of roundScores) {
@@ -403,8 +413,8 @@ describe("Quantum Box Fluxball round contract", () => {
   });
 
   it("replays the same human tape to the same full trace", () => {
-    const first = twoPlayerSession(6);
-    const second = twoPlayerSession(6);
+    const first = twoPlayerSession(5);
+    const second = twoPlayerSession(5);
     const inputs = Array.from({ length: 800 }, (_, tick) => ({
       players: {
         A: {
@@ -1064,13 +1074,16 @@ describe("Fluxball CPU information boundary", () => {
   }, 30_000);
 });
 
-function twoPlayerSession(seed = 0): FluxballSession {
+function twoPlayerSession(
+  seed = 0,
+  rulesVersion: string = FLUXBALL_RULES_VERSION,
+): FluxballSession {
   return new FluxballSession(
     createRunContext({
       gameId: "fluxball",
       storyStage: "fluxball-individual",
       playMode: "story",
-      rulesVersion: FLUXBALL_RULES_VERSION,
+      rulesVersion,
       runSeed: seed,
       pack: {
         packId: FLUXBALL_PLAYABLE_RULE_BANK.packId,

@@ -25,6 +25,7 @@ const STEP_SECONDS = 1 / SKIPIXL_CHALLENGE_PROFILE.fixedStepHz;
 
 export class SkiPixlSession {
   private tick = 0;
+  private boostHeld = false;
   private phase: "ready" | "active" | "complete" = "ready";
   private readyTicksRemaining = SKIPIXL_READY_TICKS;
   private elapsedTicks = 0;
@@ -66,6 +67,7 @@ export class SkiPixlSession {
 
   public step(input: SkiPixlInput): SkiPixlSnapshot {
     if (this.phase === "complete") return this.snapshot();
+    this.boostHeld = input.throttle > 0;
     this.tick += 1;
     if (this.latestCollisionTicks > 0) this.latestCollisionTicks -= 1;
     if (this.latestGateTicks > 0) this.latestGateTicks -= 1;
@@ -153,6 +155,10 @@ export class SkiPixlSession {
       (this.elapsedTicks + this.gatePenaltyTicks) /
       SKIPIXL_CHALLENGE_PROFILE.fixedStepHz;
     return deepFreeze({
+      boostHeld:
+        this.phase === "active" &&
+        this.knockdownTicksRemaining === 0 &&
+        this.boostHeld,
       phase: this.phase,
       tick: this.tick,
       readyTicksRemaining: this.readyTicksRemaining,

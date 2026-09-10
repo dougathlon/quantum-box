@@ -83,7 +83,7 @@ export function renderSkiPixl(
     drawFinish(g, Math.round(view.finishY));
   }
 
-  drawSpeedTrails(g, snapshot);
+  drawSpeedSpray(g, snapshot);
   drawSkier(g, snapshot);
 
   if (paused) {
@@ -244,48 +244,35 @@ function drawGate(
   );
 }
 
-function drawSpeedTrails(
+function drawSpeedSpray(
   g: Phaser.GameObjects.Graphics,
   snapshot: SkiPixlSnapshot,
 ): void {
-  if (snapshot.phase !== "active" || snapshot.knockdownTicksRemaining > 0)
+  if (
+    snapshot.phase !== "active" ||
+    snapshot.knockdownTicksRemaining > 0 ||
+    !snapshot.boostHeld
+  )
     return;
+  const cadence = snapshot.tick % 6;
   const skierX = snapNativePixel(snapshot.skierX / 2);
-  const boosted = snapshot.speed > 74;
-  const cadence = snapshot.tick % 3;
-  const spread = 4 + Math.round(Math.abs(snapshot.steeringAngle) * 0.5);
-  const trailLength = boosted ? 7 : 3;
-  // The canonical skier occupies a 20-pixel frame; trails stay above it.
-  const lanes = boosted
-    ? [-spread - 2, -spread + 1, spread - 1, spread + 2]
-    : [-spread, spread];
-
-  lanes.forEach((offset, index) => {
-    const stagger = (index + cadence) % 3;
-    const nearY = SKIPIXL_PLAYER_Y - 22 - stagger;
-    drawNativePixelLine(
-      g,
-      { x: skierX + offset, y: nearY - trailLength },
-      { x: skierX + offset, y: nearY },
-      { colour: BROWN_BOX_PALETTE.cream },
-    );
-  });
-
-  if (boosted) {
-    const centerY = SKIPIXL_PLAYER_Y - 24 - cadence;
-    drawNativePixelLine(
-      g,
-      { x: skierX - 1, y: centerY - 5 },
-      { x: skierX - 1, y: centerY },
-      { colour: BROWN_BOX_PALETTE.cream },
-    );
-    drawNativePixelLine(
-      g,
-      { x: skierX + 1, y: centerY - 4 },
-      { x: skierX + 1, y: centerY },
-      { colour: BROWN_BOX_PALETTE.cream },
-    );
-  }
+  const spread = 4 + Math.abs(snapshot.steeringAngle);
+  drawNativePixelRect(
+    g,
+    skierX - spread,
+    SKIPIXL_PLAYER_Y + 2 + cadence,
+    1,
+    1,
+    BROWN_BOX_PALETTE.cream,
+  );
+  drawNativePixelRect(
+    g,
+    skierX + spread,
+    SKIPIXL_PLAYER_Y + 3 - cadence,
+    1,
+    1,
+    BROWN_BOX_PALETTE.cream,
+  );
 }
 
 function drawFinish(g: Phaser.GameObjects.Graphics, y: number): void {

@@ -6,6 +6,7 @@ import { FLUXBALL_PLAYABLE_RULE_BANK } from "../games/fluxball/fluxballControlPa
 import { FluxballSession } from "../games/fluxball/FluxballSession";
 import {
   FLUXBALL_LEGACY_RULES_VERSION,
+  FLUXBALL_PREVIOUS_RULES_VERSION,
   FLUXBALL_OLDEST_RULES_VERSION,
   FLUXBALL_OLDER_RULES_VERSION,
 } from "../games/fluxball/types";
@@ -325,7 +326,8 @@ function runMatchesPack(
   const rulesMatch =
     run.rulesVersion === pack.rulesVersion ||
     (pack.gameId === "fluxball" &&
-      (run.rulesVersion === FLUXBALL_LEGACY_RULES_VERSION ||
+      (run.rulesVersion === FLUXBALL_PREVIOUS_RULES_VERSION ||
+        run.rulesVersion === FLUXBALL_LEGACY_RULES_VERSION ||
         run.rulesVersion === FLUXBALL_OLDER_RULES_VERSION ||
         run.rulesVersion === FLUXBALL_OLDEST_RULES_VERSION));
   return (

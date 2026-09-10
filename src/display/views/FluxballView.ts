@@ -3,7 +3,7 @@ import type { FluxballSnapshot } from "../../games/fluxball/types";
 import type { PlayerId } from "../../games/fluxball/standalone/modes";
 import { fluxballHudModel } from "../../games/fluxball/presentation";
 import { BROWN_BOX_PALETTE } from "../BrownBoxTheme";
-import { drawCabinetPauseHeader } from "../PixelHud";
+import { drawCabinetPauseHeader, drawCabinetStatusHeader } from "../PixelHud";
 import { drawPixelText } from "../PixelText";
 import { CANONICAL_SPRITE_PIXEL_SCALE } from "../CanonicalSpriteRaster";
 import { drawQGraphCabinetSprite } from "../QGraphCabinetSpriteRaster";
@@ -376,34 +376,45 @@ function drawHud(
   snapshot: FluxballSnapshot,
 ): void {
   const hud = fluxballHudModel(snapshot, false);
-  drawNativePixelLine(
-    g,
-    { x: 119, y: 34 },
-    { x: 201, y: 34 },
-    { colour: PALETTE.cream },
-  );
-  drawPixelText(g, hud.round, {
-    x: 160,
-    y: 4,
-    pixel: 1,
-    colour: PALETTE.cream,
-    align: "center",
-  });
-  drawPixelText(g, hud.time, {
-    x: 160,
-    y: 10,
-    pixel: 2,
-    colour: PALETTE.cream,
-    align: "center",
-  });
-  if (hud.ruleChange)
-    drawPixelText(g, hud.ruleChange, {
-      x: 259,
-      y: 12,
+  if (snapshot.phase === "complete") {
+    drawCabinetStatusHeader(
+      g,
+      snapshot.winnerIds.length > 1
+        ? "MATCH DRAW"
+        : snapshot.humanWon
+          ? "YOU WIN"
+          : "MATCH LOST",
+    );
+  } else {
+    drawNativePixelLine(
+      g,
+      { x: 119, y: 34 },
+      { x: 201, y: 34 },
+      { colour: PALETTE.cream },
+    );
+    drawPixelText(g, hud.round, {
+      x: 160,
+      y: 4,
       pixel: 1,
       colour: PALETTE.cream,
       align: "center",
     });
+    drawPixelText(g, hud.time, {
+      x: 160,
+      y: 10,
+      pixel: 2,
+      colour: PALETTE.cream,
+      align: "center",
+    });
+    if (hud.ruleChange)
+      drawPixelText(g, hud.ruleChange, {
+        x: 259,
+        y: 12,
+        pixel: 1,
+        colour: PALETTE.cream,
+        align: "center",
+      });
+  }
 
   drawScore(g, "A", hud.goals.A, hud.roundWins.A, 11, 77, "left");
   drawScore(g, "B", hud.goals.B, hud.roundWins.B, 309, 77, "right");
@@ -413,7 +424,7 @@ function drawHud(
   if (hud.activePlayerIds.includes("D")) {
     drawScore(g, "D", hud.goals.D, hud.roundWins.D, 257, 158, "center");
   }
-  if (hud.notice)
+  if (hud.notice && snapshot.phase !== "complete")
     drawPixelText(g, hud.notice, {
       x: 160,
       y: 26,
@@ -432,16 +443,23 @@ function drawScore(
   y: number,
   align: "left" | "center" | "right",
 ): void {
-  drawPixelText(g, `${playerId} G${goals}`, {
+  drawPixelText(g, `PLAYER ${playerId}`, {
     x,
     y,
     pixel: 1,
     colour: PALETTE.cream,
     align,
   });
-  drawPixelText(g, `W${roundWins}`, {
+  drawPixelText(g, `GOALS ${goals}`, {
     x,
     y: y + 6,
+    pixel: 1,
+    colour: PALETTE.cream,
+    align,
+  });
+  drawPixelText(g, `WINS ${roundWins}`, {
+    x,
+    y: y + 12,
     pixel: 1,
     colour: PALETTE.cream,
     align,

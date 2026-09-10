@@ -32,6 +32,7 @@ import {
 } from "./standalone/simulation";
 import {
   FLUXBALL_RULES_VERSION,
+  FLUXBALL_PREVIOUS_RULES_VERSION,
   FLUXBALL_LEGACY_RULES_VERSION,
   FLUXBALL_OLDEST_RULES_VERSION,
   FLUXBALL_OLDER_RULES_VERSION,
@@ -71,6 +72,7 @@ export class FluxballSession {
   private readonly activePlayerIds: readonly PlayerId[];
   private readonly cpuPlayerIds: readonly PlayerId[];
   private readonly roundTicks: number;
+  private readonly totalRounds: number;
   private phase: "active" | "reveal" | "complete" = "active";
   private roundNumber = 1;
   private roundWins: ScoreBoard;
@@ -93,9 +95,17 @@ export class FluxballSession {
     private readonly format: FluxballFormat,
   ) {
     validateContext(context, format);
+    this.totalRounds =
+      context.rulesVersion === FLUXBALL_RULES_VERSION
+        ? FLUXBALL_TOTAL_ROUNDS
+        : 4;
     if (
       context.playMode === "story" &&
-      !isCertifiedFluxballStorySeed(context.runSeed, format.competitorCount)
+      !isCertifiedFluxballStorySeed(
+        context.runSeed,
+        format.competitorCount,
+        context.rulesVersion !== FLUXBALL_RULES_VERSION,
+      )
     ) {
       throw new Error(
         "Fluxball Story rejected an uncertified seed before RUN_STARTED.",
@@ -113,7 +123,7 @@ export class FluxballSession {
     this.roundTicks = format.roundSeconds * FLUXBALL_TICKS_PER_SECOND;
     const stateCount = 2;
     this.schedules = deepFreeze(
-      Array.from({ length: FLUXBALL_TOTAL_ROUNDS }, (_, index) =>
+      Array.from({ length: this.totalRounds }, (_, index) =>
         buildFluxballRuleSchedule({
           catalog: FLUXBALL_FIXTURE_CATALOG,
           competitorCount: format.competitorCount,
@@ -155,7 +165,7 @@ export class FluxballSession {
         humanPlayerIds: [...this.format.humanPlayerIds],
       },
       roundNumber: this.roundNumber,
-      totalRounds: FLUXBALL_TOTAL_ROUNDS,
+      totalRounds: this.totalRounds,
       roundGoals: createScoreBoard(this.activePlayerIds, roundGoals),
       roundWins: createScoreBoard(this.activePlayerIds, this.roundWins),
       sport,
@@ -212,7 +222,7 @@ export class FluxballSession {
 
   public continueAfterReveal(): FluxballSnapshot {
     if (this.phase !== "reveal") return this.snapshot();
-    if (this.roundNumber >= FLUXBALL_TOTAL_ROUNDS) {
+    if (this.roundNumber >= this.totalRounds) {
       this.phase = "complete";
       return this.snapshot();
     }
@@ -448,6 +458,7 @@ function validateContext(context: RunContext, format: FluxballFormat): void {
   if (
     context.gameId !== "fluxball" ||
     (context.rulesVersion !== FLUXBALL_RULES_VERSION &&
+      context.rulesVersion !== FLUXBALL_PREVIOUS_RULES_VERSION &&
       context.rulesVersion !== FLUXBALL_LEGACY_RULES_VERSION &&
       context.rulesVersion !== FLUXBALL_OLDER_RULES_VERSION &&
       context.rulesVersion !== FLUXBALL_OLDEST_RULES_VERSION)
@@ -456,7 +467,9 @@ function validateContext(context: RunContext, format: FluxballFormat): void {
       "Fluxball requires a Fluxball run context and matching rules version.",
     );
   }
-  const currentDuration = context.rulesVersion === FLUXBALL_RULES_VERSION;
+  const currentDuration =
+    context.rulesVersion === FLUXBALL_RULES_VERSION ||
+    context.rulesVersion === FLUXBALL_PREVIOUS_RULES_VERSION;
   const uniformMinuteDuration =
     context.rulesVersion === FLUXBALL_LEGACY_RULES_VERSION;
   const legacySplitDuration = !currentDuration && !uniformMinuteDuration;
@@ -469,7 +482,7 @@ function validateContext(context: RunContext, format: FluxballFormat): void {
   ) {
     throw new Error(
       currentDuration
-        ? "Quantum Box Fluxball v5 requires 40-second rounds in every format."
+        ? "Quantum Box Fluxball v5/v6 requires 40-second rounds in every format."
         : uniformMinuteDuration
           ? "Quantum Box Fluxball v4 requires 60-second rounds in every format."
           : "Older Quantum Box Fluxball requires 2P/40s or 4P/60s rounds.",

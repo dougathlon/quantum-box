@@ -306,11 +306,12 @@ test("Settings persist sound and motion and omit obsolete default initials", asy
     0,
   );
   await page.getByLabel("REDUCED MOTION").check();
-  await page.getByLabel("Sound level").fill("0.6");
+  await page.getByRole("button", { name: "02 SOUND" }).click();
+  await page.getByLabel("Volume").fill("0.6");
 
-  await page.getByRole("button", { name: "02 FIELD" }).click();
+  await page.getByRole("button", { name: "01 DISPLAY" }).click();
   await expect(page.getByText("BACKGROUND FIELD", { exact: true })).toHaveCount(
-    1,
+    0,
   );
   await expect(page.locator(".qb-background-summary strong")).toHaveText(
     "STANDARD",
@@ -323,12 +324,13 @@ test("Settings persist sound and motion and omit obsolete default initials", asy
         exact: true,
       },
     ),
-  ).toBeVisible();
+  ).toHaveCount(0);
 
   await page.reload();
   await page.getByRole("button", { name: "PRESS START" }).click();
   await page.getByRole("button", { name: "SETTINGS" }).click();
   await expect(page.getByLabel("Arcade scoreboard initials")).toHaveCount(0);
   await expect(page.getByLabel("REDUCED MOTION")).toBeChecked();
-  await expect(page.getByLabel("Sound level")).toHaveValue("0.6");
+  await page.getByRole("button", { name: "02 SOUND" }).click();
+  await expect(page.getByLabel("Volume")).toHaveValue("0.6");
 });

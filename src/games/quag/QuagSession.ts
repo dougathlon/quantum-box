@@ -164,7 +164,8 @@ export class QuagSession {
       (context.gameId !== "quag" && context.gameId !== "quarry") ||
       (context.playMode !== "arcade" && context.playMode !== "story") ||
       (context.gameId === "quag" && context.playMode !== "arcade") ||
-      context.rulesVersion !== QUAG_RULES_VERSION
+      (context.rulesVersion !== QUAG_RULES_VERSION &&
+        context.rulesVersion !== "quarry-rules-v4")
     ) {
       throw new Error(
         "Quarry accepts current Story/Arcade contexts; its legacy id is an Arcade-only alias.",
@@ -319,7 +320,13 @@ export class QuagSession {
       latestEvent: this.latestEvent,
       eventsThisTick: [...this.eventsThisTick],
       roundWinnerIds: [...this.roundWinnerIds],
-      winnerIds: this.phase === "complete" ? matchWinnerIds(players) : [],
+      winnerIds:
+        this.phase === "complete"
+          ? matchWinnerIds(
+              players,
+              this.context.rulesVersion === "quarry-rules-v4",
+            )
+          : [],
       metrics: {
         firstMeaningfulInteractionTick: this.firstMeaningfulInteractionTick,
         captures: this.captures,
@@ -863,11 +870,13 @@ function roundLeaderIds(
 
 function matchWinnerIds(
   players: readonly Pick<QuagPlayerSnapshot, "id" | "score" | "roundWins">[],
+  legacyPointsTiebreak = false,
 ): QuagPlayerId[] {
   const mostRounds = Math.max(...players.map((player) => player.roundWins));
   const roundLeaders = players.filter(
     (player) => player.roundWins === mostRounds,
   );
+  if (!legacyPointsTiebreak) return roundLeaders.map((player) => player.id);
   const mostPoints = Math.max(...roundLeaders.map((player) => player.score));
   return roundLeaders
     .filter((player) => player.score === mostPoints)

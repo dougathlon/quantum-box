@@ -225,6 +225,15 @@ function drawHud(
   snapshot: QuantmanSnapshot,
 ): void {
   const hud = quantmanHudModel(snapshot, false);
+  if (snapshot.started && snapshot.phase !== "active") {
+    drawCenteredPixelPanel(g, hud.notice, {
+      centerX: 320,
+      y: 7,
+      pixel: 4,
+      border: true,
+    });
+    return;
+  }
   // Keep the telemetry inside the display's safe area. The physical screen
   // mask trims the first few native rows at wide responsive scales.
   g.lineStyle(1, BROWN_BOX_PALETTE.cream, 1).lineBetween(8, 33, 632, 33);
@@ -266,13 +275,6 @@ function drawHud(
       centerX: 320,
       y: 174,
       pixel: 2,
-    });
-  } else if (snapshot.phase !== "active") {
-    drawCenteredPixelPanel(g, hud.notice, {
-      centerX: 320,
-      y: 160,
-      pixel: 3,
-      border: true,
     });
   } else if (
     snapshot.frightenedTicks > 0 ||

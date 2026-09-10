@@ -112,7 +112,7 @@ describe("native cabinet HUD presentation", () => {
     const snapshot = session.snapshot();
 
     expect(fluxballHudModel(snapshot, false)).toMatchObject({
-      round: "R 1/4",
+      round: "R 1/3",
       time: "40",
       goals: { A: "0", B: "0", C: "0", D: "0" },
       roundWins: { A: "0", B: "0", C: "0", D: "0" },

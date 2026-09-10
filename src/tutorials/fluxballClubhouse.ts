@@ -137,7 +137,7 @@ export function adaptFluxballClubhouseEvidence(
         snapshot.phase !== "complete" ||
         snapshot.reveal === null ||
         context.pack.source !== evidence.source ||
-        evidence.roundNumber !== 4 ||
+        evidence.roundNumber !== snapshot.totalRounds ||
         evidence.axes.length !== 3 ||
         evidence.activePlayerIds.length !== 4
       ) {

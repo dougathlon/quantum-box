@@ -1275,7 +1275,7 @@
     {
       "familyId": "qgraph-cabinet-v1",
       "manifestPath": "src/assets/qgraph-cabinet-assets-v1/manifests/shipped-runtime-handoff.json",
-      "manifestSha256": "01ea293ab0fda90d61a92f283d7472878fbd58e40dde6d68246fd3381a202719",
+      "manifestSha256": "d8f9e8a66298477c303476c2b096551cf731b8b316a013c8b50a6cfb20d420ca",
       "frameCount": 81,
       "frames": {
         "quag-player-directional-strip/a-right-idle": {
@@ -3021,19 +3021,19 @@
             "...CCCCCC.....................CCCC......",
             ".....C.C......................CCCC......",
             "....CCCCC...................CCC.CCC.....",
-            "CCCCCCCCCCCCCCC..........CCCCCCCCCCCCCCC",
-            "..T..................................T..",
-            "..T.........................C........T..",
+            "........................................",
+            "........................................",
+            "............................C...........",
             "...........................CCC..........",
             "......TT..................CCDC..........",
             ".....TTTT.CCC.............TTCCC.........",
-            ".....CTTTTCDTT..TTTTTTTTT..CCCTTTCCC....",
+            ".....CTTTTCDTT.............CCCTTTCCC....",
             "....CCCCCCCCTT.............CCCTTTTCC....",
             "....CCCCCCCCTT..............CCCTTTCC....",
             ".....CCCCCCC.................CCCTTCC....",
             ".......C.CC..................CCCC.......",
             "........................................",
-            "....CCCCCCCCCCCCCC....CCCCCCCCCCCCCC...."
+            "........................................"
           ]
         },
         "fluxball-player-motion-strip/fluxball-player-a-idle": {

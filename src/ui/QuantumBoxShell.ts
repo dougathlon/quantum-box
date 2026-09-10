@@ -33,10 +33,7 @@ import {
   skiPixlNotice,
 } from "../games/skipixl/presentation";
 import type { FluxballFormat, FluxballSnapshot } from "../games/fluxball/types";
-import {
-  fluxballCompletionLabel,
-  fluxballHudModel,
-} from "../games/fluxball/presentation";
+import { fluxballHudModel } from "../games/fluxball/presentation";
 import type { PlayerId } from "../games/fluxball/standalone/modes";
 import type { QuantmanSyntheticRuntimeSnapshot } from "../games/quantmanSynthetic";
 import quantmanQpuBankArtifact from "../games/quantmanSynthetic/data/quantman-labyrinth-ibm-fez-bank-v3.json" with { type: "json" };
@@ -145,7 +142,7 @@ const PAGE_TITLES: Readonly<Record<ShellPage, string>> = {
   credits: "SOURCE",
 };
 
-type SettingsSection = "display" | "background" | "controls" | "data";
+type SettingsSection = "display" | "sound" | "controls" | "data";
 
 export type MenuDirection = "up" | "down" | "left" | "right";
 
@@ -256,7 +253,6 @@ export class QuantumBoxShell {
     this.shell.dataset["reducedMotion"] = String(
       initialSave.settings.reducedMotion,
     );
-    this.shell.dataset["flicker"] = String(initialSave.settings.crtFlicker);
     this.shell.dataset["page"] = this.page;
     root.addEventListener("click", this.onClick);
     root.addEventListener("change", this.onChange);
@@ -522,7 +518,6 @@ export class QuantumBoxShell {
     this.shell.dataset["reducedMotion"] = String(save.settings.reducedMotion);
     this.titleField.setReducedMotion(save.settings.reducedMotion);
     this.viewportField.setReducedMotion(save.settings.reducedMotion);
-    this.shell.dataset["flicker"] = String(save.settings.crtFlicker);
     this.renderPage();
     if (this.page === "settings" && focusedIndex >= 0) {
       this.focusableControls()[focusedIndex]?.focus();
@@ -550,7 +545,6 @@ export class QuantumBoxShell {
     this.shell.dataset["reducedMotion"] = String(save.settings.reducedMotion);
     this.titleField.setReducedMotion(save.settings.reducedMotion);
     this.viewportField.setReducedMotion(save.settings.reducedMotion);
-    this.shell.dataset["flicker"] = String(save.settings.crtFlicker);
     this.renderPage();
     this.focusPageTarget();
   }
@@ -806,9 +800,6 @@ export class QuantumBoxShell {
     }
     clearFluxballReveal(this.fluxballUi);
     notice.textContent = hud.notice;
-    const resultLabel = fluxballCompletionLabel(playMode, snapshot.humanWon);
-    required(this.fluxballUi, "[data-fluxball='reveal']").innerHTML =
-      `<section class="qb-fluxball-final"><strong>${resultLabel}</strong><span>${fluxballScoreLine(snapshot)}</span></section>`;
     continueButton.textContent =
       playMode === "story" ? "CONTINUE · SPACE / A" : "EXIT · SPACE / A";
   }
@@ -1309,11 +1300,7 @@ export class QuantumBoxShell {
       return;
     }
     if (input.type !== "checkbox") return;
-    if (
-      setting === "reducedMotion" ||
-      setting === "crtFlicker" ||
-      setting === "soundMuted"
-    ) {
+    if (setting === "reducedMotion" || setting === "soundMuted") {
       this.actions.onSettingChanged({ [setting]: input.checked });
     }
   };
@@ -1571,7 +1558,7 @@ export class QuantumBoxShell {
 }
 
 function shellMarkup(): string {
-  return `<main class="qb-shell" data-surface="title" data-reduced-motion="false" data-flicker="true">
+  return `<main class="qb-shell" data-surface="title" data-reduced-motion="false">
     <section class="qb-title" aria-labelledby="qb-title-name">
       <h1 id="qb-title-name" class="qb-visually-hidden">Quantum Box</h1>
       <div class="qb-title-layers" aria-hidden="true"></div>
@@ -1595,7 +1582,7 @@ function shellMarkup(): string {
           <section class="qb-cabinet-ui" data-cabinet="skipixl" role="region" aria-label="SkiPixl game" hidden>
             <header class="qb-skipixl-score qb-visually-hidden"><div><small><span data-skipixl="distance">4270</span> M · LIMIT <span data-skipixl="limit">1:00.00</span></small><strong data-skipixl="time">0:00.00</strong></div></header>
             <output class="qb-skipixl-notice qb-visually-hidden" data-skipixl="notice" aria-live="polite">QPIXL COURSE READY</output>
-            <footer class="qb-skipixl-controls"><button type="button" data-action="cabinet-back" aria-label="BACK · ESC / B">ESC / B</button><span>← → TURN · ↓ BOOST</span><button type="button" data-action="skipixl-replay" hidden>RETRY · X / X</button><button type="button" data-action="skipixl-continue" hidden>CONTINUE · SPACE / A</button><button type="button" data-action="skipixl-pause">PAUSE · P / START</button></footer>
+            <footer class="qb-skipixl-controls"><button type="button" data-action="cabinet-back" aria-label="BACK · ESC / B">ESC / B</button><span>← → TURN · DOWN BOOST</span><button type="button" data-action="skipixl-replay" hidden>RETRY · X / X</button><button type="button" data-action="skipixl-continue" hidden>CONTINUE · SPACE / A</button><button type="button" data-action="skipixl-pause">PAUSE · P / START</button></footer>
           </section>
           <section class="qb-cabinet-ui" data-cabinet="fluxball" role="region" aria-label="Fluxball game" hidden>
             <header class="qb-fluxball-hud qb-visually-hidden">
@@ -1603,7 +1590,7 @@ function shellMarkup(): string {
               <div class="qb-fluxball-score qb-fluxball-score--b"><strong data-fluxball-score="B">0</strong><small>B</small></div>
               <div class="qb-fluxball-score qb-fluxball-score--c"><small>C</small><strong data-fluxball-score="C">0</strong></div>
               <div class="qb-fluxball-score qb-fluxball-score--d"><small>D</small><strong data-fluxball-score="D">0</strong></div>
-              <div class="qb-fluxball-clock"><small data-fluxball="round">R 1/4</small><strong data-fluxball="time">40</strong><span data-fluxball="format">2P · INDIVIDUAL</span></div>
+              <div class="qb-fluxball-clock"><small data-fluxball="round">R 1/3</small><strong data-fluxball="time">40</strong><span data-fluxball="format">2P · INDIVIDUAL</span></div>
             </header>
             <output class="qb-fluxball-notice qb-visually-hidden" data-fluxball="notice" aria-live="polite"></output>
             <div class="qb-fluxball-reveal" data-fluxball="reveal"></div>
@@ -2049,7 +2036,7 @@ function settingsMarkup(
   const tabs = (
     [
       ["display", "01", "DISPLAY"],
-      ["background", "02", "FIELD"],
+      ["sound", "02", "SOUND"],
       ["controls", "03", "CONTROLS"],
       ["data", "04", "DATA"],
     ] as const
@@ -2065,9 +2052,9 @@ function settingsMarkup(
 function settingsSectionTitle(section: SettingsSection): string {
   switch (section) {
     case "display":
-      return "DISPLAY + SOUND";
-    case "background":
-      return "BACKGROUND FIELD";
+      return "DISPLAY";
+    case "sound":
+      return "SOUND";
     case "controls":
       return "PLAYER KEYS";
     case "data":
@@ -2082,13 +2069,13 @@ function settingsSectionMarkup(
 ): string {
   switch (section) {
     case "display":
-      return `<fieldset class="qb-settings"><legend>LOCAL PRESENTATION</legend>${setting("reducedMotion", "REDUCED MOTION", save.settings.reducedMotion)}${setting("crtFlicker", "DISPLAY FLICKER", save.settings.crtFlicker)}${setting("soundMuted", "SOUND MUTED · M / Y", save.settings.soundMuted)}${volumeSetting(save.settings.soundVolume)}</fieldset>`;
-    case "background":
-      return backgroundProgrammeSettings(save);
+      return `<fieldset class="qb-settings" aria-label="Display preferences">${setting("reducedMotion", "REDUCED MOTION", save.settings.reducedMotion)}</fieldset>${backgroundProgrammeSettings(save)}`;
+    case "sound":
+      return `<fieldset class="qb-settings" aria-label="Sound preferences">${setting("soundMuted", "MUTE", save.settings.soundMuted)}${volumeSetting(save.settings.soundVolume)}</fieldset>`;
     case "controls":
       return `${keyboardSettings(save, playerId)}<button class="qb-action qb-settings-reset-keys" data-action="reset-keymap">RESTORE DEFAULT KEYS</button>`;
     case "data":
-      return `<div class="qb-settings-data"><button class="qb-action" data-action="export-save">EXPORT SAVE</button><button class="qb-action" data-action="navigate" data-page="credits">SOURCE RECORD</button><button class="qb-action qb-action--danger" data-action="reset-save">RESET SAVE</button><p>SAVES, SCORES, STORY PROGRESS, AND SETTINGS STAY ON THIS DEVICE.</p></div>`;
+      return `<div class="qb-settings-data"><button class="qb-action" data-action="export-save">EXPORT SAVE</button><button class="qb-action" data-action="navigate" data-page="credits">SOURCE RECORD</button><button class="qb-action qb-action--danger" data-action="reset-save">RESET SAVE</button></div>`;
   }
 }
 
@@ -2109,7 +2096,7 @@ function keyboardSettings(save: QuantumBoxSave, playerId: PlayerId): string {
     (control) =>
       `<button type="button" class="qb-key-binding" data-action="rebind-key" data-player-id="${playerId}" data-control="${control}"><span>${control.toUpperCase()}</span><b>${escapeHtml(displayKeyCode(save.settings.keyboardBindings[playerId][control]))}</b></button>`,
   ).join("");
-  return `<fieldset class="qb-settings qb-keymap"><legend>PLAYER ${playerId}</legend><nav class="qb-keymap-players" aria-label="Player key profiles">${playerTabs}</nav><section aria-label="Player ${playerId} bindings">${bindings}</section><p>SYSTEM KEYS CANNOT BE REBOUND. EACH CONTROL NEEDS ITS OWN KEY.</p></fieldset>`;
+  return `<fieldset class="qb-settings qb-keymap"><legend>PLAYER ${playerId}</legend><nav class="qb-keymap-players" aria-label="Player key profiles">${playerTabs}</nav><section aria-label="Player ${playerId} bindings">${bindings}</section></fieldset>`;
 }
 
 function backgroundProgrammeSettings(save: QuantumBoxSave): string {
@@ -2165,7 +2152,7 @@ function fluxballLobbyMarkup(
 
 function volumeSetting(volume: number): string {
   const percent = Math.round(volume * 100);
-  return `<label class="qb-volume"><span>SOUND LEVEL</span><input type="range" min="0" max="1" step="0.05" value="${volume}" data-setting="soundVolume" aria-label="Sound level"/><output>${percent}%</output></label>`;
+  return `<label class="qb-volume"><span>VOLUME</span><input type="range" min="0" max="1" step="0.05" value="${volume}" data-setting="soundVolume" aria-label="Volume"/><output>${percent}%</output></label>`;
 }
 
 function isShellPage(value: string | undefined): value is ShellPage {
@@ -2188,7 +2175,7 @@ function isSettingsSection(
 ): value is SettingsSection {
   return (
     value === "display" ||
-    value === "background" ||
+    value === "sound" ||
     value === "controls" ||
     value === "data"
   );
@@ -2357,14 +2344,4 @@ function renderFluxballLiveDisclosure(
   required(root, "[data-fluxball='reveal']").innerHTML = events
     ? `<section class="qb-visually-hidden" aria-label="Public rule changes"><ol>${events}</ol></section>`
     : "";
-}
-
-function fluxballScoreLine(snapshot: FluxballSnapshot): string {
-  return (["A", "B", "C", "D"] as const)
-    .filter((playerId) => snapshot.sport?.activePlayerIds.includes(playerId))
-    .map(
-      (playerId) =>
-        `${playerId} ${snapshot.roundWins[playerId] ?? 0} ROUND${snapshot.roundWins[playerId] === 1 ? "" : "S"}`,
-    )
-    .join(" · ");
 }

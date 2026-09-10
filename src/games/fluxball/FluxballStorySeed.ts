@@ -7,7 +7,7 @@ import { FLUXBALL_TOTAL_ROUNDS } from "./types";
 const MIN_SEPARATING_ROUNDS = 2;
 
 export const FLUXBALL_STORY_CERTIFIED_SEEDS = deepFreeze({
-  2: [0, 1, 2, 3, 4, 5, 6],
+  2: [0, 1, 2, 3, 4, 5],
   4: [0, 1, 2, 3, 4, 5, 6],
 } as const satisfies Readonly<Record<2 | 4, readonly number[]>>);
 
@@ -95,8 +95,10 @@ export function selectFluxballStorySeed(
 export function isCertifiedFluxballStorySeed(
   runSeed: number,
   competitorCount: 2 | 4,
+  legacy = false,
 ): boolean {
   assertUint32(runSeed);
+  if (legacy) return runSeed <= 6;
   return FLUXBALL_STORY_CERTIFIED_SEEDS[competitorCount].some(
     (certifiedSeed) => certifiedSeed === runSeed,
   );

@@ -95,3 +95,7 @@ guards. Hash/frame audits cover exact files and loop boundaries.
 Human listening is separate. Release review should hear at least three complete
 repetitions of each cue through route changes and tab suspension. A waveform
 test cannot establish that a seam is inaudible or that a mix is appropriate.
+
+## Quarry sampled quacks
+
+Quarry uses a CC0 recording: Breviceps, “Cartoon - Duck Quack” (Freesound 445960). Source/license and exact download URL are recorded in `src/assets/audio/quarry/README.md`. Accepted flap uses a 140ms excerpt starting at 20ms, 1.25x playback and gain 0.18 with a click-free envelope; capture uses normal speed (1x) and gain 0.30. Both pass through the existing master volume, mute/pause gating and transient-source cleanup. No synthesized fallback plays if the sample cannot load. The short flap and restrained death balance were approved for publication on 2026-09-10.

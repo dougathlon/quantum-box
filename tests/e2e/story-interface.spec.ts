@@ -87,10 +87,8 @@ test("Settings retain the Brown Box hierarchy without stacked utility clutter", 
     page.getByRole("navigation", { name: "Settings sections" }),
   ).toBeVisible();
   await expect(page.locator("[data-settings-panel='display']")).toBeVisible();
-  await page.getByRole("button", { name: "02 FIELD" }).click();
-  await expect(
-    page.locator("[data-settings-panel='background']"),
-  ).toBeVisible();
+  await page.getByRole("button", { name: "01 DISPLAY" }).click();
+  await expect(page.locator("[data-settings-panel='display']")).toBeVisible();
   await expect(
     page.getByLabel("ADAPTIVE DIRECT", { exact: true }),
   ).toBeVisible();

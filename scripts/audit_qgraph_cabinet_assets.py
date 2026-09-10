@@ -14,7 +14,7 @@ ROOT = Path(__file__).resolve().parents[1]
 PACKAGE = ROOT / "src/assets/qgraph-cabinet-assets-v1"
 SHIPPED_HANDOFF = PACKAGE / "manifests/shipped-runtime-handoff.json"
 TYPESCRIPT_INTEGRATION = ROOT / "src/assets/QGraphCabinetAssets.ts"
-EXPECTED_HANDOFF_SHA256 = "01ea293ab0fda90d61a92f283d7472878fbd58e40dde6d68246fd3381a202719"
+EXPECTED_HANDOFF_SHA256 = "d8f9e8a66298477c303476c2b096551cf731b8b316a013c8b50a6cfb20d420ca"
 PALETTE = {
     (43, 28, 20, 255),
     (86, 67, 48, 255),
@@ -75,8 +75,10 @@ def main() -> None:
     assert thumbnail["dimensions"] == {"width": 40, "height": 24}
     assert thumbnail["kind"] == "single-frame-runtime-sprite"
     assert len(thumbnail["frames"]) == 1
-    assert thumbnail["frames"][0]["derivationMethod"] == "original-platform-miniature-from-player-masks-v5"
+    assert thumbnail["frames"][0]["derivationMethod"] == "four-bird-miniature-from-player-masks-v6"
     assert len(thumbnail["frames"][0]["parents"]) == 4
+    with Image.open(PACKAGE / thumbnail["relativePath"]) as icon:
+        assert all(icon.getpixel((x, 11))[3] == 0 for x in range(40)), "bird rows must have no platform divider"
 
     quag = files_by_id["quag-player-directional-strip"]
     assert quag["relativePath"] == "assets/quag/quag-players-directional-strip-10x10.png"

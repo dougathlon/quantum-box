@@ -335,7 +335,7 @@ export const BROWN_BOX_BACKGROUND_PROGRAMMES = Object.freeze([
   ),
   programme(
     "adaptive-stronger-v1",
-    "ADAPTIVE STRONGER · EXPERIMENTAL",
+    "ADAPTIVE STRONGER",
     ADAPTIVE_STRONGER_HASHES,
     ADAPTIVE_SWEEP,
     {

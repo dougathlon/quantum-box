@@ -15,7 +15,7 @@ import { RoomGraph } from "../../games/quantmanSynthetic/labyrinth/RoomGraph";
 import type { DirectionName } from "../../games/quantmanSynthetic/labyrinth/types";
 import { BROWN_BOX_PALETTE } from "../BrownBoxTheme";
 import { drawCanonicalSprite } from "../CanonicalSpriteRaster";
-import { drawCabinetPauseHeader, drawCenteredPixelPanel } from "../PixelHud";
+import { drawCabinetPauseHeader, drawCabinetStatusHeader } from "../PixelHud";
 import { drawPixelText } from "../PixelText";
 import {
   drawNativePixelFilledEllipse,
@@ -303,20 +303,24 @@ function drawHud(
   g: Phaser.GameObjects.Graphics,
   hud: QuantmanSyntheticHudModel,
 ): void {
-  drawPixelText(g, "QUANTMAN", {
-    x: 160,
-    y: 4,
-    pixel: 1,
-    colour: BROWN_BOX_PALETTE.cream,
-    align: "center",
-  });
-  drawPixelText(g, hud.mode, {
-    x: 160,
-    y: 11,
-    pixel: 1,
-    colour: BROWN_BOX_PALETTE.cream,
-    align: "center",
-  });
+  if (hud.phase !== "ACTIVE")
+    drawCabinetStatusHeader(g, hud.phase, QUANTMAN_SYNTHETIC_VIEWPORT.boardTop);
+  else {
+    drawPixelText(g, "QUANTMAN", {
+      x: 160,
+      y: 4,
+      pixel: 1,
+      colour: BROWN_BOX_PALETTE.cream,
+      align: "center",
+    });
+    drawPixelText(g, hud.mode, {
+      x: 160,
+      y: 11,
+      pixel: 1,
+      colour: BROWN_BOX_PALETTE.cream,
+      align: "center",
+    });
+  }
 
   drawSideValue(g, "SCORE", hud.score, 10, 27, "left");
   drawSideValue(g, "LIVES", hud.lives, 10, 56, "left");
@@ -330,17 +334,6 @@ function drawHud(
     colour: BROWN_BOX_PALETTE.cream,
     align: "right",
   });
-
-  if (hud.phase !== "ACTIVE") {
-    drawCenteredPixelPanel(g, hud.phase, {
-      centerX: 160,
-      y: 85,
-      pixel: 1,
-      border: true,
-      paddingX: 5,
-      paddingY: 4,
-    });
-  }
 }
 
 function drawSideValue(

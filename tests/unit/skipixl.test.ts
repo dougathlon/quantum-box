@@ -325,10 +325,15 @@ describe("SkiPixl QPixl course bank", () => {
       accelerating.step({ steer: 0, throttle: 1 });
       cruising.step({ steer: 0, throttle: 0 });
     }
+    expect(accelerating.snapshot().boostHeld).toBe(true);
+    expect(cruising.snapshot().boostHeld).toBe(false);
     expect(accelerating.snapshot().speed).toBe(92);
+    const released = accelerating.step({ steer: 0, throttle: 0 });
+    expect(released.boostHeld).toBe(false);
+    expect(released.speed).toBeGreaterThan(74);
     expect(cruising.snapshot().speed).toBe(72);
 
-    for (let tick = 0; tick < 30; tick += 1) {
+    for (let tick = 0; tick < 29; tick += 1) {
       accelerating.step({ steer: 0, throttle: 0 });
     }
     expect(accelerating.snapshot().speed).toBeCloseTo(83, 8);
