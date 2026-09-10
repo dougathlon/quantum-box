@@ -1850,7 +1850,7 @@ function arcadeSelectionMarkup(): string {
 
 function arcadeSelectionRow(gameId: ShippedArcadeCabinetId): string {
   const game = ARCADE_CABINET_DEFINITIONS[gameId];
-  return `<button class="qb-arcade-select-row" type="button" data-action="open-arcade-cabinet" data-game-id="${gameId}" aria-label="${escapeHtml(game.title)}">${arcadePreview(gameId)}<span class="qb-arcade-select-number">${game.model.slice(-2)}</span><strong>${escapeHtml(game.title)}</strong></button>`;
+  return `<button class="qb-arcade-select-row" type="button" data-action="open-arcade-cabinet" data-game-id="${gameId}" aria-label="${escapeHtml(game.title)}"><span class="qb-arcade-select-number">${game.model.slice(-2)}</span>${arcadePreview(gameId)}<strong>${escapeHtml(game.title)}</strong></button>`;
 }
 
 function scrollPositionMarkup(): string {

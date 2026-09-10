@@ -1897,7 +1897,7 @@
 .qb-story-select-row,
 .qb-arcade-select-row {
   display: grid;
-  grid-template-columns: 13cqw 6cqw minmax(0, 1fr);
+  grid-template-columns: 6cqw 13cqw minmax(0, 1fr);
   align-items: center;
   gap: 1.5cqw;
   min-width: 0;
@@ -2578,4 +2578,13 @@
 
 .qb-settings-data .qb-action {
   border-bottom: 1px dotted var(--qb-muted-tan);
+}
+
+.qb-arcade-select-row .qb-arcade-select-number {
+  grid-column: 1;
+  grid-row: 1;
+  text-align: left;
+}
+.qb-arcade-select-row .qb-arcade-preview {
+  grid-column: 2;
 }
