@@ -973,9 +973,11 @@ export class QuantumBoxShell {
     );
     // Primary choices share the terminal reading face; metadata stays compact.
     for (const element of this.pageRoot.querySelectorAll(
-      ".qb-primary-menu-row > span, .qb-primary-menu-row strong, .qb-arcade-select-number, .qb-arcade-select-row > strong, .qb-arcade-mode > button, .qb-page-panel h1:not(.qb-visually-hidden)",
-    ))
+      ".qb-primary-menu-row > span, .qb-primary-menu-row strong, .qb-arcade-select-number, .qb-arcade-select-row > strong, .qb-arcade-mode > button, .qb-terminal-index li span, .qb-terminal-index li strong, .qb-settings-sections span, .qb-settings-sections strong, .qb-settings-panel h2, .qb-settings label > span, .qb-settings-page .qb-action, .qb-story-start nav button, .qb-page-panel h1:not(.qb-visually-hidden)",
+    )) {
       element.setAttribute("data-bitmap-flow", "");
+      element.classList.add("qb-reading-choice");
+    }
     const breadcrumb = required(this.root, "[data-ui='breadcrumb']");
     breadcrumb.textContent = PAGE_TITLES[this.page];
     const terminalArticle =

@@ -2559,3 +2559,19 @@
   align-self: center;
   height: 5.556cqh;
 }
+
+.qb-reading-choice {
+  min-height: 5.556cqh;
+}
+.qb-terminal-index li span,
+.qb-terminal-index li strong,
+.qb-settings-sections span,
+.qb-settings-sections strong {
+  align-self: center;
+  height: 5.556cqh;
+}
+.qb-settings-page .qb-action {
+  width: 100%;
+  max-width: none;
+  text-align: left;
+}
