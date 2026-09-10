@@ -24,3 +24,17 @@ text-disabled audience study may use the five fixed questions in the
 human-device protocol to investigate discovery and interpretation. That study
 is research beyond this deterministic implementation pass, not a completion or
 release criterion, and it does not reopen `CRIT-01` here.
+
+## 2026-09-10 presentation regression checks
+
+See [detailed QA](qa/2026-09-10-detailed-game-qa.md) for the local candidate and evidence boundaries.
+
+- [x] Pause and resume each of the five cabinets; button text follows state.
+- [x] SkiPixl start/result use the top header; scenery stays above controls.
+- [x] Four-player Fluxball Goals/Wins stay clear of the footer in all phases.
+- [x] All 41 Story pages and five tutorials fit in their intended single sheets.
+- [x] Score-entry rows, instructions and letter selectors checked at desktop and narrow width.
+- [x] Fluxball join cards checked without opaque fills; launch path exercised.
+- [ ] Execute the updated full browser suite on supported Linux before publication.
+- [ ] Human acceptance of lobby/score-entry presentation and physical controllers.
+- [ ] Decide Easy qualification, live HUD typography, post-match flow and late Story copy.

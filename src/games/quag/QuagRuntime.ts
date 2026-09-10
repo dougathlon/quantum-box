@@ -141,6 +141,10 @@ export class QuagRuntime {
     this.callbacks.onRestart();
   }
 
+  public isPaused(): boolean {
+    return this.paused;
+  }
+
   public isComplete(): boolean {
     return this.session.snapshot().phase === "complete";
   }

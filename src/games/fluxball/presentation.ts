@@ -8,7 +8,7 @@ export interface FluxballHudModel {
   readonly roundWins: Readonly<Record<PlayerId, string>>;
   readonly activePlayerIds: readonly PlayerId[];
   readonly notice: string;
-  readonly ruleChange: "PRESS SPACE / A TO CHANGE RULES" | "";
+  readonly ruleChange: string;
 }
 
 export function fluxballHudModel(
@@ -27,8 +27,8 @@ export function fluxballHudModel(
     ]),
     notice: fluxballNotice(snapshot, paused),
     ruleChange:
-      snapshot.phase === "active" && snapshot.remainingRuleChanges === 1
-        ? "PRESS SPACE / A TO CHANGE RULES"
+      snapshot.phase === "active"
+        ? `SHARED CHANGE ${snapshot.remainingRuleChanges}/1`
         : "",
   });
 }
@@ -63,9 +63,9 @@ function fluxballNotice(snapshot: FluxballSnapshot, paused: boolean): string {
     return "";
   }
   if (snapshot.phase === "reveal") {
-    const winner = snapshot.reveal?.roundWinnerIds[0];
-    return winner
-      ? `R${snapshot.roundNumber} · ${winner} WINS`
+    const winners = snapshot.reveal?.roundWinnerIds ?? [];
+    return winners.length
+      ? `R${snapshot.roundNumber} · ${winners.join("+")} ${winners.length === 1 ? "WINS" : "WIN"}`
       : `R${snapshot.roundNumber} · DRAW`;
   }
   const winners = snapshot.winnerIds.join(" / ");

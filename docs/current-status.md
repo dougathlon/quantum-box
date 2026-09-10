@@ -4,7 +4,9 @@
 
 **Product URL:** <https://dougathlon.github.io/quantum-box/>
 
-**Status date:** 2026-09-09
+**Status date:** 2026-09-10
+
+**Local QA candidate:** presentation corrections are implemented locally after public `0532428`; see [the detailed QA report](qa/2026-09-10-detailed-game-qa.md) for fixes, evidence, and decisions still needed.
 
 ## Implemented
 
@@ -26,7 +28,7 @@
   uncleared chapter.
 - Save-v6 with explicit v1–v5 migration and preserved historical evidence.
 - Qong, three 60-second SkiPixl modes with Down boost, Quantman Hold/Invert,
-  four 40-second-round Fluxball formats, and one-to-four-player Quarry.
+  four Fluxball formats, each with three 40-second rounds, and one-to-four-player Quarry.
 - Hardware-backed runtime banks: Qong Coin Toss, SkiPixl QPixl, Quantman
   Labyrinth, Fluxball QGraph, and Quarry QGraph. Gameplay is provider-free.
 - Silent title, then mutually exclusive menu backing and terminal loop.

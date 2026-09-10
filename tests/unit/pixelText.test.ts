@@ -93,3 +93,19 @@ describe("Brown Box rectangle pixel text", () => {
     );
   });
 });
+
+it("keeps Fluxball score glyph widths and heights uniform without changing the default face", () => {
+  const graphics = { fillStyle: () => {}, fillRect: () => {} };
+  const options = { x: 0, y: 0, pixel: 1, colour: 0, glyphWidth: 3 };
+  const wins = drawPixelText(graphics as never, "WINS", options);
+  const goal = drawPixelText(graphics as never, "GOAL", options);
+  expect(wins).toEqual(goal);
+  expect(wins.height).toBe(5);
+  expect(wins.width).toBe(15);
+  expect(pixelTextWidth("WINS", 1)).toBeGreaterThan(wins.width);
+  expect(
+    pixelTextRects("W", { ...options }).every(
+      (r) => r.x + r.width <= 3 && r.y + r.height <= 5,
+    ),
+  ).toBe(true);
+});

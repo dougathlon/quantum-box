@@ -120,7 +120,8 @@ export interface SessionOptions {
   readonly initialTopologyIndex?: number;
   readonly initialCollectedRooms?: readonly number[];
   readonly collectibleKinds?: readonly CollectibleKind[];
-  readonly startingLives?: number;
+  readonly startingLives?: number | undefined;
+  readonly startingScore?: number | undefined;
 }
 
 export const NO_INPUT: SemanticInput = Object.freeze({

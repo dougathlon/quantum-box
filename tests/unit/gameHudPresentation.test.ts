@@ -118,7 +118,7 @@ describe("native cabinet HUD presentation", () => {
       roundWins: { A: "0", B: "0", C: "0", D: "0" },
       activePlayerIds: ["A", "B"],
       notice: "",
-      ruleChange: "PRESS SPACE / A TO CHANGE RULES",
+      ruleChange: "SHARED CHANGE 1/1",
     });
 
     const changed = session.step({
@@ -126,7 +126,7 @@ describe("native cabinet HUD presentation", () => {
       revealRequests: [{ playerId: "A", capturedAtMs: 1 }],
     });
     expect(fluxballHudModel(changed, false)).toMatchObject({
-      ruleChange: "",
+      ruleChange: "SHARED CHANGE 0/1",
     });
 
     let ended = changed;

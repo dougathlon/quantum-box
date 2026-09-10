@@ -143,7 +143,7 @@ export interface FluxballSnapshot {
   readonly totalRounds: number;
   /** Goals in the current (or just-completed) timed round. */
   readonly roundGoals: ScoreBoard;
-  /** Match score: one point for each timed round won outright. */
+  /** Match score: one point for each timed round led, including partial ties. */
   readonly roundWins: ScoreBoard;
   readonly sport: FluxballPublicSportSnapshot | null;
   readonly reveal: FluxballRoundReveal | null;

@@ -134,6 +134,10 @@ export class SkiPixlRuntime {
     if (this.isComplete()) this.callbacks.onReplay();
   }
 
+  public isPaused(): boolean {
+    return this.paused;
+  }
+
   public isComplete(): boolean {
     return this.session.snapshot().phase === "complete";
   }

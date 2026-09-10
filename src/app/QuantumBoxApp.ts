@@ -1,4 +1,5 @@
 import Phaser from "phaser";
+import { cabinetBackIntent } from "./CabinetBackIntent";
 
 import { QUANTUM_BOX_ASSETS } from "../assets/manifest";
 import { SynthAudio, type BackgroundCueId } from "../audio/SynthAudio";
@@ -410,9 +411,13 @@ export class QuantumBoxApp {
       this.toggleActivePause();
       return;
     }
+    if (signal.pressed && signal.action === "back" && this.handleCabinetBack())
+      return;
+    if (this.shell.handleCabinetNavigation(signal.action, signal.pressed))
+      return;
     if (this.qongRuntime) {
       if (signal.pressed && signal.action === "back") this.exitCabinet();
-      else this.qongRuntime.handleInput(legacyCabinetSignal(signal));
+      else this.qongRuntime.handleInput(signal);
       return;
     }
     if (this.skipixlRuntime) {
@@ -1559,6 +1564,7 @@ export class QuantumBoxApp {
     requestedRunSeed?: number,
     storyReplay = false,
     arcadeRunOrigin: ArcadeRunOrigin = "player-arcade",
+    carry?: Readonly<{ score: number; lives: number }>,
   ): void {
     if (
       this.qongRuntime ||
@@ -1605,6 +1611,7 @@ export class QuantumBoxApp {
       context,
       mechanic,
       selection,
+      carry,
     );
     this.quantmanRuntime.start();
   }
@@ -1613,6 +1620,7 @@ export class QuantumBoxApp {
     context: RunContext,
     mechanic: QuantmanSyntheticMechanic,
     selection: QuantmanQpuFixtureSelection,
+    carry?: Readonly<{ score: number; lives: number }>,
   ): QuantmanSyntheticMainGameRuntime {
     const { fixture, authority } = selection;
     return new QuantmanSyntheticMainGameRuntime(
@@ -1623,6 +1631,9 @@ export class QuantumBoxApp {
         fixture,
         qpuAuthority: authority,
         rulesVersion: QUANTMAN_QPU_RULES_VERSION,
+        ...(carry
+          ? { startingLives: carry.lives, startingScore: carry.score }
+          : {}),
       },
       {
         present: (snapshot, paused) => {
@@ -1679,6 +1690,12 @@ export class QuantumBoxApp {
       `${terminal.outcome} · score ${terminal.score}`,
     );
     this.playCompletionCue(terminal.cleared);
+    if (this.activeRun.playMode === "arcade" && terminal.cleared) {
+      this.shell.announce(
+        "Screen cleared. Continue to the next maze with your score and remaining lives.",
+      );
+      return;
+    }
     let recordedSequence: number | null = null;
     if (
       isArcadeScoreEligible(
@@ -1749,7 +1766,9 @@ export class QuantumBoxApp {
     }
   }
 
-  private async retryQuantman(): Promise<void> {
+  private async retryQuantman(
+    carry?: Readonly<{ score: number; lives: number }>,
+  ): Promise<void> {
     if (!this.activeRun || !this.activeQuantmanMechanic) return;
     const playMode = this.activeRun.playMode;
     const stage = this.activeRun.storyStage;
@@ -1779,6 +1798,7 @@ export class QuantumBoxApp {
         runSeed,
         false,
         arcadeRunOrigin ?? "player-arcade",
+        carry,
       );
     } catch (error) {
       this.shell.showStoryUnavailable(
@@ -1802,6 +1822,14 @@ export class QuantumBoxApp {
   private continueQuantman(): void {
     if (this.activeRun?.playMode === "story") {
       this.returnFromStoryCabinet();
+      return;
+    }
+    const result = this.quantmanRuntime?.snapshot().terminal;
+    if (result?.cleared) {
+      void this.retryQuantman({
+        score: result.score,
+        lives: result.remainingLives,
+      });
       return;
     }
     const scoreboard = this.pendingArcadeScoreboard;
@@ -2027,6 +2055,7 @@ export class QuantumBoxApp {
       | "pause"
       | "back",
   ): void {
+    if (action === "back" && this.handleCabinetBack()) return;
     if (action === "export") {
       this.exportReplay();
       return;
@@ -2061,7 +2090,11 @@ export class QuantumBoxApp {
         else this.exitCabinet();
       } else if (action === "continue") this.continueSkiPixl();
       else if (action === "replay") {
-        if (this.activeRun?.playMode === "story") this.returnFromStoryCabinet();
+        if (
+          this.activeRun?.playMode === "story" &&
+          this.skipixlRuntime.isComplete()
+        )
+          this.returnFromStoryCabinet();
         else this.retrySkiPixl();
       }
       return;
@@ -2276,6 +2309,31 @@ export class QuantumBoxApp {
         this.quantmanRuntime ||
         this.quagRuntime,
     );
+  }
+
+  private handleCabinetBack(): boolean {
+    const runtime =
+      this.qongRuntime ??
+      this.skipixlRuntime ??
+      this.fluxballRuntime ??
+      this.quantmanRuntime ??
+      this.quagRuntime;
+    if (!runtime) return false;
+    const intent = cabinetBackIntent(
+      runtime.isComplete(),
+      runtime.isPaused(),
+      this.activeRun?.playMode === "story",
+    );
+    if (intent === "pause") {
+      this.toggleActivePause();
+      return true;
+    }
+    if (intent === "story-session") {
+      this.exitCabinet();
+      this.shell.showPage("story-start");
+      return true;
+    }
+    return false;
   }
 
   private toggleActivePause(): void {

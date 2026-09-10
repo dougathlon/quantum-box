@@ -148,6 +148,9 @@ export class QuantmanSession {
       ? collectibleLayoutFromKinds(options.collectibleKinds)
       : productionCollectibles(this.graph.roomCount);
     this.ghostsEnabled = options.ghostsEnabled ?? true;
+    this.score = options.startingScore ?? 0;
+    if (!Number.isSafeInteger(this.score) || this.score < 0)
+      throw new Error("Starting score must be a nonnegative safe integer.");
     this.lives = options.startingLives ?? TUNING.startingLives;
     if (!Number.isInteger(this.lives) || this.lives <= 0)
       throw new Error("Starting lives must be a positive integer.");

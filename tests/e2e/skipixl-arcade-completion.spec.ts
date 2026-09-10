@@ -134,6 +134,23 @@ test("Arcade SkiPixl completes the production QPixl descent without Story author
     "data-current",
     "true",
   );
+  const desktopViewport = page.viewportSize()!;
+  for (const viewport of [desktopViewport, { width: 434, height: 720 }]) {
+    await page.setViewportSize(viewport);
+    await expect
+      .poll(async () =>
+        scoreRows.evaluateAll((rows) => {
+          const scale =
+            document.querySelector(".qb-screen-frame")!.getBoundingClientRect()
+              .width / 320;
+          return Math.min(
+            ...rows.map((row) => row.getBoundingClientRect().height / scale),
+          );
+        }),
+      )
+      .toBeGreaterThan(7);
+  }
+  await page.setViewportSize(desktopViewport);
   const initials = page.locator("[data-arcade-score-initials]");
   await expect(initials).toHaveValue("YOU");
   await page.locator("[data-initial-slot='0']").pressSequentially("SKI");

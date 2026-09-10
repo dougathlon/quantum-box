@@ -118,7 +118,7 @@ export class FluxballRuntime {
   }
 
   public togglePause(): boolean | null {
-    if (this.session.snapshot().phase !== "active") return null;
+    if (this.isComplete()) return null;
     this.paused = !this.paused;
     this.clock.reset();
     this.render(this.session.snapshot());
@@ -126,7 +126,7 @@ export class FluxballRuntime {
   }
 
   public pause(): boolean {
-    if (this.paused || this.session.snapshot().phase !== "active") return false;
+    if (this.paused || this.isComplete()) return false;
     this.paused = true;
     this.clock.reset();
     this.render(this.session.snapshot());
@@ -139,6 +139,10 @@ export class FluxballRuntime {
 
   public continueRound(): void {
     this.advanceRevealOrExit();
+  }
+
+  public isPaused(): boolean {
+    return this.paused;
   }
 
   public isComplete(): boolean {

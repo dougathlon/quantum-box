@@ -1,3 +1,4 @@
+import { readGamepad } from "./GamepadMapping";
 import {
   DEFAULT_KEYBOARD_BINDINGS,
   KEYBOARD_CONTROLS,
@@ -192,8 +193,7 @@ export class InputController {
     if (this.disposed) return;
     const seen = new Set<string>();
     for (const gamepad of this.windowTarget.navigator.getGamepads()) {
-      if (!gamepad || !gamepad.connected || gamepad.mapping !== "standard")
-        continue;
+      if (!gamepad || !gamepad.connected) continue;
       const id = `gamepad:${gamepad.index}`;
       seen.add(id);
       if (!this.gamepadState.has(id)) {
@@ -262,20 +262,17 @@ export function gamepadActions(
   player: 1 | 2,
 ): ReadonlySet<SemanticAction> {
   const actions = new Set<SemanticAction>();
-  const button = (index: number): boolean =>
-    Boolean(gamepad.buttons[index]?.pressed);
-  const x = gamepad.axes[0] ?? 0;
-  const y = gamepad.axes[1] ?? 0;
-  if (x < -0.3 || button(14)) actions.add(`p${player}-left`);
-  if (x > 0.3 || button(15)) actions.add(`p${player}-right`);
-  if (y < -0.3 || button(12)) actions.add(`p${player}-up`);
-  if (y > 0.3 || button(13)) actions.add(`p${player}-down`);
-  if (button(0)) actions.add("primary");
-  if (button(1)) actions.add("back");
-  if (button(2)) actions.add("secondary");
-  if (button(9)) actions.add("start");
-  if (button(8)) actions.add("back");
-  if (button(3)) actions.add("mute");
+  const state = readGamepad(gamepad);
+  for (const direction of ["left", "right", "up", "down"] as const)
+    if (state[direction]) actions.add(`p${player}-${direction}`);
+  for (const action of [
+    "primary",
+    "back",
+    "start",
+    "secondary",
+    "mute",
+  ] as const)
+    if (state[action]) actions.add(action);
   return actions;
 }
 

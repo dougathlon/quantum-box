@@ -4,7 +4,6 @@ import type { RunContext } from "../../core/run";
 import {
   createQongCpuBelief,
   QongCpuPolicy,
-  reviseQongCpuBelief,
   type QongCpuAction,
   type QongCpuBelief,
   type QongCpuHypothesis,
@@ -306,13 +305,6 @@ export class QongSession {
     if (pointWinner === "left") this.leftScore += 1;
     else this.rightScore += 1;
 
-    const event: QongGoalEvent = Object.freeze({
-      kind: "goal",
-      rallyNumber: this.rallyNumber,
-      goalSide,
-      pointWinner,
-    });
-    this.cpuBelief = reviseQongCpuBelief(this.cpuBelief, event);
     this.rallyReveal = Object.freeze({
       polarity: this.currentPolarity,
       goalSide,
@@ -329,6 +321,7 @@ export class QongSession {
 
   private decideCpuAxis(): -1 | 0 | 1 {
     const publicState: QongPublicState = {
+      goalRule: this.snapshot().goalRule,
       rallyNumber: this.rallyNumber,
       ball: { x: this.ballX, y: this.ballY, vx: this.ballVx, vy: this.ballVy },
       leftPaddleY: this.leftPaddleY,

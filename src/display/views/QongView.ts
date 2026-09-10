@@ -4,7 +4,7 @@ import type { QongOpponent, QongSnapshot } from "../../games/qong/types";
 import { BROWN_BOX_PALETTE } from "../BrownBoxTheme";
 import { drawCanonicalSprite } from "../CanonicalSpriteRaster";
 import { drawCabinetPauseHeader } from "../PixelHud";
-import { drawPixelText } from "../PixelText";
+import { drawPixelText, drawRefinedHudText } from "../PixelText";
 import {
   drawNativePixelLine,
   drawNativePixelRect,
@@ -17,12 +17,21 @@ export function renderQong(
   snapshot: QongSnapshot,
   opponent: QongOpponent,
   paused: boolean,
-  options: Readonly<{ hidePaddles?: boolean }> = {},
+  options: Readonly<{
+    hidePaddles?: boolean;
+    refinedHudPreview?: boolean;
+  }> = {},
 ): void {
   const view = qongDisplayView(snapshot, paused);
   const g = graphics.clear();
-  drawFrame(g, 9, 24, 302, 138);
-  for (let y = 28; y < 161; y += 9) {
+  drawFrame(
+    g,
+    9,
+    options.refinedHudPreview ? 32 : 24,
+    302,
+    options.refinedHudPreview ? 130 : 138,
+  );
+  for (let y = options.refinedHudPreview ? 36 : 28; y < 161; y += 9) {
     drawNativePixelLine(
       g,
       { x: 160, y },
@@ -58,45 +67,47 @@ export function renderQong(
     drawCabinetPauseHeader(g);
     return;
   }
-  drawHud(g, snapshot, opponent);
+  drawHud(g, snapshot, opponent, options.refinedHudPreview ?? false);
 }
 
 function drawHud(
   g: Phaser.GameObjects.Graphics,
   snapshot: QongSnapshot,
   opponent: QongOpponent,
+  refined = false,
 ): void {
+  const drawText = refined ? drawRefinedHudText : drawPixelText;
   const hud = qongHudModel(snapshot, opponent, false);
   drawNativePixelLine(
     g,
-    { x: 9, y: 22 },
-    { x: 311, y: 22 },
+    { x: 9, y: refined ? 30 : 22 },
+    { x: 311, y: refined ? 30 : 22 },
     {
       colour: BROWN_BOX_PALETTE.cream,
     },
   );
-  drawPixelText(g, hud.leftLabel, {
+  drawText(g, hud.leftLabel, {
     x: 11,
     y: 4,
     pixel: 1,
     colour: BROWN_BOX_PALETTE.cream,
   });
-  drawPixelText(g, hud.leftScore, {
+  drawText(g, hud.leftScore, {
     x: 11,
-    y: 11,
+    y: refined ? 14 : 11,
     pixel: 2,
     colour: BROWN_BOX_PALETTE.cream,
   });
-  drawPixelText(g, hud.rightLabel, {
+  drawText(g, hud.rightLabel, {
     x: 309,
     y: 4,
     pixel: 1,
     colour: BROWN_BOX_PALETTE.cream,
     align: "right",
   });
-  drawPixelText(g, hud.rightScore, {
+  drawText(g, hud.rightScore, {
     x: 309,
-    y: 11,
+    y: refined ? 14 : 11,
     pixel: 2,
     colour: BROWN_BOX_PALETTE.cream,
     align: "right",
@@ -105,16 +116,16 @@ function drawHud(
     drawNativePixelLine(
       g,
       { x, y: 2 },
-      { x, y: 20 },
+      { x, y: refined ? 28 : 20 },
       {
         colour: BROWN_BOX_PALETTE.mutedTan,
       },
     );
   }
-  drawHudSection(g, "ROUND:", hud.round, 55);
-  drawHudSection(g, "RULE STATE:", hud.ruleState, 115);
-  drawHudSection(g, "GOAL:", hud.goal, 188);
-  drawHudSection(g, "WINNER:", hud.winner, 255);
+  drawHudSection(g, "ROUND:", hud.round, 55, refined);
+  drawHudSection(g, "RULE STATE:", hud.ruleState, 115, refined);
+  drawHudSection(g, "GOAL:", hud.goal, 188, refined);
+  drawHudSection(g, "WINNER:", hud.winner, 255, refined);
 }
 
 function drawHudSection(
@@ -122,17 +133,19 @@ function drawHudSection(
   label: string,
   text: string,
   centerX: number,
+  refined: boolean,
 ): void {
-  drawPixelText(g, label, {
+  const drawText = refined ? drawRefinedHudText : drawPixelText;
+  drawText(g, label, {
     x: centerX,
     y: 2,
     pixel: 1,
     colour: BROWN_BOX_PALETTE.cream,
     align: "center",
   });
-  drawPixelText(g, text.slice(text.indexOf(":") + 2), {
+  drawText(g, text.slice(text.indexOf(":") + 2), {
     x: centerX,
-    y: 10,
+    y: refined ? 16 : 10,
     pixel: 1,
     colour: BROWN_BOX_PALETTE.cream,
     align: "center",

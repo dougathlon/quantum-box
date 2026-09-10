@@ -9,6 +9,7 @@ import {
   SKIPIXL_PREVIOUS_RULES_VERSION,
   SKIPIXL_PRIOR_RULES_VERSION,
   SKIPIXL_RULES_VERSION,
+  SKIPIXL_V8_RULES_VERSION,
   SKIPIXL_V5_RULES_VERSION,
   SKIPIXL_V6_RULES_VERSION,
   type SkiPixlCollision,
@@ -52,6 +53,7 @@ export class SkiPixlSession {
     if (
       context.gameId !== "skipixl" ||
       (context.rulesVersion !== SKIPIXL_RULES_VERSION &&
+        context.rulesVersion !== SKIPIXL_V8_RULES_VERSION &&
         context.rulesVersion !== SKIPIXL_PREVIOUS_RULES_VERSION &&
         context.rulesVersion !== SKIPIXL_V6_RULES_VERSION &&
         context.rulesVersion !== SKIPIXL_V5_RULES_VERSION &&
@@ -94,7 +96,10 @@ export class SkiPixlSession {
     }
 
     this.applySteering(input.steer);
-    if (this.context.rulesVersion === SKIPIXL_RULES_VERSION) {
+    if (
+      this.context.rulesVersion === SKIPIXL_RULES_VERSION ||
+      this.context.rulesVersion === SKIPIXL_V8_RULES_VERSION
+    ) {
       this.speed = approach(
         this.speed,
         input.throttle > 0 ? this.payload.maxSpeed : this.payload.cruiseSpeed,

@@ -30,7 +30,7 @@ placement.
   rather than crowding every mode into the overview.
 - **Terminal:** five transcript rows with a single right-aligned state:
   unopened, retry required, transcript ready, or transcript read.
-- **Settings:** stable Display, Field, Controls, and Data sections; one group at
+- **Settings:** stable Display, Sound, Controls, and Data sections; one group at
   a time. Initials are entered on the score-entry screen, using keyboard or gamepad.
 - **Games:** keep permanent text outside the central playfield where possible.
 
@@ -92,7 +92,7 @@ Important instructions never exist only on canvas.
 ## Terminal grammar
 
 A Story terminal page types header, top rule, then body. Actions appear at the
-bottom right only after completion. The block flashes unless Reduced Motion is
+left below the final text unit only after completion. The block keeps flashing unless Reduced Motion is
 active. Heading, readable text measure and paragraph rhythm share one layout;
 footer actions sit in their own region without a redundant inner rule. See
 [Terminal Story](story-terminal.md).

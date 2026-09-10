@@ -5,15 +5,9 @@ import type {
   AgentPolicy,
 } from "../../agents/contracts";
 import { Mulberry32, type Uint32Seed } from "../../core/determinism";
-import type { QongGoalEvent, QongPolarity, QongPublicState } from "./types";
+import type { QongGoalEvent, QongPublicState } from "./types";
 
-export interface QongCpuHypothesis {
-  readonly directEvidence: number;
-  readonly invertEvidence: number;
-  readonly repeatEvidence: number;
-  readonly flipEvidence: number;
-  readonly lastObservedPolarity: QongPolarity | null;
-}
+export type QongCpuHypothesis = Record<string, never>;
 
 export interface QongCpuAction {
   readonly axis: -1 | 0 | 1;
@@ -25,56 +19,13 @@ export type QongCpuBelief = AgentBeliefState<QongCpuHypothesis>;
 export function createQongCpuBelief(): QongCpuBelief {
   return Object.freeze({
     revision: 0,
-    hypotheses: Object.freeze({
-      directEvidence: 1,
-      invertEvidence: 1,
-      repeatEvidence: 1,
-      flipEvidence: 1,
-      lastObservedPolarity: null,
-    }),
+    hypotheses: Object.freeze({}),
     confidence: 0,
     lastProbeTick: null,
   });
 }
 
-export function reviseQongCpuBelief(
-  belief: QongCpuBelief,
-  event: QongGoalEvent,
-): QongCpuBelief {
-  const observedDirect =
-    (event.goalSide === "left" && event.pointWinner === "right") ||
-    (event.goalSide === "right" && event.pointWinner === "left");
-  const directEvidence =
-    belief.hypotheses.directEvidence + (observedDirect ? 1 : 0);
-  const invertEvidence =
-    belief.hypotheses.invertEvidence + (observedDirect ? 0 : 1);
-  const observedPolarity: QongPolarity = observedDirect ? "direct" : "invert";
-  const previousPolarity = belief.hypotheses.lastObservedPolarity;
-  const repeated = previousPolarity === observedPolarity;
-  const repeatEvidence =
-    belief.hypotheses.repeatEvidence +
-    (previousPolarity !== null && repeated ? 1 : 0);
-  const flipEvidence =
-    belief.hypotheses.flipEvidence +
-    (previousPolarity !== null && !repeated ? 1 : 0);
-  const total = directEvidence + invertEvidence;
-  const transitionTotal = repeatEvidence + flipEvidence;
-  return Object.freeze({
-    revision: belief.revision + 1,
-    hypotheses: Object.freeze({
-      directEvidence,
-      invertEvidence,
-      repeatEvidence,
-      flipEvidence,
-      lastObservedPolarity: observedPolarity,
-    }),
-    confidence: Math.max(
-      Math.abs(directEvidence - invertEvidence) / total,
-      Math.abs(repeatEvidence - flipEvidence) / transitionTotal,
-    ),
-    lastProbeTick: belief.lastProbeTick,
-  });
-}
+export const QONG_CPU_REACTION_TICKS = 15; // 250 ms at 60 Hz.
 
 export class QongCpuPolicy
   implements
@@ -89,6 +40,7 @@ export class QongCpuPolicy
   private committedRally = 0;
   private committedStrategy: "defend" | "concede" = "defend";
   private aimOffset = 0;
+  private revealedAtTick: number | null = null;
 
   public constructor(seed: Uint32Seed) {
     this.random = new Mulberry32(seed);
@@ -101,25 +53,17 @@ export class QongCpuPolicy
     const state = observation.publicState;
     if (state.rallyNumber !== this.committedRally) {
       this.committedRally = state.rallyNumber;
-      const evidence = belief.hypotheses;
-      const directProbability =
-        evidence.directEvidence /
-        (evidence.directEvidence + evidence.invertEvidence);
-      const repeatProbability =
-        evidence.repeatEvidence /
-        (evidence.repeatEvidence + evidence.flipEvidence);
-      const transitionEstimate =
-        evidence.lastObservedPolarity === "direct"
-          ? repeatProbability
-          : evidence.lastObservedPolarity === "invert"
-            ? 1 - repeatProbability
-            : directProbability;
-      const publicEstimate =
-        directProbability * 0.55 + transitionEstimate * 0.45;
-      const fallibleEstimate = publicEstimate * 0.72 + 0.14;
-      this.committedStrategy =
-        this.random.next() < fallibleEstimate ? "defend" : "concede";
+      this.revealedAtTick = null;
+      this.committedStrategy = this.random.next() < 0.5 ? "defend" : "concede";
       this.aimOffset = (this.random.next() - 0.5) * 24;
+    }
+
+    if (state.goalRule !== "unresolved") {
+      this.revealedAtTick ??= observation.tick;
+      if (observation.tick - this.revealedAtTick >= QONG_CPU_REACTION_TICKS) {
+        this.committedStrategy =
+          state.goalRule === "opposite" ? "defend" : "concede";
+      }
     }
 
     const targetY =

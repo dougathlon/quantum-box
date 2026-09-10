@@ -77,6 +77,12 @@ export class QongRuntime {
 
   public handleInput(signal: InputSignal): void {
     if (this.stopped) return;
+    if (
+      signal.action === "p1-action" ||
+      (signal.action === "p2-action" && this.opponent === "local")
+    ) {
+      signal = { ...signal, action: "primary" };
+    }
     if (this.replayInputs !== null) {
       if (!signal.pressed) return;
       if (
@@ -156,6 +162,10 @@ export class QongRuntime {
     this.clock.reset();
     this.render(this.session.snapshot());
     return true;
+  }
+
+  public isPaused(): boolean {
+    return this.paused;
   }
 
   public isComplete(): boolean {

@@ -1,3 +1,4 @@
+import { TUNING } from "./standalone/config/tuning";
 import {
   inputFromAxis,
   normalizeAxis,
@@ -15,17 +16,12 @@ import type {
 export interface FluxballCpuDecision {
   readonly playerId: PlayerId;
   readonly reason:
-    | "probe-action"
     | "pursue-ball"
     | "intercept-loose-ball"
     | "challenge-carrier"
-    | "intercept-carrier"
-    | "support-carrier"
-    | "guard-open-goal"
     | "carry-to-believed-goal"
     | "stage-strike"
-    | "strike-through-ball"
-    | "hesitate";
+    | "strike-through-ball";
   readonly target: Readonly<Axis>;
   readonly desiredWorldMotion: Readonly<Axis>;
   readonly rawInput: Readonly<PlayerInput>;
@@ -34,26 +30,32 @@ export interface FluxballCpuDecision {
 export interface FluxballPolicyTuning {
   readonly twoPlayerDecisionInterval: number;
   readonly fourPlayerDecisionInterval: number;
-  readonly hesitationEveryDecisions: number;
+  /** Consecutive unblocked displacement samples required (20 Hz). */
+  readonly movementEvidenceTicks: number;
+  /** Ignore reversal inertia until the issued direction has settled. */
+  readonly movementSettleTicks: number;
 }
 
 export const FORGIVING_CPU_TUNING: FluxballPolicyTuning = Object.freeze({
   twoPlayerDecisionInterval: 3,
   fourPlayerDecisionInterval: 4,
-  hesitationEveryDecisions: 0,
+  movementEvidenceTicks: 3,
+  movementSettleTicks: 4,
 });
 
 export const ARCADE_CPU_TUNING: FluxballPolicyTuning = Object.freeze({
   twoPlayerDecisionInterval: 3,
   fourPlayerDecisionInterval: 4,
-  hesitationEveryDecisions: 0,
+  movementEvidenceTicks: 3,
+  movementSettleTicks: 4,
 });
 
 export const CAPABLE_PUBLIC_POLICY_TUNING: FluxballPolicyTuning = Object.freeze(
   {
     twoPlayerDecisionInterval: 1,
     fourPlayerDecisionInterval: 1,
-    hesitationEveryDecisions: 0,
+    movementEvidenceTicks: 3,
+    movementSettleTicks: 4,
   },
 );
 
@@ -77,7 +79,10 @@ export class FluxballCpuPolicy {
     purposeConfidence: 0,
     observations: 0,
   };
-  private previousPlayer: FluxballPublicPlayer | null = null;
+  private previousObservation: FluxballPublicSportSnapshot | null = null;
+  private commandSinceTick = 0;
+  private candidateAction: "DIRECT" | "INVERTED" | null = null;
+  private candidateTicks = 0;
   private lastIssuedInput: Readonly<PlayerInput> = NEUTRAL_INPUT;
   private lastContactKey = "";
   private lastGoalKey = "";
@@ -88,9 +93,6 @@ export class FluxballCpuPolicy {
     private readonly playerId: PlayerId,
     private readonly policySeed: number,
     private readonly tuning: FluxballPolicyTuning = FORGIVING_CPU_TUNING,
-    private readonly cpuPlayerIds: readonly PlayerId[] = Object.freeze([
-      playerId,
-    ]),
   ) {}
 
   public snapshotBelief(): FluxballCpuBelief {
@@ -127,23 +129,6 @@ export class FluxballCpuPolicy {
       return this.cachedDecision;
     }
 
-    const decisionIndex = Math.floor(observation.roundTick / interval);
-    const playerPhase = this.playerId.charCodeAt(0) - 64;
-    if (
-      this.tuning.hesitationEveryDecisions > 0 &&
-      (decisionIndex + playerPhase + (this.policySeed & 3)) %
-        this.tuning.hesitationEveryDecisions ===
-        0
-    ) {
-      return this.commitDecision(observation.roundTick, {
-        playerId: this.playerId,
-        reason: "hesitate",
-        target: { x: player.x, y: player.y },
-        desiredWorldMotion: { x: 0, y: 0 },
-        rawInput: NEUTRAL_INPUT,
-      });
-    }
-
     const targetGoalId = this.believedTargetGoal(observation);
     const targetGoal = goalApproachWaypoint(targetGoalId, observation);
     const ball = observation.ball;
@@ -156,20 +141,14 @@ export class FluxballCpuPolicy {
     let target: Axis = looseBallTarget;
     let reason: FluxballCpuDecision["reason"] = "intercept-loose-ball";
 
-    if (this.belief.action === "UNKNOWN" && observation.roundTick < 24) {
-      target = { x: player.x + 90, y: player.y };
-      reason = "probe-action";
-    } else if (ball.carrierId === this.playerId) {
-      target = targetGoal;
+    if (ball.carrierId === this.playerId) {
+      target = carryApproach(player, targetGoal, observation);
       reason = "carry-to-believed-goal";
     } else if (ball.carrierId !== null) {
       const carrier = observation.players[ball.carrierId];
       if (!carrier) {
         target = looseBallTarget;
-      } else if (this.cpuPlayerIds.includes(ball.carrierId)) {
-        target = supportPoint(carrier, targetGoal, this.playerId, observation);
-        reason = "support-carrier";
-      } else if (this.isNearestCpuTo(carrier, observation)) {
+      } else {
         target = predictPoint(
           carrier,
           carrier.resolvedMotion,
@@ -177,17 +156,7 @@ export class FluxballCpuPolicy {
           observation,
         );
         reason = "challenge-carrier";
-      } else {
-        target = interceptionPoint(carrier, this.playerId, observation);
-        reason = "intercept-carrier";
       }
-    } else if (!this.isNearestCpuTo(looseBallTarget, observation)) {
-      target = guardPoint(
-        oppositeGoalFor(targetGoalId),
-        this.playerId,
-        observation,
-      );
-      reason = "guard-open-goal";
     } else if (this.belief.interaction === "STRIKE") {
       const strikeDirection = normalizeAxis({
         x: targetGoal.x - ball.x,
@@ -219,11 +188,7 @@ export class FluxballCpuPolicy {
       y: target.y - player.y,
     });
     const actionAssumption =
-      this.belief.action === "UNKNOWN"
-        ? decisionIndex % 14 < 7
-          ? "DIRECT"
-          : "INVERTED"
-        : this.belief.action;
+      this.belief.action === "UNKNOWN" ? "DIRECT" : this.belief.action;
     const controlMotion =
       actionAssumption === "DIRECT"
         ? desiredWorldMotion
@@ -241,23 +206,55 @@ export class FluxballCpuPolicy {
     observation: FluxballPublicSportSnapshot,
     player: FluxballPublicPlayer,
   ): void {
-    if (this.previousPlayer) {
-      const command = axisForInput(this.lastIssuedInput);
-      const displacement = {
-        x: player.x - this.previousPlayer.x,
-        y: player.y - this.previousPlayer.y,
-      };
-      const commandMagnitude = Math.hypot(command.x, command.y);
-      const displacementMagnitude = Math.hypot(displacement.x, displacement.y);
-      if (commandMagnitude > 0 && displacementMagnitude > 0.15) {
-        const relation =
-          command.x * displacement.x + command.y * displacement.y;
-        this.belief.action = relation >= 0 ? "DIRECT" : "INVERTED";
-        this.belief.actionConfidence = 0.94;
-        this.belief.observations += 1;
-      }
+    const previous = this.previousObservation;
+    const previousPlayer = previous?.players[this.playerId];
+    if (previous && observation.roundTick <= previous.roundTick) {
+      this.previousObservation = observation;
+      this.candidateTicks = 0;
+      return;
     }
-    this.previousPlayer = player;
+    const command = axisForInput(this.lastIssuedInput);
+    const uninterrupted =
+      previous &&
+      previousPlayer &&
+      observation.roundTick === previous.roundTick + 1 &&
+      previous.goalFreezeTicksRemaining === 0 &&
+      observation.goalFreezeTicksRemaining === 0 &&
+      previous.latestGoal?.eventId === observation.latestGoal?.eventId;
+    const clear =
+      uninterrupted &&
+      clearOfObstructions(previous, this.playerId) &&
+      clearOfObstructions(observation, this.playerId);
+    if (
+      clear &&
+      observation.roundTick - this.commandSinceTick >=
+        this.tuning.movementSettleTicks
+    ) {
+      const dx = player.x - previousPlayer.x;
+      const dy = player.y - previousPlayer.y;
+      const distance = Math.hypot(dx, dy);
+      const alignment =
+        distance > 0.15 ? (command.x * dx + command.y * dy) / distance : 0;
+      if (
+        Math.abs(alignment) >= 0.9 &&
+        distance <= TUNING.playerMaximumSpeed * TUNING.fixedStepSeconds + 0.1
+      ) {
+        const candidate = alignment > 0 ? "DIRECT" : "INVERTED";
+        this.candidateTicks =
+          candidate === this.candidateAction ? this.candidateTicks + 1 : 1;
+        this.candidateAction = candidate;
+        if (this.candidateTicks >= this.tuning.movementEvidenceTicks) {
+          this.belief.action = candidate;
+          this.belief.actionConfidence = 0.94;
+          this.belief.observations += 1;
+        }
+      } else {
+        this.candidateTicks = 0;
+      }
+    } else {
+      this.candidateTicks = 0;
+    }
+    this.previousObservation = observation;
 
     const contact = observation.latestContact;
     const contactKey = contact
@@ -284,11 +281,13 @@ export class FluxballCpuPolicy {
       const own = ownGoalFor(this.playerId);
       const opposite = oppositeGoalFor(this.playerId);
       if (goal.physicalGoal === own || goal.physicalGoal === opposite) {
-        this.belief.targetGoal = goal.awardedPlayerIds.includes(this.playerId)
-          ? goal.physicalGoal
-          : goal.physicalGoal === own
-            ? opposite
-            : own;
+        this.belief.targetGoal =
+          (goal.scoreAfter[this.playerId] ?? 0) >
+          (previous?.score[this.playerId] ?? 0)
+            ? goal.physicalGoal
+            : goal.physicalGoal === own
+              ? opposite
+              : own;
         this.belief.purposeConfidence = 1;
         this.belief.observations += 1;
       }
@@ -300,29 +299,12 @@ export class FluxballCpuPolicy {
   ): PlayerId {
     if (this.belief.targetGoal !== "UNKNOWN") return this.belief.targetGoal;
     const phase =
-      Math.floor(observation.roundTick / 120) +
       observation.roundNumber +
       this.playerId.charCodeAt(0) +
       (this.policySeed & 7);
     return phase % 2 === 0
       ? ownGoalFor(this.playerId)
       : oppositeGoalFor(this.playerId);
-  }
-
-  private isNearestCpuTo(
-    target: Readonly<Axis>,
-    observation: FluxballPublicSportSnapshot,
-  ): boolean {
-    const ranked = this.cpuPlayerIds
-      .filter((playerId) => observation.players[playerId] !== undefined)
-      .sort((leftId, rightId) => {
-        const left = observation.players[leftId]!;
-        const right = observation.players[rightId]!;
-        const distance =
-          squaredDistance(left, target) - squaredDistance(right, target);
-        return distance || leftId.localeCompare(rightId);
-      });
-    return ranked[0] === this.playerId;
   }
 
   private commitDecision(
@@ -337,6 +319,12 @@ export class FluxballCpuPolicy {
     });
     this.lastDecisionTick = tick;
     this.cachedDecision = frozen;
+    const oldAxis = axisForInput(this.lastIssuedInput);
+    const newAxis = axisForInput(frozen.rawInput);
+    if (oldAxis.x !== newAxis.x || oldAxis.y !== newAxis.y) {
+      this.commandSinceTick = tick;
+      this.candidateTicks = 0;
+    }
     this.lastIssuedInput = frozen.rawInput;
     return frozen;
   }
@@ -392,90 +380,57 @@ function predictPoint(
   };
 }
 
-function guardPoint(
-  goalId: PlayerId,
-  playerId: PlayerId,
+function carryApproach(
+  player: FluxballPublicPlayer,
+  goal: Axis,
   observation: FluxballPublicSportSnapshot,
 ): Axis {
-  const centre = goalApproachWaypoint(goalId, observation);
-  const courtCentre = {
-    x: observation.court.width / 2,
-    y: observation.court.height / 2,
-  };
-  const inward = normalizeAxis({
-    x: courtCentre.x - centre.x,
-    y: courtCentre.y - centre.y,
+  const forward = normalizeAxis({ x: goal.x - player.x, y: goal.y - player.y });
+  for (const id of observation.activePlayerIds) {
+    if (id === player.id) continue;
+    const other = observation.players[id]!;
+    const dx = other.x - player.x;
+    const dy = other.y - player.y;
+    const ahead = dx * forward.x + dy * forward.y;
+    const side = dx * -forward.y + dy * forward.x;
+    if (ahead > 0 && ahead < 90 && Math.abs(side) < 42) {
+      const away = side >= 0 ? -1 : 1;
+      return {
+        x: other.x - forward.y * away * 65,
+        y: other.y + forward.x * away * 65,
+      };
+    }
+  }
+  return goal;
+}
+
+// Only geometry visible on court is used; collision impulses and wall clipping
+// cannot provide reliable evidence about the input mapping.
+function clearOfObstructions(
+  observation: FluxballPublicSportSnapshot,
+  playerId: PlayerId,
+): boolean {
+  const player = observation.players[playerId]!;
+  const margin =
+    TUNING.courtPadding +
+    TUNING.playerRadius +
+    TUNING.playerMaximumSpeed * TUNING.fixedStepSeconds;
+  if (
+    player.x <= margin ||
+    player.x >= observation.court.width - margin ||
+    player.y <= margin ||
+    player.y >= observation.court.height - margin
+  )
+    return false;
+  return observation.activePlayerIds.every((id) => {
+    const other = observation.players[id]!;
+    return (
+      id === playerId ||
+      Math.hypot(other.x - player.x, other.y - player.y) >
+        TUNING.carrierSeparationDistance +
+          2 * TUNING.playerMaximumSpeed * TUNING.fixedStepSeconds
+    );
   });
-  const side = playerId.charCodeAt(0) % 2 === 0 ? 1 : -1;
-  return {
-    x: clamp(
-      centre.x + inward.x * 110 - inward.y * side * 38,
-      observation.court.width * 0.08,
-      observation.court.width * 0.92,
-    ),
-    y: clamp(
-      centre.y + inward.y * 110 + inward.x * side * 38,
-      observation.court.height * 0.1,
-      observation.court.height * 0.9,
-    ),
-  };
-}
-
-function supportPoint(
-  carrier: FluxballPublicPlayer,
-  goal: Readonly<Axis>,
-  playerId: PlayerId,
-  observation: FluxballPublicSportSnapshot,
-): Axis {
-  const towardGoal = normalizeAxis({
-    x: goal.x - carrier.x,
-    y: goal.y - carrier.y,
-  });
-  const flank = playerId.charCodeAt(0) % 2 === 0 ? 1 : -1;
-  return {
-    x: clamp(
-      carrier.x - towardGoal.x * 54 - towardGoal.y * flank * 62,
-      observation.court.width * 0.05,
-      observation.court.width * 0.95,
-    ),
-    y: clamp(
-      carrier.y - towardGoal.y * 54 + towardGoal.x * flank * 62,
-      observation.court.height * 0.07,
-      observation.court.height * 0.93,
-    ),
-  };
-}
-
-function interceptionPoint(
-  carrier: FluxballPublicPlayer,
-  playerId: PlayerId,
-  observation: FluxballPublicSportSnapshot,
-): Axis {
-  const prediction = predictPoint(
-    carrier,
-    carrier.resolvedMotion,
-    0.72,
-    observation,
-  );
-  const offset = playerId.charCodeAt(0) % 2 === 0 ? 34 : -34;
-  return {
-    x: clamp(
-      prediction.x - carrier.resolvedMotion.y * 0.12,
-      observation.court.width * 0.04,
-      observation.court.width * 0.96,
-    ),
-    y: clamp(
-      prediction.y + carrier.resolvedMotion.x * 0.12 + offset,
-      observation.court.height * 0.06,
-      observation.court.height * 0.94,
-    ),
-  };
-}
-
-function squaredDistance(left: Readonly<Axis>, right: Readonly<Axis>): number {
-  const x = left.x - right.x;
-  const y = left.y - right.y;
-  return x * x + y * y;
 }
 
 function clamp(value: number, minimum: number, maximum: number): number {

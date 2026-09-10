@@ -129,9 +129,9 @@ test("Arcade overview contains five cabinets and every cabinet opens a terminal-
   for (const [gameId, title, engineId] of [
     ["qong", "QONG", "COIN-TOSS-V1"],
     ["skipixl", "SKIPIXL", "QPIXL-V1"],
-    ["fluxball", "FLUXBALL", "GRAPH-V1"],
+    ["fluxball", "FLUXBALL", "QGRAPH-V1"],
     ["quantman", "QUANTMAN", "LABYRINTH-V1"],
-    ["quarry", "QUARRY", "GRAPH-V1"],
+    ["quarry", "QUARRY", "QGRAPH-V1"],
   ] as const) {
     const detail = await openArcadeCabinet(page, gameId);
     await expect(detail.getByRole("heading", { name: title })).toBeVisible();

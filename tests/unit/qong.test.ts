@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { asUint32Seed } from "../../src/core/determinism";
 
 import type {
   AgentDecision,
@@ -7,8 +8,9 @@ import type {
 } from "../../src/agents/contracts";
 import { createRunContext, type RunContext } from "../../src/core/run";
 import {
+  QongCpuPolicy,
+  QONG_CPU_REACTION_TICKS,
   createQongCpuBelief,
-  reviseQongCpuBelief,
   type QongCpuAction,
   type QongCpuHypothesis,
 } from "../../src/games/qong/QongCpuPolicy";
@@ -471,13 +473,7 @@ describe("Qong CPU information boundary", () => {
     session.step({ leftAxis: 0, rightAxis: 0, observePressed: false });
 
     const audit = session.developerAudit();
-    expect(audit.belief.hypotheses).toEqual({
-      directEvidence: 1,
-      invertEvidence: 1,
-      repeatEvidence: 1,
-      flipEvidence: 1,
-      lastObservedPolarity: null,
-    });
+    expect(audit.belief.hypotheses).toEqual({});
     expect(audit.lastDecision?.rationaleCode).toMatch(/^qong-public-/);
     expect(audit).not.toHaveProperty("currentPolarity");
     expect(audit).not.toHaveProperty("ruleRandom");
@@ -517,38 +513,6 @@ describe("Qong CPU information boundary", () => {
     expect(captured).not.toBeNull();
     expect(JSON.stringify(captured)).not.toContain("polarity");
     expect(JSON.stringify(captured)).not.toContain("directProbability");
-  });
-
-  it("revises its distribution belief only from the public goal and award", () => {
-    const initial = createQongCpuBelief();
-    const direct = reviseQongCpuBelief(initial, {
-      kind: "goal",
-      rallyNumber: 1,
-      goalSide: "left",
-      pointWinner: "right",
-    });
-    const invert = reviseQongCpuBelief(direct, {
-      kind: "goal",
-      rallyNumber: 2,
-      goalSide: "right",
-      pointWinner: "right",
-    });
-
-    expect(direct.hypotheses).toEqual({
-      directEvidence: 2,
-      invertEvidence: 1,
-      repeatEvidence: 1,
-      flipEvidence: 1,
-      lastObservedPolarity: "direct",
-    });
-    expect(invert.hypotheses).toEqual({
-      directEvidence: 2,
-      invertEvidence: 2,
-      repeatEvidence: 1,
-      flipEvidence: 2,
-      lastObservedPolarity: "invert",
-    });
-    expect(invert.revision).toBe(2);
   });
 
   it("has no private observation request or hidden-rule reveal channel", () => {
@@ -638,5 +602,90 @@ describe("Qong CPU information boundary", () => {
 
     expect(humanWins).toBeGreaterThanOrEqual(10);
     expect(humanWins).toBeLessThanOrEqual(30);
+  });
+});
+
+describe("Qong current public rule reaction", () => {
+  it.each(["own", "opposite"] as const)(
+    "reacts to %s after 250 ms, overriding its guess",
+    (goalRule) => {
+      const policy = new QongCpuPolicy(asUint32Seed(17));
+      const belief = createQongCpuBelief();
+      const state: QongPublicState = {
+        goalRule: "unresolved",
+        rallyNumber: 1,
+        ball: { x: 320, y: 180, vx: 1, vy: 0 },
+        leftPaddleY: 180,
+        rightPaddleY: 180,
+        leftScore: 0,
+        rightScore: 0,
+      };
+      const decide = (
+        tick: number,
+        rule: QongPublicState["goalRule"],
+        rallyNumber = 1,
+      ) =>
+        policy.decide(
+          {
+            tick,
+            selfId: "cpu",
+            publicState: { ...state, goalRule: rule, rallyNumber },
+            publicEvents: [],
+          },
+          belief,
+        ).action.strategy;
+      const guess = decide(0, "unresolved");
+      expect(decide(100, "unresolved")).toBe(guess);
+      expect(decide(101, goalRule)).toBe(guess);
+      expect(decide(100 + QONG_CPU_REACTION_TICKS, goalRule)).toBe(guess);
+      expect(decide(101 + QONG_CPU_REACTION_TICKS, goalRule)).toBe(
+        goalRule === "own" ? "concede" : "defend",
+      );
+      const nextGuess = decide(200, "unresolved", 2);
+      expect(decide(201, goalRule, 2)).toBe(nextGuess);
+    },
+  );
+  it("exposes the current rule only after measurement finishes", () => {
+    const states: QongPublicState[] = [];
+    const session = new QongSession(
+      context(42),
+      { directProbability: 0 },
+      "cpu",
+      {
+        decide(observation, belief) {
+          states.push(observation.publicState);
+          return {
+            action: { axis: 0, strategy: "defend" },
+            nextBelief: belief,
+            rationaleCode: "test",
+          };
+        },
+      },
+    );
+    session.step({ ...NEUTRAL, observePressed: true });
+    expect(states.at(-1)?.goalRule).toBe("unresolved");
+    for (let i = 0; i < QONG_MEASUREMENT_TICKS; i++) session.step(NEUTRAL);
+    expect(states.at(-1)?.goalRule).toBe("own");
+    expect(states.slice(0, -1).every((s) => s.goalRule === "unresolved")).toBe(
+      true,
+    );
+  });
+  it("keeps three reveals shared across all seven rounds, without charging automatic goals", () => {
+    const session = new QongSession(
+      context(44),
+      { directProbability: 0.5 },
+      "local",
+    );
+    for (let round = 1; round <= 7; round++) {
+      let state = session.step({ ...NEUTRAL, observePressed: true });
+      expect(state.observationsRemaining).toBe(Math.max(0, 3 - round));
+      for (let i = 0; i < QONG_MEASUREMENT_TICKS + 1; i++)
+        state = session.step({ ...NEUTRAL, observePressed: true });
+      expect(state.observationsRemaining).toBe(Math.max(0, 3 - round));
+      state = forceFirstGoal(session);
+      expect(state.observationsRemaining).toBe(Math.max(0, 3 - round));
+      while (state.phase === "between-rallies") state = session.step(NEUTRAL);
+    }
+    expect(session.snapshot().phase).toBe("complete");
   });
 });

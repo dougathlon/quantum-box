@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="en">
+  <meta charset="utf-8" /><meta
+    name="viewport"
+    content="width=device-width"
+  /><title>Controller setup — Quantum Box</title>
+  <style>
+    body {
+      background: #2b1c14;
+      color: #d8bf8b;
+      font: 20px monospace;
+      max-width: 850px;
+      margin: 8vh auto;
+      padding: 2em;
+    }
+    button,
+    a {
+      font: inherit;
+      color: inherit;
+      background: transparent;
+      border: 2px solid;
+      padding: 1em;
+      display: inline-block;
+      margin: 1em 0;
+    }
+    pre {
+      white-space: pre-wrap;
+    }
+  </style>
+  <h1>CONTROLLER SETUP</h1>
+  <p>
+    D-pad moves. A selects and acts. B goes back. Start pauses. Select goes
+    back.
+  </p>
+  <p>
+    Standard controllers and USB NES controllers work without setup. Use this if
+    the buttons do not match their labels. Each controller model keeps its own
+    button mapping on this browser.
+  </p>
+  <button id="begin">MAP BUTTONS</button>
+  <p id="status" role="status">
+    Connect a controller, then press a button to make it visible to the browser.
+  </p>
+  <pre id="live"></pre>
+  <a href="./">BACK TO GAME</a>
+  <script type="module">
+    import { controllerMappingKey } from "./src/input/GamepadMapping.ts";
+    const prompts = ["A", "B", "START", "SELECT"],
+      keys = ["primary", "back", "start", "select"];
+    let mapping = null,
+      index = 0,
+      device = null,
+      release = true;
+    const status = document.querySelector("#status"),
+      live = document.querySelector("#live");
+    document.querySelector("#begin").onclick = () => {
+      mapping = {};
+      index = 0;
+      device = null;
+      release = true;
+      status.textContent = "Release all buttons, then press A.";
+    };
+    function frame() {
+      const pads = [...navigator.getGamepads()].filter((p) => p?.connected);
+      live.textContent = pads
+        .map(
+          (p) =>
+            p.id +
+            "\nD-pad axes: " +
+            p.axes.map((x) => x.toFixed(1)).join(", ") +
+            "\nButtons: " +
+            p.buttons.flatMap((b, i) => (b.pressed ? [i] : [])).join(", "),
+        )
+        .join("\n\n");
+      if (mapping) {
+        const p =
+          device === null
+            ? pads.find((p) => p.buttons.some((b) => b.pressed))
+            : pads.find((p) => p.index === device);
+        const pressed =
+          p?.buttons.flatMap((b, i) => (b.pressed ? [i] : [])) ?? [];
+        if (!pressed.length) release = false;
+        else if (!release && pressed.length === 1) {
+          release = true;
+          device = p.index;
+          const value = pressed[0];
+          if (Object.values(mapping).includes(value))
+            status.textContent =
+              "That button is already used. Press " + prompts[index] + ".";
+          else {
+            mapping[keys[index++]] = value;
+            if (index === 4) {
+              try {
+                localStorage.setItem(
+                  controllerMappingKey(p.id),
+                  JSON.stringify(mapping),
+                );
+                status.textContent =
+                  "SAVED. Return to the game to use this mapping.";
+              } catch {
+                status.textContent = "Unable to save in this browser.";
+              }
+              mapping = null;
+            } else
+              status.textContent =
+                "Release, then press " + prompts[index] + ".";
+          }
+        }
+      }
+      requestAnimationFrame(frame);
+    }
+    frame();
+  </script>
+</html>

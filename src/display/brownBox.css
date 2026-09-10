@@ -1072,7 +1072,7 @@
 
 .qb-scoreboard-page {
   display: grid;
-  grid-template-rows: auto minmax(0, 1fr) auto auto;
+  grid-template-rows: auto minmax(0, 1fr) auto auto auto;
   gap: 1.5cqh;
   min-height: 0;
   overflow: hidden;
@@ -1093,6 +1093,7 @@
 }
 
 .qb-scoreboard-page > header .qb-kicker {
+  min-width: 16cqw;
   font-size: 1.25cqw;
   letter-spacing: 0.16em;
 }
@@ -1161,7 +1162,7 @@
   color: var(--qb-muted-tan);
 }
 
-.qb-scoreboard-result {
+.qb-scoreboard-page .qb-scoreboard-result {
   min-height: 2.4cqh;
   margin: 0;
   font-size: 1.25cqw;
@@ -1808,7 +1809,7 @@
   margin-top: 0;
 }
 
-.qb-settings-page .qb-background-programmes {
+.qb-settings-page [data-settings-panel="display"] .qb-settings {
   gap: 0;
 }
 
@@ -2372,7 +2373,11 @@
   display: grid;
   grid-template-columns: auto auto minmax(24cqw, 1fr);
   align-items: center;
-  gap: 2cqw;
+  gap: 1.1111cqh 2cqw;
+}
+
+.qb-scoreboard-initials-label {
+  min-width: 12cqw;
 }
 
 .qb-scoreboard-initial-slots {
@@ -2402,6 +2407,35 @@
   background: transparent;
 }
 
+.qb-fluxball-lobby {
+  align-content: start;
+  grid-template-rows: auto auto auto minmax(0, 1fr) 6cqh;
+  gap: 2cqh;
+}
+
+.qb-fluxball-lobby > header {
+  display: grid;
+  gap: 1cqh;
+  border-bottom: 1px solid var(--qb-cream);
+  padding-bottom: 2cqh;
+}
+
+.qb-fluxball-lobby > header :is(h1, p),
+.qb-fluxball-lobby > p {
+  margin: 0;
+}
+
+.qb-fluxball-lobby-slots {
+  gap: 1cqw;
+}
+
+.qb-fluxball-lobby-slots button,
+.qb-fluxball-lobby-slots button[aria-pressed="true"] {
+  background: transparent;
+  padding: 2cqh 2.5cqw;
+  gap: 1cqh;
+}
+
 /* Reserve full bitmap measures instead of browser-font intrinsic widths. */
 .qb-screen-footer button:first-child {
   min-width: 28cqw;
@@ -2429,7 +2463,9 @@
   min-height: 4cqh;
 }
 
-.qb-initials-help {
+.qb-scoreboard-page .qb-initials-help {
+  max-width: none;
+  width: 100%;
   grid-column: 1 / -1;
   min-height: 4cqh;
   margin: 0;
@@ -2606,4 +2642,52 @@
 .qb-arcade-select-row > strong {
   grid-column: 2;
   grid-row: 1;
+}
+
+.qb-page .qb-fluxball-lobby > p {
+  font-size: 1.5625cqw !important;
+  line-height: 1.4 !important;
+}
+
+/* These fixed-raster panels must not inherit portrait rem-sized headings. */
+.qb-page .qb-scoreboard-page > header h1,
+.qb-page .qb-fluxball-lobby > header h1 {
+  font-size: 2.5cqw !important;
+  line-height: 1.2 !important;
+}
+.qb-page .qb-scoreboard-page p {
+  font-size: 1.25cqw !important;
+  line-height: 1.2 !important;
+}
+
+[data-navigation="true"] footer > span:not(.qb-cabinet-selection-hint) {
+  display: none !important;
+}
+
+.qb-game-ui[data-navigation="true"] footer button:not([hidden]) {
+  min-width: 20%;
+}
+
+.qb-cabinet-selection-hint {
+  white-space: nowrap;
+}
+
+.qb-settings-page [data-action="controller-setup"] {
+  border: 0;
+}
+
+.qb-settings-page .qb-settings-reset-keys {
+  margin-top: 1.1111cqh;
+  min-height: 7.7778cqh;
+  padding-bottom: 1.6667cqh;
+  border-bottom: 1px dotted var(--qb-muted-tan);
+}
+
+.qb-settings-page [data-action="controller-setup"] {
+  margin-top: 1.6667cqh;
+}
+
+.qb-game-ui footer > span {
+  white-space: nowrap;
+  flex-shrink: 0;
 }

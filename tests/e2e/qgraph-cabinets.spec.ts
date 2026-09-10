@@ -66,7 +66,7 @@ test("Quarry pauses, restarts, exits, leaves Story unchanged, and stays provider
     "data-phase",
     "paused",
   );
-  await region.getByRole("button", { name: "PAUSE · P" }).click();
+  await region.getByRole("button", { name: "RESUME · P" }).click();
   await expect(page.locator("[data-ui='game']")).not.toHaveAttribute(
     "data-phase",
     "paused",

@@ -75,7 +75,6 @@ describe("Brown Box display models", () => {
     expect(view.playerY).toBe(SKIPIXL_PLAYER_Y);
     expect(view.visibleObstacles.length).toBeGreaterThan(0);
     expect(view.visibleObstacles[0]?.screenY).toBeGreaterThan(view.playerY);
-    expect(view.groundCues.length).toBeGreaterThan(0);
     expect(view.finishY).toBeGreaterThan(view.playerY);
     expect(Object.isFrozen(view.visibleObstacles)).toBe(true);
 

@@ -269,7 +269,6 @@ export class FluxballSession {
             ),
           ),
           ARCADE_CPU_TUNING,
-          this.cpuPlayerIds,
         ),
       ]),
     );
@@ -316,7 +315,6 @@ export class FluxballSession {
           request.playerId,
         ),
       );
-      this.resetCpuPolicies();
       break;
     }
   }
@@ -346,9 +344,8 @@ export class FluxballSession {
       this.activePlayerIds,
       this.roundWins,
     );
-    const roundWinnerIds = uniqueRoundWinnerIds(snapshot.score);
-    const winnerId = roundWinnerIds[0];
-    if (winnerId) {
+    const roundWinnerIds = roundLeaders(snapshot.score);
+    for (const winnerId of roundWinnerIds) {
       this.roundWins = Object.freeze({
         ...this.roundWins,
         [winnerId]: (this.roundWins[winnerId] ?? 0) + 1,
@@ -535,9 +532,11 @@ function winnerIds(score: ScoreBoard): readonly PlayerId[] {
   );
 }
 
-function uniqueRoundWinnerIds(score: ScoreBoard): readonly PlayerId[] {
+function roundLeaders(score: ScoreBoard): readonly PlayerId[] {
   const leaders = winnerIds(score);
-  return leaders.length === 1 ? leaders : Object.freeze([]);
+  return leaders.length < Object.keys(score).length
+    ? leaders
+    : Object.freeze([]);
 }
 
 function humanBeatComputers(

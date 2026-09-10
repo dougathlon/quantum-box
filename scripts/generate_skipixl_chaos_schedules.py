@@ -17,11 +17,11 @@ from typing import Any
 
 ROOT = Path(__file__).resolve().parents[1]
 SOURCE_PATH = ROOT / "src/games/skipixl/data/qpixl-b3-segments-v1.json"
-OUTPUT_PATH = ROOT / "src/games/skipixl/data/skipixl-residual-cuts-v8.json"
+OUTPUT_PATH = ROOT / "src/games/skipixl/data/skipixl-residual-cuts-v9.json"
 EXPECTED_BANK_SHA256 = (
     "f09d509dd4f6980c0ac5146466e32c736f0688d13156334216720fa52dc8bffb"
 )
-DECODER_VERSION = "skipixl-triplet-residual-slalom-v8"
+DECODER_VERSION = "skipixl-triplet-residual-slalom-v9"
 CUTS = (("P90", 0.90), ("P84", 0.84), ("P78", 0.78))
 CORRIDOR_MIN_X = 96
 CORRIDOR_MAX_X = 544
@@ -32,8 +32,8 @@ TARGET_SECONDS = 60
 DENSE_ROW_HAZARD_COUNT = 8
 SKIER_RADIUS = 9
 OBSTACLE_RADII = {"tree": 17, "rock": 14}
-GATE_COUNTS = {"P90": 0, "P84": 8, "P78": 12}
-GATE_HALF_WIDTHS = {"P90": 0, "P84": 72, "P78": 54}
+GATE_COUNTS = {"P90": 4, "P84": 8, "P78": 12}
+GATE_HALF_WIDTHS = {"P90": 90, "P84": 72, "P78": 54}
 
 
 def canonical_json(value: Any) -> str:
@@ -254,7 +254,7 @@ def decode_course(
     difficulty = difficulty_for_cut(cut_id)
     gates = decode_gates(obstacles, cut_id, course_length)
     receipt = {
-        "schemaVersion": "skipixl-course-receipt-v8",
+        "schemaVersion": "skipixl-course-receipt-v9",
         "bankId": bank["bankId"],
         "bankContentSha256": bank["bankContentSha256"],
         "decoderVersion": DECODER_VERSION,
@@ -271,7 +271,7 @@ def decode_course(
             else "Medium and Hard preserve all sixty QPixl-derived rows at 63 distance units per row for the common 60-second trial"
         ),
         "gateRule": (
-            "Easy is a gate-free downhill descent"
+            "4 slalom gates select QPixl obstacle anchors across the course; 180-pixel openings; a miss adds 2.5 seconds"
             if cut_id == "P90"
             else f"{GATE_COUNTS[cut_id]} slalom gates select QPixl obstacle anchors across the course; {GATE_HALF_WIDTHS[cut_id] * 2}-pixel openings; a miss adds 2.5 seconds"
         ),

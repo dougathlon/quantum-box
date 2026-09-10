@@ -49,14 +49,15 @@ export function persistSkiPixlStoryResult(
   const receipt = pack.payload.receipt;
   if (
     (receipt.schemaVersion !== "skipixl-course-receipt-v7" &&
-      receipt.schemaVersion !== "skipixl-course-receipt-v8") ||
+      receipt.schemaVersion !== "skipixl-course-receipt-v8" &&
+      receipt.schemaVersion !== "skipixl-course-receipt-v9") ||
     pack.payload.cutId === undefined ||
     pack.payload.tripletId === undefined ||
     receipt.cutId !== pack.payload.cutId ||
     receipt.tripletId !== pack.payload.tripletId
   ) {
     throw new Error(
-      "SkiPixl Story progress requires an exact v7 or v8 cut receipt.",
+      "SkiPixl Story progress requires an exact v7, v8 or v9 cut receipt.",
     );
   }
   const passedGateCount = snapshot.gateResults.filter(

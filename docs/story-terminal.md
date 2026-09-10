@@ -53,8 +53,8 @@ For a Story page:
 1. the header types;
 2. the top rule appears;
 3. body paragraphs type in order;
-4. the action appears at bottom right with a flashing block;
-5. one bottom rule frames the page, with no content below it.
+4. the action appears on the left below the final text unit with a continuously flashing block;
+5. text and action remain inside the outer frame, without a redundant inner bottom rule.
 
 Pressing the action key during typing completes the page. Only a later press
 advances. Reduced Motion renders the full page immediately and shows a steady

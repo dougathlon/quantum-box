@@ -1,3 +1,4 @@
+import { fluxballHudModel } from "../../src/games/fluxball/presentation";
 import { createHash } from "node:crypto";
 import { existsSync, readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
@@ -502,6 +503,9 @@ describe("Quantum Box Fluxball round contract", () => {
         shifted.publicRuleChangeEvents.map((event) => event.playerId),
       ).toEqual([humanPlayerIds[0]]);
       expect(shifted.remainingRuleChanges).toBe(0);
+      const repeated = session.step({ players: {}, revealRequests: requests });
+      expect(repeated.publicRuleChangeEvents).toHaveLength(1);
+      expect(repeated.remainingRuleChanges).toBe(0);
       const reveal = advanceToReveal(session);
       expect(reveal.reveal?.epochs).toHaveLength(2);
       expect(
@@ -935,6 +939,27 @@ describe("Fluxball v2 response and collision feel", () => {
     },
   );
 
+  it.each([
+    { A: 3, B: 3, C: 1, D: 0 },
+    { A: 2, B: 2, C: 2, D: 1 },
+    { A: 0, B: 0, C: 0, D: 0 },
+    { A: 2, B: 2, C: 2, D: 2 },
+  ])("awards partial ties but preserves all-player draws: %j", (score) => {
+    const session = arcadeSession(4, "individual", ["A"], 41);
+    forceSessionScore(session, score);
+    const result = finishCurrentRound(session);
+    const leaders = Object.keys(score).filter(
+      (id) => score[id as PlayerId] === Math.max(...Object.values(score)),
+    );
+    const expected = leaders.length === 4 ? [] : leaders;
+    expect(result.reveal?.roundWinnerIds).toEqual(expected);
+    expect(fluxballHudModel(result, false).notice).toBe(
+      expected.length ? `R1 · ${expected.join("+")} WIN` : "R1 · DRAW",
+    );
+    for (const id of ["A", "B", "C", "D"] as const)
+      expect(result.roundWins[id]).toBe(expected.includes(id) ? 1 : 0);
+  });
+
   it("uses an 8 by 8 binary-alpha Brown Box ball mask", () => {
     expect(FLUXBALL_V2_BALL).toHaveLength(8);
     expect(FLUXBALL_V2_BALL.every((row) => row.length === 8)).toBe(true);
@@ -943,6 +968,204 @@ describe("Fluxball v2 response and collision feel", () => {
 });
 
 describe("Fluxball CPU information boundary", () => {
+  it("corrects a live simulation inversion only after visible displacement evidence", () => {
+    const rules = directStrikeRules();
+    const sport = new SportSimulation({
+      roundNumber: 1,
+      activePlayerIds: ["A", "B"],
+      rules,
+    });
+    const cpu = new FluxballCpuPolicy("B", 31);
+    for (let tick = 0; tick < 10; tick++)
+      sport.step({
+        B: cpu.decide(createPublicSportSnapshot(sport.getSnapshot())).rawInput,
+      });
+    expect(cpu.snapshotBelief().action.value).toBe("DIRECT");
+    sport.replaceRules(
+      {
+        ...rules,
+        players: {
+          ...rules.players,
+          B: { ...rules.players.B!, action: "INVERTED" },
+        },
+      },
+      1,
+    );
+    const first = cpu.decide(createPublicSportSnapshot(sport.getSnapshot()));
+    expect(cpu.snapshotBelief().action.value).toBe("DIRECT");
+    sport.step({ B: first.rawInput });
+    for (let tick = 0; tick < 16; tick++)
+      sport.step({
+        B: cpu.decide(createPublicSportSnapshot(sport.getSnapshot())).rawInput,
+      });
+    expect(cpu.snapshotBelief().action.value).toBe("INVERTED");
+  });
+
+  it("keeps independent beliefs and challenges every other carrier", () => {
+    const b = new FluxballCpuPolicy("B", 31);
+    const c = new FluxballCpuPolicy("C", 31);
+    const before = fourPlayerPublicObservation(0, "C");
+    expect(b.decide(before).reason).toBe("challenge-carrier");
+    const goal = {
+      eventId: 1,
+      roundNumber: 1,
+      tick: 1,
+      ruleStateIndex: 0,
+      physicalGoal: "B" as const,
+      awardedPlayerIds: ["B" as const],
+      scoreAfter: { A: 0, B: 1, C: 0, D: 0 },
+    };
+    b.decide({
+      ...before,
+      roundTick: 1,
+      tick: 1,
+      latestGoal: goal,
+      score: goal.scoreAfter,
+    });
+    expect(b.snapshotBelief().targetGoal.value).toBe("B");
+    expect(c.snapshotBelief().targetGoal.value).toBe("UNKNOWN");
+    expect(c.snapshotBelief().observations).toBe(0);
+    // Controller ownership is absent from the public observation and policy API.
+    expect(b.decide({ ...before, tick: 8, roundTick: 8 }).reason).toBe(
+      "challenge-carrier",
+    );
+  });
+
+  it("treats shared score gains as beneficial and revises only after contradictory goals", () => {
+    const policy = new FluxballCpuPolicy("B", 31, CAPABLE_PUBLIC_POLICY_TUNING);
+    const before = fourPlayerPublicObservation(0, "B");
+    policy.decide(before);
+    const first = {
+      ...before,
+      tick: 1,
+      roundTick: 1,
+      score: { A: 1, B: 1, C: 0, D: 0 },
+      latestGoal: {
+        eventId: 1,
+        roundNumber: 1,
+        tick: 1,
+        ruleStateIndex: 0,
+        physicalGoal: "B" as const,
+        awardedPlayerIds: ["A", "B"] as PlayerId[],
+        scoreAfter: { A: 1, B: 1, C: 0, D: 0 },
+      },
+    };
+    expect(policy.decide(first).target.x).toBeGreaterThan(800);
+    expect(policy.snapshotBelief().targetGoal.value).toBe("B");
+    policy.decide({ ...first, tick: 2, roundTick: 2, ruleStateIndex: 1 });
+    expect(policy.snapshotBelief().targetGoal.value).toBe("B");
+    const next = {
+      ...first,
+      tick: 3,
+      roundTick: 3,
+      score: { A: 2, B: 1, C: 0, D: 0 },
+      latestGoal: {
+        ...first.latestGoal,
+        eventId: 2,
+        tick: 3,
+        ruleStateIndex: 1,
+        awardedPlayerIds: ["A"] as PlayerId[],
+        scoreAfter: { A: 2, B: 1, C: 0, D: 0 },
+      },
+    };
+    policy.decide(next);
+    expect(policy.snapshotBelief().targetGoal.value).toBe("A");
+  });
+
+  it("retains the policy instances at rule change and resets knowledge only next round", () => {
+    const session = arcadeSession(4, "individual", ["A"], 41);
+    advanceTicks(session, 12);
+    const internals = session as unknown as {
+      policies: Map<PlayerId, FluxballCpuPolicy>;
+    };
+    const old = internals.policies.get("B")!;
+    const belief = old.snapshotBelief();
+    session.step({
+      players: {},
+      revealRequests: [{ playerId: "A", capturedAtMs: 1 }],
+    });
+    expect(internals.policies.get("B")).toBe(old);
+    expect(old.snapshotBelief().action).toEqual(belief.action);
+    finishCurrentRound(session);
+    session.continueAfterReveal();
+    expect(internals.policies.get("B")).not.toBe(old);
+    expect(internals.policies.get("B")!.snapshotBelief()).toMatchObject({
+      action: { value: "UNKNOWN" },
+      interaction: { value: "UNKNOWN" },
+      targetGoal: { value: "UNKNOWN" },
+      observations: 0,
+    });
+  });
+
+  it("adapts from sustained reversed displacement without stopping or using change metadata", () => {
+    const policy = new FluxballCpuPolicy("B", 31);
+    let observation = publicObservation(0, 620, 230);
+    let decision = policy.decide(observation);
+    function move(sign: number) {
+      const x =
+        observation.players.B!.x +
+        sign *
+          4 *
+          (Number(decision.rawInput.right) - Number(decision.rawInput.left));
+      const y =
+        observation.players.B!.y +
+        sign *
+          4 *
+          (Number(decision.rawInput.down) - Number(decision.rawInput.up));
+      observation = publicObservation(observation.roundTick + 1, x, y);
+      decision = policy.decide(observation);
+      expect(Object.values(decision.rawInput).some(Boolean)).toBe(true);
+    }
+    for (let i = 0; i < 8; i++) move(1);
+    expect(policy.snapshotBelief().action.value).toBe("DIRECT");
+    move(-1);
+    expect(policy.snapshotBelief().action.value).toBe("DIRECT");
+    move(-1);
+    expect(policy.snapshotBelief().action.value).toBe("DIRECT");
+    for (let i = 0; i < 8; i++) move(-1);
+    expect(policy.snapshotBelief().action.value).toBe("INVERTED");
+    const rawX =
+      Number(decision.rawInput.right) - Number(decision.rawInput.left);
+    expect(rawX * decision.desiredWorldMotion.x).toBeLessThan(0);
+  });
+
+  it.each(["blocked", "collision", "wall", "goal-reset"] as const)(
+    "does not infer inverted controls from %s movement",
+    (kind) => {
+      const policy = new FluxballCpuPolicy("B", 31, {
+        ...CAPABLE_PUBLIC_POLICY_TUNING,
+        movementSettleTicks: 0,
+        movementEvidenceTicks: 2,
+      });
+      let before = publicObservation(0, 620, 230);
+      let decision = policy.decide(before);
+      for (let tick = 1; tick <= 6; tick++) {
+        const dx =
+          Number(decision.rawInput.right) - Number(decision.rawInput.left);
+        let next = publicObservation(
+          tick,
+          kind === "wall"
+            ? 42
+            : before.players.B!.x - (kind === "blocked" ? 0 : dx * 4),
+          230,
+        );
+        if (kind === "collision")
+          next = {
+            ...next,
+            players: {
+              ...next.players,
+              A: { ...next.players.A!, x: next.players.B!.x + 30 },
+            },
+          };
+        if (kind === "goal-reset")
+          next = { ...next, goalFreezeTicksRemaining: 1 };
+        decision = policy.decide(next);
+        before = next;
+      }
+      expect(policy.snapshotBelief().action.value).toBe("UNKNOWN");
+    },
+  );
+
   it("projects a sport snapshot without PlayerRules or hidden goal mappings", () => {
     const trace = sampleRoundRules({
       catalog: FLUXBALL_FIXTURE_CATALOG,
@@ -962,7 +1185,11 @@ describe("Fluxball CPU information boundary", () => {
   });
 
   it("learns ACTION from observed motion rather than selected rules", () => {
-    const policy = new FluxballCpuPolicy("B", 31);
+    const policy = new FluxballCpuPolicy("B", 31, {
+      ...CAPABLE_PUBLIC_POLICY_TUNING,
+      movementEvidenceTicks: 1,
+      movementSettleTicks: 0,
+    });
     const before = publicObservation(0, 620, 230);
     const decision = policy.decide(before);
     const rawX =
@@ -981,7 +1208,6 @@ describe("Fluxball CPU information boundary", () => {
         playerId,
         31,
         CAPABLE_PUBLIC_POLICY_TUNING,
-        [playerId],
       );
       const before = fourPlayerPublicObservation(30, playerId);
       const probe = policy.decide(before);

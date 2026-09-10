@@ -4,7 +4,7 @@ import type { PlayerId } from "../../games/fluxball/standalone/modes";
 import { fluxballHudModel } from "../../games/fluxball/presentation";
 import { BROWN_BOX_PALETTE } from "../BrownBoxTheme";
 import { drawCabinetPauseHeader, drawCabinetStatusHeader } from "../PixelHud";
-import { drawPixelText } from "../PixelText";
+import { drawPixelText, drawRefinedHudText } from "../PixelText";
 import { CANONICAL_SPRITE_PIXEL_SCALE } from "../CanonicalSpriteRaster";
 import { drawQGraphCabinetSprite } from "../QGraphCabinetSpriteRaster";
 import { drawPixelSprite, FLUXBALL_V2_BALL } from "../PixelSprites";
@@ -26,13 +26,14 @@ export function renderFluxball(
   graphics: Phaser.GameObjects.Graphics,
   snapshot: FluxballSnapshot,
   paused: boolean,
+  refinedHudPreview = false,
 ): void {
   const view = fluxballDisplayView(snapshot, paused);
   const g = graphics.clear();
   const sport = view.sport;
   if (!sport) {
     if (view.paused) drawCabinetPauseHeader(g);
-    else drawHud(g, snapshot);
+    else drawHud(g, snapshot, refinedHudPreview);
     return;
   }
 
@@ -148,7 +149,7 @@ export function renderFluxball(
     drawCabinetPauseHeader(g);
     return;
   }
-  drawHud(g, snapshot);
+  drawHud(g, snapshot, refinedHudPreview);
 }
 
 interface CourtShape {
@@ -374,7 +375,9 @@ function drawMotionAccents(
 function drawHud(
   g: Phaser.GameObjects.Graphics,
   snapshot: FluxballSnapshot,
+  refined: boolean,
 ): void {
+  const drawText = refined ? drawRefinedHudText : drawPixelText;
   const hud = fluxballHudModel(snapshot, false);
   if (snapshot.phase === "complete") {
     drawCabinetStatusHeader(
@@ -392,22 +395,22 @@ function drawHud(
       { x: 201, y: 34 },
       { colour: PALETTE.cream },
     );
-    drawPixelText(g, hud.round, {
+    drawText(g, hud.round, {
       x: 160,
       y: 4,
       pixel: 1,
       colour: PALETTE.cream,
       align: "center",
     });
-    drawPixelText(g, hud.time, {
+    drawText(g, hud.time, {
       x: 160,
-      y: 10,
+      y: refined ? 12 : 10,
       pixel: 2,
       colour: PALETTE.cream,
       align: "center",
     });
     if (hud.ruleChange)
-      drawPixelText(g, hud.ruleChange, {
+      drawText(g, refined ? "SPACE / A: RULES" : hud.ruleChange, {
         x: 259,
         y: 12,
         pixel: 1,
@@ -416,18 +419,45 @@ function drawHud(
       });
   }
 
-  drawScore(g, "A", hud.goals.A, hud.roundWins.A, 11, 77, "left");
-  drawScore(g, "B", hud.goals.B, hud.roundWins.B, 309, 77, "right");
+  drawScore(
+    g,
+    "A",
+    hud.goals.A,
+    hud.roundWins.A,
+    refined ? 3 : 11,
+    77,
+    "left",
+    refined,
+  );
+  drawScore(
+    g,
+    "B",
+    hud.goals.B,
+    hud.roundWins.B,
+    refined ? 317 : 309,
+    77,
+    "right",
+    refined,
+  );
   if (hud.activePlayerIds.includes("C")) {
-    drawScore(g, "C", hud.goals.C, hud.roundWins.C, 63, 9, "center");
+    drawScore(g, "C", hud.goals.C, hud.roundWins.C, 63, 9, "center", refined);
   }
   if (hud.activePlayerIds.includes("D")) {
-    drawScore(g, "D", hud.goals.D, hud.roundWins.D, 257, 158, "center");
+    drawScore(
+      g,
+      "D",
+      hud.goals.D,
+      hud.roundWins.D,
+      257,
+      145,
+      "center",
+      refined,
+    );
   }
   if (hud.notice && snapshot.phase !== "complete")
-    drawPixelText(g, hud.notice, {
+    drawText(g, hud.notice, {
       x: 160,
-      y: 26,
+      y: refined ? 28 : 26,
       pixel: 1,
       colour: PALETTE.cream,
       align: "center",
@@ -442,25 +472,30 @@ function drawScore(
   x: number,
   y: number,
   align: "left" | "center" | "right",
+  refined: boolean,
 ): void {
-  drawPixelText(g, `PLAYER ${playerId}`, {
+  const drawText = refined ? drawRefinedHudText : drawPixelText;
+  drawText(g, `PLAYER ${playerId}`, {
     x,
     y,
     pixel: 1,
+    ...(refined ? {} : { glyphWidth: 3 }),
     colour: PALETTE.cream,
     align,
   });
-  drawPixelText(g, `GOALS ${goals}`, {
+  drawText(g, `GOALS ${goals}`, {
     x,
-    y: y + 6,
+    y: y + (refined ? 8 : 6),
     pixel: 1,
+    ...(refined ? {} : { glyphWidth: 3 }),
     colour: PALETTE.cream,
     align,
   });
-  drawPixelText(g, `WINS ${roundWins}`, {
+  drawText(g, `WINS ${roundWins}`, {
     x,
-    y: y + 12,
+    y: y + (refined ? 16 : 12),
     pixel: 1,
+    ...(refined ? {} : { glyphWidth: 3 }),
     colour: PALETTE.cream,
     align,
   });

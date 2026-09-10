@@ -1,3 +1,4 @@
+import { toggleFullscreen } from "./Fullscreen";
 import { storyTextLayout } from "../display/StoryTextLayout";
 import { terminalTextWidth } from "../display/TerminalTypeface";
 import { ARCADE_INSTRUCTIONS } from "./ArcadeInstructions";
@@ -254,6 +255,7 @@ export class QuantumBoxShell {
       initialSave.settings.reducedMotion,
     );
     this.shell.dataset["page"] = this.page;
+    document.addEventListener("fullscreenchange", this.syncFullscreenState);
     root.addEventListener("click", this.onClick);
     root.addEventListener("change", this.onChange);
     root.addEventListener("submit", this.onSubmit);
@@ -369,6 +371,8 @@ export class QuantumBoxShell {
   ): void {
     if (!this.entered || this.cabinetActive) return;
     this.fluxballLobbyOpen = true;
+    this.screenHeader.hidden = true;
+    this.screenFooter.hidden = true;
     this.selectedArcadeCabinet = "fluxball";
     this.page = "arcade-detail";
     this.actions.onPageChanged(this.page);
@@ -652,6 +656,7 @@ export class QuantumBoxShell {
     if (!this.cabinetActive || this.gameUi.dataset["cabinet"] !== "quantman") {
       return;
     }
+    this.updatePauseLabel(paused);
     const hud = quantmanSyntheticHudModel(snapshot, paused);
     this.gameUi.dataset["phase"] = hud.phase.toLowerCase().replaceAll(" ", "-");
     required(this.quantmanUi, "[data-quantman='fragments']").textContent =
@@ -671,15 +676,33 @@ export class QuantumBoxShell {
       "[data-action='quantman-replay']",
     );
     retry.textContent = "RETRY · X / X";
-    retry.hidden = !complete || this.cabinetPlayMode === "story";
-    required<HTMLButtonElement>(
+    retry.hidden =
+      !paused &&
+      (!complete ||
+        this.cabinetPlayMode === "story" ||
+        snapshot.terminal?.cleared === true);
+    const next = required<HTMLButtonElement>(
       this.quantmanUi,
       "[data-action='quantman-continue']",
-    ).hidden = !complete;
+    );
+    next.hidden = !complete;
+    next.textContent =
+      this.cabinetPlayMode === "story"
+        ? "CONTINUE STORY"
+        : snapshot.terminal?.cleared
+          ? "NEXT MAZE"
+          : "BACK TO ARCADE";
     required<HTMLButtonElement>(
       this.quantmanUi,
       "[data-action='quantman-pause']",
     ).hidden = complete;
+    this.updateCabinetChoices(
+      paused,
+      snapshot.terminal !== null,
+      this.cabinetPlayMode === "arcade" && snapshot.terminal?.cleared
+        ? "NEXT MAZE"
+        : undefined,
+    );
   }
 
   public beginQuag(playMode: "story" | "arcade" = "arcade"): void {
@@ -707,6 +730,7 @@ export class QuantumBoxShell {
   public updateQuagHud(snapshot: QuagSnapshot, paused: boolean): void {
     if (!this.cabinetActive || this.gameUi.dataset["cabinet"] !== "quag")
       return;
+    this.updatePauseLabel(paused);
     const hud = quagHudModel(snapshot, paused);
     this.gameUi.dataset["phase"] = paused ? "paused" : snapshot.phase;
     required(this.quagUi, "[data-quag='time']").textContent = hud.time;
@@ -719,7 +743,7 @@ export class QuantumBoxShell {
     required<HTMLButtonElement>(
       this.quagUi,
       "[data-action='quag-replay']",
-    ).hidden = !complete || this.cabinetPlayMode === "story";
+    ).hidden = !paused && (!complete || this.cabinetPlayMode === "story");
     required<HTMLButtonElement>(
       this.quagUi,
       "[data-action='quag-continue']",
@@ -733,7 +757,8 @@ export class QuantumBoxShell {
       "[data-action='quag-pause']",
     ).hidden = complete;
     required<HTMLElement>(this.quagUi, "[data-quag='controls']").hidden =
-      snapshot.phase !== "ready";
+      complete;
+    this.updateCabinetChoices(paused, snapshot.phase === "complete", undefined);
   }
 
   public updateFluxballHud(
@@ -744,6 +769,7 @@ export class QuantumBoxShell {
   ): void {
     if (!this.cabinetActive || this.gameUi.dataset["cabinet"] !== "fluxball")
       return;
+    this.updatePauseLabel(paused);
     const hud = fluxballHudModel(snapshot, paused);
     this.gameUi.dataset["phase"] = paused ? "paused" : snapshot.phase;
     required(this.fluxballUi, "[data-fluxball='round']").textContent =
@@ -751,15 +777,13 @@ export class QuantumBoxShell {
     required(this.fluxballUi, "[data-fluxball='time']").textContent = hud.time;
     required(this.fluxballUi, "[data-fluxball='format']").textContent = "";
     required(this.fluxballUi, "[data-fluxball='controls']").textContent =
-      snapshot.phase === "active"
-        ? fluxballControlSummary(snapshot, this.save)
-        : "";
+      snapshot.phase === "active" ? fluxballControlSummary(snapshot) : "";
     for (const playerId of ["A", "B", "C", "D"] as const) {
       const score = required(
         this.fluxballUi,
         `[data-fluxball-score='${playerId}']`,
       );
-      score.textContent = `G ${hud.goals[playerId]} · W ${hud.roundWins[playerId]}`;
+      score.textContent = `GOALS ${hud.goals[playerId]} · WINS ${hud.roundWins[playerId]}`;
       score.parentElement?.toggleAttribute(
         "hidden",
         !hud.activePlayerIds.includes(playerId),
@@ -782,11 +806,13 @@ export class QuantumBoxShell {
     pauseButton.hidden = snapshot.phase !== "active";
     continueButton.hidden = snapshot.phase === "active";
     replayButton.hidden =
-      snapshot.phase !== "complete" || this.cabinetPlayMode === "story";
+      !paused &&
+      (snapshot.phase !== "complete" || this.cabinetPlayMode === "story");
 
     if (snapshot.phase === "active") {
       renderFluxballLiveDisclosure(this.fluxballUi, snapshot);
       notice.textContent = hud.notice;
+      this.updateCabinetChoices(paused, false);
       return;
     }
     if (snapshot.phase === "reveal" && snapshot.reveal) {
@@ -796,17 +822,34 @@ export class QuantumBoxShell {
           ? "COMPLETE MATCH · SPACE / A"
           : "NEXT ROUND · SPACE / A";
       renderFluxballSemanticHistory(this.fluxballUi, snapshot);
+      this.updateCabinetChoices(
+        paused,
+        false,
+        snapshot.roundNumber === snapshot.totalRounds
+          ? "RESULTS"
+          : "NEXT ROUND",
+      );
       return;
     }
     clearFluxballReveal(this.fluxballUi);
     notice.textContent = hud.notice;
     continueButton.textContent =
       playMode === "story" ? "CONTINUE · SPACE / A" : "EXIT · SPACE / A";
+    this.updateCabinetChoices(
+      paused,
+      snapshot.phase === "complete",
+      snapshot.phase === "reveal"
+        ? snapshot.roundNumber === snapshot.totalRounds
+          ? "RESULTS"
+          : "NEXT ROUND"
+        : undefined,
+    );
   }
 
   public updateSkiPixlHud(snapshot: SkiPixlSnapshot, paused: boolean): void {
     if (!this.cabinetActive || this.gameUi.dataset["cabinet"] !== "skipixl")
       return;
+    this.updatePauseLabel(paused);
     required(this.skipixlUi, "[data-skipixl='time']").textContent =
       formatSkiPixlTime(snapshot.elapsedSeconds);
     required(this.skipixlUi, "[data-skipixl='limit']").textContent =
@@ -821,7 +864,7 @@ export class QuantumBoxShell {
     required<HTMLButtonElement>(
       this.skipixlUi,
       "[data-action='skipixl-replay']",
-    ).hidden = !complete || this.cabinetPlayMode === "story";
+    ).hidden = !paused && (!complete || this.cabinetPlayMode === "story");
     required<HTMLButtonElement>(
       this.skipixlUi,
       "[data-action='skipixl-continue']",
@@ -830,6 +873,7 @@ export class QuantumBoxShell {
       this.skipixlUi,
       "[data-action='skipixl-pause']",
     ).hidden = complete;
+    this.updateCabinetChoices(paused, snapshot.phase === "complete", undefined);
   }
 
   public updateQongHud(
@@ -838,6 +882,7 @@ export class QuantumBoxShell {
     paused: boolean,
   ): void {
     if (!this.cabinetActive) return;
+    this.updatePauseLabel(paused);
     const hud = qongHudModel(snapshot, opponent, paused);
     required(this.gameUi, "[data-qong='left-score']").textContent =
       hud.leftScore;
@@ -869,13 +914,14 @@ export class QuantumBoxShell {
         ? this.cabinetPlayMode === "story"
           ? "CONTINUE · SPACE / A"
           : "RETRY · SPACE / A"
-        : "PRESS SPACE / A TO OBSERVE RULES";
+        : "REVEAL · SPACE / A";
     required(this.qongUi, "[data-qong='observations']").textContent =
       snapshot.phase === "complete"
         ? ""
-        : `OBS ${snapshot.observationsRemaining}`;
+        : `REVEALS LEFT ${snapshot.observationsRemaining}/3`;
     replayButton.hidden =
-      snapshot.phase !== "complete" || this.cabinetPlayMode === "story";
+      !paused &&
+      (snapshot.phase !== "complete" || this.cabinetPlayMode === "story");
     required<HTMLElement>(
       this.qongUi,
       "[data-qong='movement-controls']",
@@ -884,11 +930,138 @@ export class QuantumBoxShell {
       this.qongUi,
       "[data-action='qong-pause']",
     ).hidden = snapshot.phase === "complete";
+    this.updateCabinetChoices(paused, snapshot.phase === "complete", undefined);
+  }
+
+  public handleCabinetNavigation(action: string, pressed: boolean): boolean {
+    if (!this.cabinetActive || this.gameUi.dataset["navigation"] !== "true")
+      return false;
+    if (!pressed) return false; // Let held gameplay inputs release normally.
+    const controls = [
+      ...this.gameUi.querySelectorAll<HTMLButtonElement>("footer button"),
+    ].filter(isFocusableControl);
+    if (!controls.length) return false;
+    if (action === "back") {
+      this.actions.onCabinetAction("back");
+      return true;
+    }
+    const index = controls.indexOf(document.activeElement as HTMLButtonElement);
+    if (
+      action.endsWith("-left") ||
+      action.endsWith("-up") ||
+      action.endsWith("-right") ||
+      action.endsWith("-down")
+    ) {
+      const step = action.endsWith("-left") || action.endsWith("-up") ? -1 : 1;
+      controls[
+        (Math.max(0, index) + step + controls.length) % controls.length
+      ]?.focus();
+      return true;
+    }
+    if (action === "primary" || /^p[1-4]-action$/.test(action)) {
+      (controls[index] ?? controls[0])?.click();
+      return true;
+    }
+    return false;
+  }
+
+  private updateCabinetChoices(
+    paused: boolean,
+    complete: boolean,
+    next?: string,
+  ): void {
+    const navigating = paused || complete || next !== undefined;
+    const wasNavigating = this.gameUi.dataset["navigation"] === "true";
+    this.gameUi.dataset["navigation"] = String(navigating);
+    const cabinet = this.gameUi.dataset["cabinet"];
+    const panel = (
+      {
+        qong: this.qongUi,
+        skipixl: this.skipixlUi,
+        quantman: this.quantmanUi,
+        fluxball: this.fluxballUi,
+        quag: this.quagUi,
+      } as Record<string, HTMLElement>
+    )[cabinet ?? ""]!;
+    let hint = panel.querySelector<HTMLSpanElement>(
+      ".qb-cabinet-selection-hint",
+    );
+    if (!hint) {
+      hint = document.createElement("span");
+      hint.className = "qb-cabinet-selection-hint";
+      hint.textContent = "SELECT · ENTER / A";
+      panel.querySelector("footer")!.append(hint);
+    }
+    hint.hidden = !paused;
+    const back = panel.querySelector<HTMLButtonElement>(
+      "[data-action='cabinet-back']",
+    )!;
+    back.removeAttribute("aria-label");
+    back.textContent = navigating
+      ? paused
+        ? "EXIT · ESC / B"
+        : this.cabinetPlayMode === "story"
+          ? "BACK"
+          : "BACK TO ARCADE"
+      : "PAUSE · ESC / B";
+    const pauseButton = panel.querySelector<HTMLButtonElement>(
+      `[data-action='${cabinet}-pause']`,
+    )!;
+    pauseButton.hidden = !paused;
+    if (!paused && document.activeElement === pauseButton) back.focus();
+    const retry = panel.querySelector<HTMLButtonElement>(
+      `[data-action='${cabinet}-replay']`,
+    )!;
+    retry.textContent = paused ? "RESTART" : "PLAY AGAIN";
+    if (paused) retry.hidden = false;
+    const primary = panel.querySelector<HTMLButtonElement>(
+      `[data-action='${cabinet === "qong" ? "qong-observe" : cabinet + "-continue"}']`,
+    )!;
+    if (paused) primary.hidden = true;
+    else if (navigating) {
+      primary.textContent =
+        next ??
+        (this.cabinetPlayMode === "story"
+          ? "CONTINUE STORY"
+          : cabinet === "qong"
+            ? "PLAY AGAIN"
+            : "BACK TO ARCADE");
+      // Back already performs the same exit; keep a single choice for it.
+      if (complete && this.cabinetPlayMode === "arcade" && !next) {
+        if (cabinet === "qong") retry.hidden = true;
+        else primary.hidden = true;
+      }
+    } else if (cabinet === "qong") primary.hidden = false;
+    const duplicateRestart = panel.querySelector<HTMLButtonElement>(
+      "[data-action='quag-restart']",
+    );
+    if (duplicateRestart) duplicateRestart.hidden = true;
+    if (navigating && !wasNavigating) {
+      const preferred = paused
+        ? panel.querySelector<HTMLButtonElement>(
+            `[data-action='${cabinet}-pause']`,
+          )
+        : !primary.hidden
+          ? primary
+          : retry;
+      preferred?.focus();
+    }
+  }
+
+  private updatePauseLabel(paused: boolean): void {
+    const cabinet = this.gameUi.dataset["cabinet"];
+    const button = required<HTMLButtonElement>(
+      this.gameUi,
+      `[data-action="${cabinet}-pause"]`,
+    );
+    const label = paused ? "RESUME · P / START" : "PAUSE · P / START";
+    if (button.textContent !== label) button.textContent = label;
   }
 
   public exitCabinet(): void {
     if (!this.cabinetActive) return;
     this.cabinetActive = false;
+    this.gameUi.dataset["navigation"] = "false";
     this.cabinetPlayMode = "arcade";
     this.shell.dataset["view"] = "menu";
     this.gameUi.hidden = true;
@@ -936,6 +1109,7 @@ export class QuantumBoxShell {
     this.viewportField.destroy();
     this.bitmapText.destroy();
     this.scrollPositionObserver.disconnect();
+    document.removeEventListener("fullscreenchange", this.syncFullscreenState);
     this.root.removeEventListener("click", this.onClick);
     this.root.removeEventListener("change", this.onChange);
     this.root.removeEventListener("submit", this.onSubmit);
@@ -969,6 +1143,7 @@ export class QuantumBoxShell {
       element.setAttribute("data-bitmap-flow", "");
       element.classList.add("qb-reading-choice");
     }
+    this.syncFullscreenState();
     const breadcrumb = required(this.root, "[data-ui='breadcrumb']");
     breadcrumb.textContent = PAGE_TITLES[this.page];
     const terminalArticle =
@@ -1077,6 +1252,14 @@ export class QuantumBoxShell {
       progress <= 0 ? "start" : progress >= 1 ? "end" : "middle";
   }
 
+  private readonly syncFullscreenState = (): void => {
+    for (const input of this.root.querySelectorAll<HTMLInputElement>(
+      "[data-fullscreen]",
+    )) {
+      input.checked = Boolean(document.fullscreenElement);
+    }
+  };
+
   private readonly onClick = (event: MouseEvent): void => {
     const button =
       event.target instanceof Element
@@ -1122,6 +1305,10 @@ export class QuantumBoxShell {
       if (isStoryChapter(chapterId)) {
         this.actions.onRetryTerminalChapter(chapterId);
       }
+    } else if (action === "controller-setup") {
+      window.location.assign(
+        new URL("controller-setup.html", document.baseURI).href,
+      );
     } else if (action === "settings-section") {
       const section = button.dataset["settingsSection"];
       if (isSettingsSection(section)) {
@@ -1270,6 +1457,18 @@ export class QuantumBoxShell {
   private readonly onChange = (event: Event): void => {
     const input = event.target;
     if (!(input instanceof HTMLInputElement)) return;
+    if (input.matches("[data-fullscreen]")) {
+      void toggleFullscreen(document)
+        .catch((error: unknown) =>
+          this.announce(
+            error instanceof Error
+              ? error.message
+              : "Unable to change fullscreen.",
+          ),
+        )
+        .finally(this.syncFullscreenState);
+      return;
+    }
     if (input.matches("[data-developer-run-seed]")) {
       try {
         this.arcadeRunSeed = parseArcadeRunSeed(input.value);
@@ -1577,12 +1776,12 @@ function shellMarkup(): string {
           <section class="qb-cabinet-ui" data-cabinet="qong" role="region" aria-label="Qong game" hidden>
             <header class="qb-qong-score qb-visually-hidden"><div><small data-qong="left-label">YOU</small><strong data-qong="left-score">0</strong></div><div><span data-qong="round">ROUND: 1/7</span><small data-qong="rule-state">RULE STATE: UNRESOLVED</small><small data-qong="goal">GOAL: UNRESOLVED</small><small data-qong="winner">WINNER: UNRESOLVED</small></div><div><small data-qong="right-label">CPU</small><strong data-qong="right-score">0</strong></div></header>
             <output class="qb-qong-notice qb-visually-hidden" data-qong="notice" aria-live="polite"></output>
-            <footer class="qb-qong-controls"><button type="button" data-action="cabinet-back" aria-label="BACK · ESC / B">ESC / B</button><span data-qong="movement-controls">W / S</span><button type="button" data-action="qong-replay" hidden>RETRY · X / X</button><span data-qong="observations">OBS 3</span><button type="button" data-action="qong-observe">OBSERVE · SPACE / A</button><button type="button" data-action="qong-pause">PAUSE · P / START</button></footer>
+            <footer class="qb-qong-controls"><button type="button" data-action="cabinet-back" aria-label="BACK · ESC / B">ESC / B</button><span data-qong="movement-controls">MOVE · W/S / ↑↓</span><button type="button" data-action="qong-replay" hidden>RETRY · X / X</button><span data-qong="observations">OBS 3</span><button type="button" data-action="qong-observe">OBSERVE · SPACE / A</button><button type="button" data-action="qong-pause">PAUSE · P / START</button></footer>
           </section>
           <section class="qb-cabinet-ui" data-cabinet="skipixl" role="region" aria-label="SkiPixl game" hidden>
             <header class="qb-skipixl-score qb-visually-hidden"><div><small><span data-skipixl="distance">4270</span> M · LIMIT <span data-skipixl="limit">1:00.00</span></small><strong data-skipixl="time">0:00.00</strong></div></header>
             <output class="qb-skipixl-notice qb-visually-hidden" data-skipixl="notice" aria-live="polite">QPIXL COURSE READY</output>
-            <footer class="qb-skipixl-controls"><button type="button" data-action="cabinet-back" aria-label="BACK · ESC / B">ESC / B</button><span>← → TURN · DOWN BOOST</span><button type="button" data-action="skipixl-replay" hidden>RETRY · X / X</button><button type="button" data-action="skipixl-continue" hidden>CONTINUE · SPACE / A</button><button type="button" data-action="skipixl-pause">PAUSE · P / START</button></footer>
+            <footer class="qb-skipixl-controls"><button type="button" data-action="cabinet-back" aria-label="BACK · ESC / B">ESC / B</button><span>TURN · A/D / ←→</span><span>BOOST · S / ↓</span><button type="button" data-action="skipixl-replay" hidden>RETRY · X / X</button><button type="button" data-action="skipixl-continue" hidden>CONTINUE · SPACE / A</button><button type="button" data-action="skipixl-pause">PAUSE · P / START</button></footer>
           </section>
           <section class="qb-cabinet-ui" data-cabinet="fluxball" role="region" aria-label="Fluxball game" hidden>
             <header class="qb-fluxball-hud qb-visually-hidden">
@@ -1594,16 +1793,16 @@ function shellMarkup(): string {
             </header>
             <output class="qb-fluxball-notice qb-visually-hidden" data-fluxball="notice" aria-live="polite"></output>
             <div class="qb-fluxball-reveal" data-fluxball="reveal"></div>
-            <footer class="qb-fluxball-controls"><button type="button" data-action="cabinet-back" aria-label="BACK · ESC / B">ESC / B</button><span class="qb-visually-hidden" data-fluxball="controls">PRESS SPACE / A TO CHANGE RULES</span><button type="button" data-action="fluxball-replay" hidden>RETRY · X / X</button><button type="button" data-action="fluxball-continue" hidden>NEXT ROUND · SPACE / A</button><button type="button" data-action="fluxball-pause">PAUSE · P / START</button></footer>
+            <footer class="qb-fluxball-controls"><button type="button" data-action="cabinet-back" aria-label="BACK · ESC / B">ESC / B</button><span>MOVE · WASD / ↑↓←→</span><span data-fluxball="controls">CHANGE RULES · SPACE / A</span><button type="button" data-action="fluxball-replay" hidden>RETRY · X / X</button><button type="button" data-action="fluxball-continue" hidden>NEXT ROUND · SPACE / A</button><button type="button" data-action="fluxball-pause">PAUSE · P / START</button></footer>
           </section>
           <section class="qb-cabinet-ui" data-cabinet="quantman" role="region" aria-label="Quantman QPU-derived gaze maze" hidden>
             <header class="qb-quantman-hud qb-visually-hidden"><div><small>REMAINING</small><strong data-quantman="fragments">100</strong></div><div><span data-quantman="lives">LIVES 3</span><span data-quantman="state">SCORE 00000 · READY</span><span data-quantman="focus">GAZE READY · RECORDED IBM FEZ RETURN</span></div><div><small>MODE</small><strong data-quantman="time">HOLD</strong></div></header>
             <output class="qb-quantman-notice qb-visually-hidden" data-quantman="notice" aria-live="polite">RECORDED IBM FEZ RETURN READY</output>
-            <footer class="qb-quantman-controls"><button type="button" data-action="cabinet-back" aria-label="BACK · ESC / B">ESC / B</button><span>ARROWS / WASD · MOVE</span><button type="button" data-action="quantman-replay" hidden>RETRY · X / X</button><button type="button" data-action="quantman-continue" hidden>CONTINUE · SPACE / A</button><button type="button" data-action="quantman-pause">PAUSE · P / START</button></footer>
+            <footer class="qb-quantman-controls"><button type="button" data-action="cabinet-back" aria-label="BACK · ESC / B">ESC / B</button><span>MOVE · WASD / ↑↓←→</span><button type="button" data-action="quantman-replay" hidden>RETRY · X / X</button><button type="button" data-action="quantman-continue" hidden>CONTINUE · SPACE / A</button><button type="button" data-action="quantman-pause">PAUSE · P / START</button></footer>
           </section>
           <section class="qb-cabinet-ui" data-cabinet="quag" role="region" aria-label="Quarry directed aerial hunt arena" hidden>
             <div class="qb-visually-hidden"><h2>QUARRY</h2><p data-quag="score">YOU A0 · B0 C0 D0</p><p data-quag="time">100</p><p data-quag="phase">STATE 1</p><p data-quag="targets">NO TARGET</p><output data-quag="notice" aria-live="polite">READY · YOU ARE A</output></div>
-            <footer class="qb-qgraph-controls"><button type="button" data-action="cabinet-back" aria-label="BACK · ESC / B">ESC / B</button><span data-quag="controls">A/D OR ARROWS · W/SPACE/UP FLAP</span><button type="button" data-action="quag-replay" hidden>RETRY · X / X</button><button type="button" data-action="quag-continue" hidden>CONTINUE · SPACE / A</button><button type="button" data-action="quag-restart" hidden>RESTART · X / X</button><button type="button" data-action="quag-pause">PAUSE · P / START</button></footer>
+            <footer class="qb-qgraph-controls"><button type="button" data-action="cabinet-back" aria-label="BACK · ESC / B">ESC / B</button><span data-quag="controls">MOVE · A/D / ←→</span><span>FLAP · SPACE / A</span><button type="button" data-action="quag-replay" hidden>RETRY · X / X</button><button type="button" data-action="quag-continue" hidden>CONTINUE · SPACE / A</button><button type="button" data-action="quag-restart" hidden>RESTART · X / X</button><button type="button" data-action="quag-pause">PAUSE · P / START</button></footer>
           </section>
         </section>
       </div>
@@ -1821,7 +2020,7 @@ function howToPlayMarkup(
     ? [
         "EVERY ROUND IS EITHER OPPOSITE GOAL OR OWN GOAL.",
         "SPACE / A OBSERVES THE RULE EARLY. A GOAL-LINE CROSSING OBSERVES IT AUTOMATICALLY.",
-        "YOU HAVE THREE OBSERVATIONS ACROSS SEVEN ROUNDS.",
+        "THREE SHARED REVEALS ACROSS SEVEN ROUNDS. EITHER PLAYER CAN USE ONE.",
       ]
     : [
         "THE BALL MAY CROSS ANY PHYSICAL GOAL. THE HIDDEN GOAL RULE DECIDES WHO RECEIVES THE POINT.",
@@ -1850,7 +2049,9 @@ function scrollPositionMarkup(): string {
 
 function arcadeGameMarkup(gameId: ShippedArcadeCabinetId): string {
   const game = ARCADE_CABINET_DEFINITIONS[gameId];
-  const engineLabel = `${game.model} / ${game.engineId.toUpperCase()}`;
+  const engineName =
+    game.engineId === "graph-v1" ? "QGRAPH-V1" : game.engineId.toUpperCase();
+  const engineLabel = `${game.model} / ${engineName}`;
   const tutorial = ARCADE_INSTRUCTIONS[gameId]
     .map((text) => terminalTextBlock(text, true))
     .join("");
@@ -2069,11 +2270,11 @@ function settingsSectionMarkup(
 ): string {
   switch (section) {
     case "display":
-      return `<fieldset class="qb-settings" aria-label="Display preferences">${setting("reducedMotion", "REDUCED MOTION", save.settings.reducedMotion)}</fieldset>${backgroundProgrammeSettings(save)}`;
+      return `<fieldset class="qb-settings" aria-label="Display preferences"><label><input type="checkbox" data-fullscreen/><span>FULL SCREEN</span></label>${setting("reducedMotion", "REDUCED MOTION", save.settings.reducedMotion)}</fieldset>${backgroundProgrammeSettings(save)}`;
     case "sound":
       return `<fieldset class="qb-settings" aria-label="Sound preferences">${setting("soundMuted", "MUTE", save.settings.soundMuted)}${volumeSetting(save.settings.soundVolume)}</fieldset>`;
     case "controls":
-      return `${keyboardSettings(save, playerId)}<button class="qb-action qb-settings-reset-keys" data-action="reset-keymap">RESTORE DEFAULT KEYS</button>`;
+      return `${keyboardSettings(save, playerId)}<button class="qb-action qb-settings-reset-keys" data-action="reset-keymap">RESTORE DEFAULT KEYS</button><button class="qb-action" data-action="controller-setup">CONTROLLER SETUP</button>`;
     case "data":
       return `<div class="qb-settings-data"><button class="qb-action" data-action="export-save">EXPORT SAVE</button><button class="qb-action" data-action="navigate" data-page="credits">SOURCE RECORD</button><button class="qb-action qb-action--danger" data-action="reset-save">RESET SAVE</button></div>`;
   }
@@ -2100,34 +2301,10 @@ function keyboardSettings(save: QuantumBoxSave, playerId: PlayerId): string {
 }
 
 function backgroundProgrammeSettings(save: QuantumBoxSave): string {
-  const selected =
-    BROWN_BOX_BACKGROUND_PROGRAMMES.find(
-      (programme) =>
-        programme.programmeId === save.settings.backgroundProgrammeId,
-    ) ?? BROWN_BOX_BACKGROUND_PROGRAMMES[0]!;
   return `<fieldset class="qb-settings qb-background-programmes" aria-label="Background field options">${BROWN_BOX_BACKGROUND_PROGRAMMES.map(
     (programme) =>
       `<label><input type="radio" name="background-programme" data-setting="backgroundProgrammeId" value="${programme.programmeId}" ${save.settings.backgroundProgrammeId === programme.programmeId ? "checked" : ""}/><span>${escapeHtml(programme.label)}</span></label>`,
-  ).join(
-    "",
-  )}<output class="qb-background-summary" aria-live="polite"><strong>${escapeHtml(selected.label)}</strong><span>${escapeHtml(backgroundProgrammeSummary(selected.programmeId))}</span></output></fieldset>`;
-}
-
-function backgroundProgrammeSummary(
-  programmeId: BrownBoxBackgroundProgrammeId,
-): string {
-  switch (programmeId) {
-    case "current-four-state-v1":
-      return "4 QPIXL-MAPPED STATES · 22.8S OFFLINE LOOP";
-    case "adaptive-direct-v1":
-    case "adaptive-restrained-v1":
-    case "adaptive-stronger-v1":
-      return "24 LOCAL KEYFRAME DERIVATIVES · 23.04S OFFLINE LOOP";
-    case "amplified-four-state-v1":
-      return "4 LOCAL PANEL COMPOSITES · 22.8S OFFLINE LOOP";
-    case "seeded-sixteen-state-v1":
-      return "16 CLASSICALLY ASSIGNED STATES · 91.2S OFFLINE LOOP";
-  }
+  ).join("")}</fieldset>`;
 }
 
 function fluxballLobbyMarkup(
@@ -2137,7 +2314,7 @@ function fluxballLobbyMarkup(
 ): string {
   const players =
     format.competitorCount === 2 ? (["A", "B"] as const) : KEYBOARD_PLAYERS;
-  return `<div class="qb-page-panel qb-fluxball-lobby"><p class="qb-kicker">ARCADE · ${format.competitorCount} PLAYER</p><h1 tabindex="-1">FLUXBALL JOIN</h1><p>PRESS EACH PLAYER'S ACTION KEY TO TOGGLE HUMAN / CPU.</p><div class="qb-fluxball-lobby-slots">${players
+  return `<div class="qb-page-panel qb-fluxball-lobby"><header><p class="qb-kicker">ARCADE · ${format.competitorCount} PLAYER</p><h1 tabindex="-1" data-bitmap-flow class="qb-reading-choice">FLUXBALL JOIN</h1></header><p>PRESS EACH PLAYER'S ACTION KEY TO TOGGLE HUMAN / CPU.</p><div class="qb-fluxball-lobby-slots">${players
     .map((playerId) => {
       const human = humanPlayerIds.includes(playerId);
       const key = displayKeyCode(
@@ -2147,7 +2324,7 @@ function fluxballLobbyMarkup(
     })
     .join(
       "",
-    )}</div><p class="qb-fluxball-lobby-mode">${format.ruleMode.toUpperCase()} RULEFIELD · CPU FILLS OPEN SLOTS</p><div class="qb-actions"><button class="qb-action" type="button" data-action="lobby-cancel">BACK · ESC / B</button><button class="qb-action" type="button" data-action="lobby-start">START · ENTER / A</button></div></div>`;
+    )}</div><p class="qb-fluxball-lobby-mode" data-bitmap-flow>${format.ruleMode.toUpperCase()} RULEFIELD · CPU FILLS OPEN SLOTS</p><footer class="qb-terminal-footer"><button type="button" data-action="lobby-cancel" aria-label="BACK · ESC / B">ESC / B</button><button type="button" data-action="lobby-start">START · ENTER / A</button></footer></div>`;
 }
 
 function volumeSetting(volume: number): string {
@@ -2295,8 +2472,8 @@ function renderFluxballSemanticHistory(
     clearFluxballReveal(root);
     return;
   }
-  const score = reveal.roundWinnerIds[0]
-    ? `Player ${reveal.roundWinnerIds[0]} won the round.`
+  const score = reveal.roundWinnerIds.length
+    ? `${reveal.roundWinnerIds.length === 1 ? "Player" : "Players"} ${reveal.roundWinnerIds.join(" + ")} won the round.`
     : "The round was a draw; no round win was awarded.";
   if (snapshot.format.ruleMode === "individual") {
     required(root, "[data-fluxball='reveal']").innerHTML =
@@ -2314,22 +2491,10 @@ function renderFluxballSemanticHistory(
       .join("")}</ol></section>`;
 }
 
-function fluxballControlSummary(
-  snapshot: FluxballSnapshot,
-  save: QuantumBoxSave,
-): string {
-  const actions = snapshot.format.humanPlayerIds.map((playerId) => {
-    const action = displayKeyCode(
-      save.settings.keyboardBindings[playerId].action,
-    );
-    return snapshot.format.humanPlayerIds.length === 1
-      ? action
-      : `${playerId} ${action}`;
-  });
-  if (snapshot.remainingRuleChanges === 1) {
-    return "PRESS SPACE / A TO CHANGE RULES";
-  }
-  return `${actions.join(" / ")} · RULE CHANGE USED`;
+function fluxballControlSummary(snapshot: FluxballSnapshot): string {
+  return snapshot.remainingRuleChanges === 1
+    ? "CHANGE RULES · SPACE / A"
+    : "RULE CHANGE USED";
 }
 
 function renderFluxballLiveDisclosure(

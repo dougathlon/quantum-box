@@ -845,7 +845,7 @@ export class BitmapDomTextRenderer {
     );
     // Adjacent boxed controls have no outside gutter for a focus marker.
     const placement = control.matches(
-      ".qb-keymap-players button, .qb-key-binding",
+      ".qb-keymap-players button, .qb-key-binding, .qb-scoreboard-initial-slots button, .qb-fluxball-lobby-slots button",
     )
       ? { x: Math.ceil(controlRect.left) + 3 }
       : bitmapFocusCursorPlacement(

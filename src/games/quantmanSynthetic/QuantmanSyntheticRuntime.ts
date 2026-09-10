@@ -61,6 +61,8 @@ export interface QuantmanSyntheticFixtureIdentity {
 export interface QuantmanSyntheticRunContext {
   readonly playMode: QuantmanSyntheticPlayMode;
   readonly runSeed: number;
+  readonly startingLives?: number | undefined;
+  readonly startingScore?: number | undefined;
   readonly mechanic: MazeMechanic;
   readonly rulesVersion:
     | typeof QUANTMAN_SYNTHETIC_RULES_VERSION
@@ -70,6 +72,8 @@ export interface QuantmanSyntheticRunContext {
 export interface QuantmanSyntheticRuntimeOptions {
   readonly playMode: QuantmanSyntheticPlayMode;
   readonly runSeed: number;
+  readonly startingLives?: number | undefined;
+  readonly startingScore?: number | undefined;
   readonly mechanic: MazeMechanic;
   readonly fixture?: LabyrinthFixture;
   readonly qpuAuthority?: QuantmanQpuFixtureAuthority;
@@ -82,6 +86,8 @@ export interface QuantmanSyntheticTerminalResult {
   readonly playMode: QuantmanSyntheticPlayMode;
   readonly mechanic: MazeMechanic;
   readonly runSeed: number;
+  readonly startingLives?: number | undefined;
+  readonly startingScore?: number | undefined;
   readonly score: number;
   readonly remainingLives: number;
   readonly activeTicks: number;
@@ -106,6 +112,8 @@ export interface QuantmanSyntheticReplayTape {
   readonly rulesVersion: QuantmanSyntheticRunContext["rulesVersion"];
   readonly playMode: QuantmanSyntheticPlayMode;
   readonly runSeed: number;
+  readonly startingLives?: number | undefined;
+  readonly startingScore?: number | undefined;
   readonly mechanic: MazeMechanic;
   readonly fixtureId: string;
   readonly fixtureContentSha256: string;
@@ -167,6 +175,12 @@ export class QuantmanSyntheticRuntime {
     this.context = deepFreeze({
       playMode: options.playMode,
       runSeed: options.runSeed >>> 0,
+      ...(options.startingLives !== undefined
+        ? { startingLives: options.startingLives }
+        : {}),
+      ...(options.startingScore !== undefined
+        ? { startingScore: options.startingScore }
+        : {}),
       mechanic: options.mechanic,
       rulesVersion:
         options.rulesVersion ??
@@ -177,7 +191,11 @@ export class QuantmanSyntheticRuntime {
     this.session = new QuantmanSession(
       this.fixture,
       this.context.runSeed,
-      { mechanic: options.mechanic },
+      {
+        mechanic: options.mechanic,
+        startingLives: options.startingLives,
+        startingScore: options.startingScore,
+      },
       options.qpuAuthority ?? null,
     );
     this.fixtureIdentity = fixtureIdentity(
@@ -214,6 +232,12 @@ export class QuantmanSyntheticRuntime {
       mechanic: this.context.mechanic,
       fixtureId: this.fixture.fixtureId,
       fixtureContentSha256: this.fixture.contentSha256,
+      ...(this.context.startingLives !== undefined
+        ? { startingLives: this.context.startingLives }
+        : {}),
+      ...(this.context.startingScore !== undefined
+        ? { startingScore: this.context.startingScore }
+        : {}),
       inputs: this.inputs.map((input) => ({ ...input })),
     });
   }
@@ -228,6 +252,8 @@ export function runQuantmanSyntheticReplay(
   const runtime = new QuantmanSyntheticRuntime({
     playMode: tape.playMode,
     runSeed: tape.runSeed,
+    startingLives: tape.startingLives,
+    startingScore: tape.startingScore,
     mechanic: tape.mechanic,
     fixture: replayFixture,
     ...(qpuAuthority ? { qpuAuthority } : {}),

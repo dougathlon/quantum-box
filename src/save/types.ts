@@ -131,7 +131,8 @@ export interface SkiPixlStoryAttemptReceipt {
   readonly missedGateCount: number;
   readonly courseReceiptSchemaVersion:
     | "skipixl-course-receipt-v7"
-    | "skipixl-course-receipt-v8";
+    | "skipixl-course-receipt-v8"
+    | "skipixl-course-receipt-v9";
   readonly bankId: string;
   readonly bankContentSha256: string;
   readonly decoderVersion: string;
@@ -970,7 +971,8 @@ function validateSkiPixlAttemptReceipt(
     Number(missedGateCount) < 0 ||
     Number(passedGateCount) + Number(missedGateCount) !== Number(gateCount) ||
     (value["courseReceiptSchemaVersion"] !== "skipixl-course-receipt-v7" &&
-      value["courseReceiptSchemaVersion"] !== "skipixl-course-receipt-v8") ||
+      value["courseReceiptSchemaVersion"] !== "skipixl-course-receipt-v8" &&
+      value["courseReceiptSchemaVersion"] !== "skipixl-course-receipt-v9") ||
     typeof value["bankId"] !== "string" ||
     typeof value["bankContentSha256"] !== "string" ||
     !/^[0-9a-f]{64}$/.test(value["bankContentSha256"]) ||

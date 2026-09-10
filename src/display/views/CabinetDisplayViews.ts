@@ -49,12 +49,6 @@ export interface SkiPixlVisibleGate {
   readonly screenY: number;
 }
 
-export interface SkiPixlGroundCue {
-  readonly x: number;
-  readonly screenY: number;
-  readonly length: number;
-}
-
 export interface SkiPixlDisplayView {
   readonly direction: "down-screen";
   readonly playerY: number;
@@ -62,7 +56,6 @@ export interface SkiPixlDisplayView {
   readonly finishY: number;
   readonly visibleObstacles: readonly SkiPixlVisibleObstacle[];
   readonly visibleGates: readonly SkiPixlVisibleGate[];
-  readonly groundCues: readonly SkiPixlGroundCue[];
   readonly paused: boolean;
 }
 
@@ -83,37 +76,6 @@ export function skiPixlDisplayView(
     .filter((gate) => gate.distance >= snapshot.distance - 30)
     .map((gate) => Object.freeze({ gate, screenY: worldToY(gate.distance) }))
     .filter(({ screenY }) => screenY >= 27 && screenY <= 172);
-  const groundCues = payload.obstacles
-    .flatMap((obstacle) => {
-      const firstDistance =
-        obstacle.distance - 31 + ((obstacle.cellIndex * 13) % 63);
-      const secondDistance =
-        obstacle.distance - 27 + ((obstacle.cellIndex * 29) % 57);
-      const firstX = clamp(
-        obstacle.x - 58 + ((obstacle.cellIndex * 31) % 117),
-        payload.corridorMinX,
-        payload.corridorMaxX,
-      );
-      const secondX = clamp(
-        obstacle.x - 44 + ((obstacle.cellIndex * 47) % 89),
-        payload.corridorMinX,
-        payload.corridorMaxX,
-      );
-      return [
-        Object.freeze({
-          x: firstX,
-          screenY: worldToY(firstDistance),
-          length: 3 + (obstacle.cellIndex % 4),
-        }),
-        Object.freeze({
-          x: secondX,
-          screenY: worldToY(secondDistance),
-          length: 2 + (obstacle.cellIndex % 3),
-        }),
-      ];
-    })
-    .filter(({ screenY }) => screenY >= 27 && screenY <= 172);
-
   return Object.freeze({
     direction: "down-screen",
     playerY: SKIPIXL_PLAYER_Y,
@@ -121,13 +83,8 @@ export function skiPixlDisplayView(
     finishY: worldToY(payload.courseLength),
     visibleObstacles: Object.freeze(visibleObstacles),
     visibleGates: Object.freeze(visibleGates),
-    groundCues: Object.freeze(groundCues),
     paused,
   });
-}
-
-function clamp(value: number, minimum: number, maximum: number): number {
-  return Math.min(maximum, Math.max(minimum, value));
 }
 
 export interface FluxballDisplayView {

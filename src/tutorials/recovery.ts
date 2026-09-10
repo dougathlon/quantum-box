@@ -923,7 +923,8 @@ function validateSkiPixlEvidence(value: Record<string, unknown>): void {
       value["decoderVersion"] === "skipixl-triplet-residual-slalom-v5" ||
       value["decoderVersion"] === "skipixl-triplet-residual-slalom-v6" ||
       value["decoderVersion"] === "skipixl-triplet-residual-slalom-v7" ||
-      value["decoderVersion"] === "skipixl-triplet-residual-slalom-v8"
+      value["decoderVersion"] === "skipixl-triplet-residual-slalom-v8" ||
+      value["decoderVersion"] === "skipixl-triplet-residual-slalom-v9"
         ? [
             ...legacyHazardKeys,
             "x",
@@ -970,7 +971,8 @@ function validateSkiPixlEvidence(value: Record<string, unknown>): void {
         value["decoderVersion"] === "skipixl-triplet-residual-slalom-v5" ||
         value["decoderVersion"] === "skipixl-triplet-residual-slalom-v6" ||
         value["decoderVersion"] === "skipixl-triplet-residual-slalom-v7" ||
-        value["decoderVersion"] === "skipixl-triplet-residual-slalom-v8"
+        value["decoderVersion"] === "skipixl-triplet-residual-slalom-v8" ||
+        value["decoderVersion"] === "skipixl-triplet-residual-slalom-v9"
         ? [
             ...legacyObstacleKeys,
             "baseDistance",

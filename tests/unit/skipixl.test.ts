@@ -113,7 +113,7 @@ describe("SkiPixl QPixl course bank", () => {
       expect(pack.payload.obstacles.length).toBeGreaterThanOrEqual(120);
       expect(pack.payload.obstacles.length).toBeLessThanOrEqual(265);
       expect(pack.payload.receipt.schemaVersion).toBe(
-        "skipixl-course-receipt-v8",
+        "skipixl-course-receipt-v9",
       );
       expect(pack.payload.receipt.segments).toHaveLength(3);
       expect(
@@ -141,14 +141,14 @@ describe("SkiPixl QPixl course bank", () => {
       expect(pack.payload.receipt.selectionThreshold).toBeGreaterThan(0);
       expect(pack.payload.receipt.denseRowCount).toBeGreaterThan(0);
       expect(pack.payload.winSeconds).toBe(60);
-      if (pack.payload.receipt.schemaVersion !== "skipixl-course-receipt-v8") {
-        throw new Error("Current SkiPixl pack did not expose a v8 receipt.");
+      if (pack.payload.receipt.schemaVersion !== "skipixl-course-receipt-v9") {
+        throw new Error("Current SkiPixl pack did not expose a v9 receipt.");
       }
       expect(pack.payload.difficulty).toBe(
         { P90: "easy", P84: "medium", P78: "hard" }[pack.payload.receipt.cutId],
       );
       expect(pack.payload.gates).toHaveLength(
-        { P90: 0, P84: 8, P78: 12 }[pack.payload.receipt.cutId],
+        { P90: 4, P84: 8, P78: 12 }[pack.payload.receipt.cutId],
       );
       expect(pack.payload.receipt.gateCount).toBe(pack.payload.gates?.length);
       expect(pack.payload.rowSpacing).toBe(
@@ -208,6 +208,28 @@ describe("SkiPixl QPixl course bank", () => {
       cuts.packs.P90.payload.obstacles.every(({ obstacleId }) =>
         p84Ids.has(obstacleId),
       ),
+    ).toBe(true);
+  });
+
+  it("keeps v8 courses replayable while Easy v9 adds wider gates", () => {
+    const previous = findInstalledSkiPixlPack(
+      "skipixl-b3-triplet-01-p90",
+      "ddab61261759476924125f686c163c0718f57c10fd830d86d857a471ec7020a4",
+    );
+    expect(previous?.rulesVersion).toBe("skipixl-rules-v8");
+    expect(previous?.payload.gates).toHaveLength(0);
+    const easy = SKIPIXL_CONTROL_PACKS.find(
+      (pack) => pack.payload.cutId === "P90",
+    )!;
+    const medium = SKIPIXL_CONTROL_PACKS.find(
+      (pack) => pack.payload.cutId === "P84",
+    )!;
+    expect(easy.payload.gates).toHaveLength(4);
+    expect(
+      easy.payload.gates!.every((gate) => gate.rightX - gate.leftX === 180),
+    ).toBe(true);
+    expect(
+      medium.payload.gates!.every((gate) => gate.rightX - gate.leftX < 180),
     ).toBe(true);
   });
 
@@ -495,6 +517,7 @@ describe("SkiPixl QPixl course bank", () => {
       // 3,600 fixed steps at 70 units/second accumulate a fractional floating
       // value just below 4,200, so this threshold completes on exactly tick
       // 3,600 without weakening the production comparison.
+      gates: Object.freeze([]),
       courseLength: 4_199.9,
       cruiseSpeed: 70,
       minSpeed: 70,

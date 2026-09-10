@@ -4,6 +4,8 @@ import Phaser from "phaser";
 export type PixelTextAlign = "left" | "center" | "right";
 
 export interface PixelTextOptions {
+  /** Fixed compact character width for aligned score labels. */
+  readonly glyphWidth?: number;
   readonly x: number;
   readonly y: number;
   readonly pixel: number;
@@ -430,7 +432,15 @@ export function drawPixelText(
 ): PixelTextBounds {
   const normalized = text.toUpperCase();
   const spacing = options.spacing ?? options.pixel;
-  const width = pixelTextWidth(normalized, options.pixel, spacing);
+  const width =
+    options.glyphWidth === undefined
+      ? pixelTextWidth(normalized, options.pixel, spacing)
+      : Math.max(
+          0,
+          [...normalized].length *
+            (options.glyphWidth * options.pixel + spacing) -
+            spacing,
+        );
   const height = 5 * options.pixel;
   const left = alignedLeft(options.x, width, options.align ?? "left");
 
@@ -440,11 +450,38 @@ export function drawPixelText(
     y: options.y,
     pixel: options.pixel,
     spacing,
+    ...(options.glyphWidth === undefined
+      ? {}
+      : { glyphWidth: options.glyphWidth }),
   })) {
     graphics.fillRect(rect.x, rect.y, rect.width, rect.height);
   }
 
   return Object.freeze({ left, top: options.y, width, height });
+}
+
+/** Full terminal face for the explicit HUD comparison; production uses compact text. */
+export function drawRefinedHudText(
+  graphics: Phaser.GameObjects.Graphics,
+  text: string,
+  options: PixelTextOptions,
+): void {
+  const width = terminalTextWidth(text) * options.pixel;
+  const x =
+    options.x -
+    (options.align === "right"
+      ? width
+      : options.align === "center"
+        ? width / 2
+        : 0);
+  graphics.fillStyle(options.colour, 1);
+  for (const rect of terminalGlyphRects(text))
+    graphics.fillRect(
+      x + rect.x * options.pixel,
+      options.y + rect.y * options.pixel,
+      rect.width * options.pixel,
+      rect.height * options.pixel,
+    );
 }
 
 export function drawCanvasPixelText(
@@ -473,23 +510,35 @@ const compactGlyphCache = new Map<string, PixelTextRect[]>();
 
 export function pixelTextRects(
   text: string,
-  options: Readonly<{ x: number; y: number; pixel: number; spacing?: number }>,
+  options: Readonly<{
+    x: number;
+    y: number;
+    pixel: number;
+    spacing?: number;
+    glyphWidth?: number;
+  }>,
 ): readonly PixelTextRect[] {
   for (const value of [
     options.x,
     options.y,
     options.pixel,
     options.spacing ?? options.pixel,
+    options.glyphWidth ?? 1,
   ])
     if (!Number.isInteger(value))
       throw new Error("Pixel text placement must use a native integer.");
-  if (options.pixel <= 0 || (options.spacing ?? options.pixel) <= 0)
+  if (
+    (options.glyphWidth ?? 1) <= 0 ||
+    options.pixel <= 0 ||
+    (options.spacing ?? options.pixel) <= 0
+  )
     throw new Error("Pixel text size must be positive.");
   const result: PixelTextRect[] = [];
   let x = options.x;
   for (const character of normalizePixelText(text)) {
-    const width = pixelTextWidth(character, 1, 1);
-    let cells = compactGlyphCache.get(character);
+    const width = options.glyphWidth ?? pixelTextWidth(character, 1, 1);
+    const cacheKey = `${character}:${width}`;
+    let cells = compactGlyphCache.get(cacheKey);
     if (!cells) {
       cells = [];
       const sourceWidth = terminalTextWidth(character);
@@ -513,7 +562,7 @@ export function pixelTextRects(
               height: 0.5,
             });
         }
-      compactGlyphCache.set(character, cells);
+      compactGlyphCache.set(cacheKey, cells);
     }
     for (const r of cells)
       result.push({

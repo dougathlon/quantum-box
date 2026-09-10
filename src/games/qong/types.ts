@@ -23,6 +23,7 @@ export interface QongInput {
 }
 
 export interface QongPublicState {
+  readonly goalRule: QongGoalRule;
   readonly rallyNumber: number;
   readonly ball: {
     readonly x: number;

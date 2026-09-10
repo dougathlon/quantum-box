@@ -5,18 +5,14 @@ import type {
   SkiPixlPackPayload,
   SkiPixlSnapshot,
 } from "../../games/skipixl/types";
-import {
-  SKIPIXL_PLAYER_Y,
-  SKIPIXL_WORLD_SCALE,
-  skiPixlDisplayView,
-} from "./CabinetDisplayViews";
+import { SKIPIXL_PLAYER_Y, skiPixlDisplayView } from "./CabinetDisplayViews";
 import { drawPixelSprite, type PixelSprite } from "../PixelSprites";
 import {
   CANONICAL_SPRITE_PIXEL_SCALE,
   drawCanonicalSprite,
 } from "../CanonicalSpriteRaster";
-import { drawPixelText, pixelTextWidth } from "../PixelText";
-import { drawCabinetPauseHeader } from "../PixelHud";
+import { drawPixelText } from "../PixelText";
+import { drawCabinetPauseHeader, drawCabinetStatusHeader } from "../PixelHud";
 import {
   formatSkiPixlTime,
   skiPixlCanvasPrompt,
@@ -67,10 +63,6 @@ export function renderSkiPixl(
   const view = skiPixlDisplayView(snapshot, payload, paused);
   const g = graphics.clear();
 
-  for (const cue of view.groundCues) {
-    drawGroundCue(g, cue.x, Math.round(cue.screenY), cue.length);
-  }
-
   for (const { gate, screenY } of view.visibleGates) {
     drawGate(g, gate.leftX, gate.rightX, Math.round(screenY));
   }
@@ -99,6 +91,34 @@ function drawHud(
   payload: SkiPixlPackPayload,
   hideCompletionPrompt: boolean,
 ): void {
+  const prompt = hideCompletionPrompt
+    ? ""
+    : skiPixlCanvasPrompt(snapshot, false);
+  if (prompt) {
+    drawCabinetStatusHeader(g, prompt);
+    if (snapshot.phase === "complete") {
+      for (const [x, align, label, value] of [
+        [11, "left", "TIME", formatSkiPixlTime(snapshot.elapsedSeconds)],
+        [309, "right", "LIMIT", formatSkiPixlTime(snapshot.targetSeconds)],
+      ] as const) {
+        drawPixelText(g, label, {
+          x,
+          y: 4,
+          pixel: 1,
+          colour: BROWN_BOX_PALETTE.cream,
+          align,
+        });
+        drawPixelText(g, value, {
+          x,
+          y: 12,
+          pixel: 1,
+          colour: BROWN_BOX_PALETTE.cream,
+          align,
+        });
+      }
+    }
+    return;
+  }
   drawNativePixelLine(
     g,
     { x: 132, y: 24 },
@@ -161,56 +181,19 @@ function drawHud(
       },
     );
   }
-
-  const prompt = hideCompletionPrompt
-    ? ""
-    : skiPixlCanvasPrompt(snapshot, false);
-  if (prompt.length === 0) return;
-  const promptWidth = pixelTextWidth(prompt, 2);
-  const promptTop = 84;
-  drawPanelFrame(
-    g,
-    Math.round(160 - promptWidth / 2) - 5,
-    promptTop,
-    promptWidth + 10,
-    18,
-  );
-  drawPixelText(g, prompt, {
-    x: 160,
-    y: promptTop + 4,
-    pixel: 2,
-    colour: BROWN_BOX_PALETTE.cream,
-    align: "center",
-  });
 }
 
 function difficultyLabel(payload: SkiPixlPackPayload): string {
   switch (payload.difficulty) {
     case "easy":
-      return "EASY DOWNHILL";
+      return "SKIPIXL / EASY";
     case "medium":
-      return "MEDIUM SLALOM";
+      return "SKIPIXL / MEDIUM";
     case "hard":
-      return "HARD SLALOM";
+      return "SKIPIXL / HARD";
     default:
-      return "DOWNHILL";
+      return "SKIPIXL";
   }
-}
-
-function drawGroundCue(
-  g: Phaser.GameObjects.Graphics,
-  x: number,
-  y: number,
-  length: number,
-): void {
-  drawNativePixelRect(
-    g,
-    snapNativePixel(x / 2),
-    y,
-    1,
-    Math.max(2, Math.round(length * SKIPIXL_WORLD_SCALE)),
-    BROWN_BOX_PALETTE.tobacco,
-  );
 }
 
 function drawGate(
@@ -222,11 +205,11 @@ function drawGate(
   const left = snapNativePixel(leftX / 2);
   const right = snapNativePixel(rightX / 2);
   const poleTop = y - 11;
-  drawNativePixelRect(g, left - 1, poleTop, 2, 12, BROWN_BOX_PALETTE.cream);
-  drawNativePixelRect(g, right - 1, poleTop, 2, 12, BROWN_BOX_PALETTE.cream);
-  drawNativePixelRect(g, left + 1, poleTop + 1, 5, 4, BROWN_BOX_PALETTE.cream);
-  drawNativePixelRect(g, right - 5, poleTop + 1, 5, 4, BROWN_BOX_PALETTE.cream);
-  drawNativePixelRect(
+  drawSceneryRect(g, left - 1, poleTop, 2, 12, BROWN_BOX_PALETTE.cream);
+  drawSceneryRect(g, right - 1, poleTop, 2, 12, BROWN_BOX_PALETTE.cream);
+  drawSceneryRect(g, left + 1, poleTop + 1, 5, 4, BROWN_BOX_PALETTE.cream);
+  drawSceneryRect(g, right - 5, poleTop + 1, 5, 4, BROWN_BOX_PALETTE.cream);
+  drawSceneryRect(
     g,
     left + 2,
     poleTop + 2,
@@ -234,7 +217,7 @@ function drawGate(
     2,
     BROWN_BOX_PALETTE.darkTobacco,
   );
-  drawNativePixelRect(
+  drawSceneryRect(
     g,
     right - 4,
     poleTop + 2,
@@ -278,9 +261,9 @@ function drawSpeedSpray(
 function drawFinish(g: Phaser.GameObjects.Graphics, y: number): void {
   for (let x = 48; x < 272; x += 8) {
     if ((x / 8) % 2 === 0) {
-      drawNativePixelRect(g, x, y, 8, 3, BROWN_BOX_PALETTE.cream);
+      drawSceneryRect(g, x, y, 8, 3, BROWN_BOX_PALETTE.cream);
     } else {
-      drawNativePixelRect(g, x, y + 3, 8, 3, BROWN_BOX_PALETTE.cream);
+      drawSceneryRect(g, x, y + 3, 8, 3, BROWN_BOX_PALETTE.cream);
     }
   }
 }
@@ -388,7 +371,7 @@ function drawOutlinedSprite(
     [0, 1],
   ] as const;
   for (const [offsetX, offsetY] of offsets) {
-    drawPixelSprite(g, pattern, {
+    drawScenerySprite(g, pattern, {
       pixel,
       centerX: centerX + offsetX,
       bottomY: bottomY + offsetY,
@@ -397,33 +380,39 @@ function drawOutlinedSprite(
       dark: outline,
     });
   }
-  drawPixelSprite(g, pattern, {
+  drawScenerySprite(g, pattern, {
     pixel,
     centerX,
     bottomY,
   });
 }
 
-function drawPanelFrame(
+// Keep scrolling scenery inside the playfield, clear of the HUD and controls.
+function drawSceneryRect(
   g: Phaser.GameObjects.Graphics,
   x: number,
   y: number,
   width: number,
   height: number,
+  colour: number,
 ): void {
-  const colour = BROWN_BOX_PALETTE.cream;
-  drawNativePixelLine(g, { x, y }, { x: x + width, y }, { colour });
-  drawNativePixelLine(g, { x, y }, { x, y: y + height }, { colour });
-  drawNativePixelLine(
-    g,
-    { x: x + width, y },
-    { x: x + width, y: y + height },
-    { colour },
-  );
-  drawNativePixelLine(
-    g,
-    { x, y: y + height },
-    { x: x + width, y: y + height },
-    { colour },
-  );
+  const top = Math.max(24, y);
+  const bottom = Math.min(164, y + height);
+  if (bottom > top) drawNativePixelRect(g, x, top, width, bottom - top, colour);
+}
+
+function drawScenerySprite(
+  g: Phaser.GameObjects.Graphics,
+  pattern: PixelSprite,
+  options: Parameters<typeof drawPixelSprite>[2],
+): void {
+  const pixel = options.pixel ?? 1;
+  const top = options.bottomY - pattern.length * pixel;
+  const first = Math.max(0, Math.ceil((24 - top) / pixel));
+  const end = Math.min(pattern.length, Math.floor((164 - top) / pixel));
+  if (end <= first) return;
+  drawPixelSprite(g, pattern.slice(first, end), {
+    ...options,
+    bottomY: top + end * pixel,
+  });
 }

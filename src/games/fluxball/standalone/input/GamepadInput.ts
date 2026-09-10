@@ -1,12 +1,6 @@
+import { readGamepad } from "../../../../input/GamepadMapping";
 import type { LobbyController } from "../modes";
 import { inputFromAxis, type PlayerInput } from "./types";
-
-const START_BUTTON = 9;
-const DPAD_UP = 12;
-const DPAD_DOWN = 13;
-const DPAD_LEFT = 14;
-const DPAD_RIGHT = 15;
-const DEAD_ZONE = 0.25;
 
 export interface GamepadPollResult {
   readonly startRequests: readonly LobbyController[];
@@ -25,11 +19,6 @@ function indexFromControllerId(id: string): number | null {
   return Number.isInteger(value) && value >= 0 ? value : null;
 }
 
-function buttonPressed(gamepad: Gamepad, index: number): boolean {
-  const button = gamepad.buttons[index];
-  return Boolean(button?.pressed || (button?.value ?? 0) > 0.5);
-}
-
 export class GamepadInput {
   private readonly priorStart = new Map<number, boolean>();
   private readonly previouslyConnected = new Set<number>();
@@ -43,11 +32,11 @@ export class GamepadInput {
     const connected = new Set<number>();
     const startRequests: LobbyController[] = [];
     for (const gamepad of gamepads) {
-      if (!gamepad || !gamepad.connected || gamepad.mapping !== "standard") {
+      if (!gamepad || !gamepad.connected) {
         continue;
       }
       connected.add(gamepad.index);
-      const pressed = buttonPressed(gamepad, START_BUTTON);
+      const pressed = readGamepad(gamepad).start;
       if (pressed && !this.priorStart.get(gamepad.index)) {
         startRequests.push({
           controllerId: controllerId(gamepad.index),
@@ -74,21 +63,24 @@ export class GamepadInput {
     const index = indexFromControllerId(id);
     if (index === null) return null;
     const gamepad = this.provider()[index];
-    if (!gamepad || !gamepad.connected || gamepad.mapping !== "standard") {
+    if (!gamepad || !gamepad.connected) {
       return null;
     }
-    const rawX = gamepad.axes[0] ?? 0;
-    const rawY = gamepad.axes[1] ?? 0;
-    const axisX = Math.abs(rawX) >= DEAD_ZONE ? rawX : 0;
-    const axisY = Math.abs(rawY) >= DEAD_ZONE ? rawY : 0;
-    const x =
-      axisX +
-      Number(buttonPressed(gamepad, DPAD_RIGHT)) -
-      Number(buttonPressed(gamepad, DPAD_LEFT));
-    const y =
-      axisY +
-      Number(buttonPressed(gamepad, DPAD_DOWN)) -
-      Number(buttonPressed(gamepad, DPAD_UP));
-    return Object.freeze(inputFromAxis({ x, y }, DEAD_ZONE));
+    const state = readGamepad(gamepad);
+    return Object.freeze(
+      inputFromAxis(
+        {
+          x:
+            Math.abs(gamepad.axes[0] ?? 0) >= 0.3
+              ? gamepad.axes[0]!
+              : Number(state.right) - Number(state.left),
+          y:
+            Math.abs(gamepad.axes[1] ?? 0) >= 0.3
+              ? gamepad.axes[1]!
+              : Number(state.down) - Number(state.up),
+        },
+        0.3,
+      ),
+    );
   }
 }
