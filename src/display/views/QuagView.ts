@@ -131,16 +131,10 @@ function drawHud(g: Phaser.GameObjects.Graphics, snapshot: QuagSnapshot): void {
   const hunts = quagHuntRows(snapshot);
   for (const [index, id] of QUAG_PLAYER_IDS.entries()) {
     const player = snapshot.players.find((entry) => entry.id === id)!;
-    const human = snapshot.humanPlayerIds.includes(id);
-    const owner = human
-      ? snapshot.humanPlayerIds.length === 1
-        ? "YOU"
-        : `P${index + 1}`
-      : "CPU";
     for (const [y, text] of [
       [1, metadata[index]!],
       [9, hunts[index]!],
-      [16, `${owner} ${player.roundWins} WINS`],
+      [16, `${player.roundScore} PTS ${player.roundWins} WINS`],
     ] as const) {
       drawPixelText(g, text, {
         x: centers[index]!,
@@ -380,10 +374,10 @@ function drawRoundNotice(
   title: string,
   action: string,
 ): void {
-  drawFrame(g, 50, 0, 220, 22, BROWN_BOX_PALETTE.cream);
+  drawFrame(g, 5, 0, 310, 22, BROWN_BOX_PALETTE.cream);
   for (const [index, line] of [
     title,
-    `WINS ${compactRoundWins(snapshot)}`,
+    quagHudModel(snapshot, false).score,
     action,
   ].entries()) {
     drawPixelText(g, line, {
@@ -394,12 +388,6 @@ function drawRoundNotice(
       align: "center",
     });
   }
-}
-
-function compactRoundWins(snapshot: QuagSnapshot): string {
-  return snapshot.players
-    .map((player) => `${player.id}${player.roundWins}`)
-    .join(" ");
 }
 
 function native(value: number): number {

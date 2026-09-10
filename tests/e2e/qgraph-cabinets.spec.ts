@@ -149,7 +149,7 @@ test("Quarry introduces Player A and freezes its 60-second clock during orientat
   );
   await expect(region.locator("[data-quag='time']")).toHaveText("060");
   await expect(region.locator("[data-quag='score']")).toHaveText(
-    "WINS A0 B0 C0 D0",
+    "POINTS A00 B00 C00 D00 · WINS A0 B0 C0 D0",
     { timeout: 1_000 },
   );
   await expect(region.locator("[data-quag='targets']")).toHaveText(

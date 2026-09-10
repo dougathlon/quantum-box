@@ -13,6 +13,8 @@ import {
   type QuagInput,
 } from "../../src/games/quag/types";
 
+import { quagHudModel } from "../../src/games/quag/presentation";
+
 const NEUTRAL = Object.freeze({
   horizontal: 0,
   flapPressed: false,
@@ -198,5 +200,29 @@ describe("Quarry fixed-point platform physics", () => {
         grounded: true,
       });
     },
+  );
+});
+
+it("shows current-round points separately from match wins", () => {
+  const session = new QuagSession(context(70), QUAG_SYNTHETIC_QGRAPH_PACK, {
+    cpuEnabled: false,
+    readyTicks: 0,
+    roundTicks: 1,
+    totalRounds: 2,
+    roundBreakTicks: 0,
+    players: playersWithA({
+      x: 92,
+      y: 250,
+      score: 99,
+      roundScore: 3,
+      roundWins: 1,
+    }),
+  });
+  expect(quagHudModel(session.snapshot(), false).score).toBe(
+    "POINTS A03 B00 C00 D00 · WINS A1 B0 C0 D0",
+  );
+  session.step(NEUTRAL);
+  expect(quagHudModel(session.snapshot(), false).score).toBe(
+    "POINTS A00 B00 C00 D00 · WINS A2 B0 C0 D0",
   );
 });
