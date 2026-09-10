@@ -1728,6 +1728,13 @@
   border-bottom: 1px dotted var(--qb-muted-tan);
 }
 
+.qb-settings-page .qb-settings input:is([type="checkbox"], [type="radio"]) {
+  width: 1.5625cqw;
+  height: 2.7778cqh;
+  margin: 0;
+  flex-shrink: 0;
+}
+
 .qb-settings-page .qb-settings label:not(.qb-volume) {
   align-items: flex-start;
   padding-top: 1.1111cqh;

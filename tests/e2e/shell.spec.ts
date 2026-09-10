@@ -271,7 +271,7 @@ test("SkiPixl and Quantman expose their installed modes without a maze selector"
   ).toHaveCount(0);
 });
 
-test("Fluxball uses four 40-second rounds and keeps hidden rule authority out of active DOM", async ({
+test("Fluxball uses three 40-second rounds and keeps hidden rule authority out of active DOM", async ({
   page,
 }) => {
   await enterArcade(page);
@@ -286,7 +286,7 @@ test("Fluxball uses four 40-second rounds and keeps hidden rule authority out of
     await page.getByRole("button", { name: "START · ENTER / A" }).click();
     const game = page.getByRole("region", { name: "Fluxball game" });
     await expect(game).toBeVisible();
-    await expect(game).toContainText("R 1/4");
+    await expect(game).toContainText("R 1/3");
     await expect(game).toContainText("40");
     await expect(game).toContainText("PRESS SPACE / A TO CHANGE RULES");
     await expect(game).not.toContainText(
