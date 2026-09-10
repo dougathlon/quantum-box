@@ -763,7 +763,7 @@
   background-color: var(--qb-charcoal);
 }
 
-.qb-screen-footer {
+.qb-shell:not([data-view="cabinet"]) .qb-screen-footer {
   right: 5cqw;
   bottom: 4cqh;
   left: 5cqw;
@@ -2402,7 +2402,10 @@
   text-align: right;
 }
 .qb-screen-footer button {
+  height: 6cqh;
   min-height: 6cqh;
+  font-size: 1.5625cqw;
+  line-height: 1.2;
 }
 .qb-settings-page .qb-settings label:not(.qb-volume) > span {
   flex: 1;

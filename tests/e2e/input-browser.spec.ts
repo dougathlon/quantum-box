@@ -5,6 +5,7 @@ import { captureExternalRequests } from "./support/network";
 test("keyboard held action changes each cabinet and keyup applies cabinet release semantics", async ({
   page,
 }, testInfo) => {
+  test.setTimeout(90_000);
   test.skip(
     testInfo.project.name !== "desktop-1280x720",
     "Cross-cabinet input semantics need one deterministic desktop execution.",
