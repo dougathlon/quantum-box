@@ -249,10 +249,16 @@ export const STORY_CHAPTER_DEFINITIONS = Object.freeze({
   },
 } as const satisfies Readonly<Record<StoryChapterId, StoryChapterDefinition>>);
 
-export function isArcadeCabinetId(value: unknown): value is ArcadeCabinetId {
+export function isBoundedLegacyCabinetSlug(value: unknown): value is string {
   // Persisted records accept bounded legacy slugs so retired identifiers can
   // survive migration without joining the shipped navigation registry.
   return typeof value === "string" && /^[a-z][a-z0-9-]{0,63}$/.test(value);
+}
+
+export function isArcadeCabinetId(value: unknown): value is ArcadeCabinetId {
+  return (
+    isShippedArcadeCabinetId(value) || value === "quag" || value === "enclose"
+  );
 }
 
 export function isShippedArcadeCabinetId(

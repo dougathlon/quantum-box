@@ -13,7 +13,7 @@ import {
   ARCADE_CABINET_IDS,
   STORY_CHAPTER_DEFINITIONS,
   STORY_CHAPTER_IDS,
-  isArcadeCabinetId,
+  isBoundedLegacyCabinetSlug,
   isShippedArcadeCabinetId,
 } from "../games/registry";
 import type { QuantumBoxSave, QuantumBoxSettings } from "../save/types";
@@ -1090,9 +1090,15 @@ export class QuantumBoxShell {
 
   public updateInputResponse(report: InputResponseReport): void {
     this.shell.dataset["inputResponseSamples"] = String(report.sampleCount);
-    this.shell.dataset["inputResponseMedianMs"] = report.medianMs.toFixed(2);
-    this.shell.dataset["inputResponseP95Ms"] = report.p95Ms.toFixed(2);
-    this.shell.dataset["inputResponseWorstMs"] = report.worstMs.toFixed(2);
+    this.shell.dataset["inputResponseInvalidSamples"] = String(
+      report.invalidSampleCount,
+    );
+    this.shell.dataset["inputResponseMedianMs"] =
+      report.medianMs?.toFixed(2) ?? "unavailable";
+    this.shell.dataset["inputResponseP95Ms"] =
+      report.p95Ms?.toFixed(2) ?? "unavailable";
+    this.shell.dataset["inputResponseWorstMs"] =
+      report.worstMs?.toFixed(2) ?? "unavailable";
   }
 
   public getPage(): ShellPage | "title" | "cabinet" {
@@ -1340,7 +1346,12 @@ export class QuantumBoxShell {
     } else if (action === "launch-arcade") {
       const gameId = button.dataset["gameId"];
       const mode = button.dataset["mode"];
-      if (isArcadeCabinetId(gameId) && mode) {
+      if (
+        isBoundedLegacyCabinetSlug(gameId) &&
+        !isShippedArcadeCabinetId(gameId)
+      ) {
+        this.announce("That legacy cabinet is not shipped in this build.");
+      } else if (isShippedArcadeCabinetId(gameId) && mode) {
         try {
           this.actions.onLaunchArcade(gameId, mode, {
             runSeed: this.arcadeRunSeed,

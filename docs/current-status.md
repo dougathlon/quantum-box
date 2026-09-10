@@ -6,7 +6,7 @@
 
 **Status date:** 2026-09-10
 
-**Local QA candidate:** presentation corrections are implemented locally after public `0532428`; see [the detailed QA report](qa/2026-09-10-detailed-game-qa.md) for fixes, evidence, and decisions still needed.
+**Local QA candidate:** presentation corrections are implemented locally after public `0532428`; detailed local QA logs are excluded from the public snapshot. See [Contributing](../CONTRIBUTING.md) for validation commands and evidence boundaries.
 
 ## Implemented
 

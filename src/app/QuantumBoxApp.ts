@@ -495,10 +495,10 @@ export class QuantumBoxApp {
 
   private readonly recordPresentedInput = (capturedAtMs: number): void => {
     let frameId = 0;
-    frameId = requestAnimationFrame((presentedAtMs) => {
+    frameId = requestAnimationFrame(() => {
       this.inputPresentationFrameIds.delete(frameId);
       this.shell.updateInputResponse(
-        this.inputResponseMonitor.sample(capturedAtMs, presentedAtMs),
+        this.inputResponseMonitor.sample(capturedAtMs, performance.now()),
       );
     });
     this.inputPresentationFrameIds.add(frameId);

@@ -1,9 +1,10 @@
 export interface InputResponseReport {
   readonly sampleCount: number;
   readonly windowSamples: number;
-  readonly medianMs: number;
-  readonly p95Ms: number;
-  readonly worstMs: number;
+  readonly invalidSampleCount: number;
+  readonly medianMs: number | null;
+  readonly p95Ms: number | null;
+  readonly worstMs: number | null;
 }
 
 /** Presentation-only input-response observer. It receives timestamps only and
@@ -11,6 +12,7 @@ export interface InputResponseReport {
 export class InputResponseMonitor {
   private readonly latenciesMs: number[] = [];
   private sampleCount = 0;
+  private invalidSampleCount = 0;
 
   public constructor(private readonly maxSamples = 240) {
     if (!Number.isInteger(maxSamples) || maxSamples <= 0) {
@@ -24,12 +26,17 @@ export class InputResponseMonitor {
     capturedAtMs: number,
     presentedAtMs: number,
   ): InputResponseReport {
-    if (!Number.isFinite(capturedAtMs) || !Number.isFinite(presentedAtMs)) {
-      throw new Error("Input response timestamps must be finite.");
-    }
     const latencyMs = presentedAtMs - capturedAtMs;
-    if (latencyMs < 0) {
-      throw new Error("Input response timestamps cannot move backwards.");
+    if (
+      !Number.isFinite(capturedAtMs) ||
+      !Number.isFinite(presentedAtMs) ||
+      !Number.isFinite(latencyMs) ||
+      capturedAtMs < 0 ||
+      presentedAtMs < 0 ||
+      latencyMs < 0
+    ) {
+      this.invalidSampleCount += 1;
+      return this.report();
     }
     this.sampleCount += 1;
     this.latenciesMs.push(latencyMs);
@@ -41,15 +48,17 @@ export class InputResponseMonitor {
     if (this.latenciesMs.length === 0) {
       return Object.freeze({
         sampleCount: this.sampleCount,
+        invalidSampleCount: this.invalidSampleCount,
         windowSamples: 0,
-        medianMs: 0,
-        p95Ms: 0,
-        worstMs: 0,
+        medianMs: null,
+        p95Ms: null,
+        worstMs: null,
       });
     }
     const ordered = [...this.latenciesMs].sort((a, b) => a - b);
     return Object.freeze({
       sampleCount: this.sampleCount,
+      invalidSampleCount: this.invalidSampleCount,
       windowSamples: ordered.length,
       medianMs: percentile(ordered, 0.5),
       p95Ms: percentile(ordered, 0.95),

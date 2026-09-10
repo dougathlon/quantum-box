@@ -11,6 +11,7 @@ describe("InputResponseMonitor", () => {
 
     expect(monitor.report()).toEqual({
       sampleCount: 10,
+      invalidSampleCount: 0,
       windowSamples: 10,
       medianMs: 31,
       p95Ms: 96,
@@ -32,10 +33,32 @@ describe("InputResponseMonitor", () => {
     expect(report.worstMs).toBe(60);
   });
 
-  it("rejects invalid bounds and timestamps", () => {
+  it("keeps invalid timestamps out of measurements without throwing", () => {
     expect(() => new InputResponseMonitor(0)).toThrow("positive integer");
     const monitor = new InputResponseMonitor();
-    expect(() => monitor.sample(Number.NaN, 1)).toThrow("finite");
-    expect(() => monitor.sample(2, 1)).toThrow("backwards");
+    for (const [capture, present] of [
+      [NaN, 1],
+      [2, 1],
+      [-1, 1],
+      [0, Infinity],
+      [0, NaN],
+    ]) {
+      expect(() => monitor.sample(capture!, present!)).not.toThrow();
+    }
+    expect(monitor.report()).toMatchObject({
+      sampleCount: 0,
+      invalidSampleCount: 5,
+      windowSamples: 0,
+      medianMs: null,
+      p95Ms: null,
+      worstMs: null,
+    });
+    monitor.sample(10, 20);
+    monitor.sample(30, 29);
+    expect(monitor.report()).toMatchObject({
+      sampleCount: 1,
+      invalidSampleCount: 6,
+      medianMs: 10,
+    });
   });
 });

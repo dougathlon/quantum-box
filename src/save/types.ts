@@ -1,6 +1,6 @@
 import {
   STORY_SEQUENCE,
-  isArcadeCabinetId,
+  isBoundedLegacyCabinetSlug,
   type ArcadeCabinetId,
   type LegacyStoryStageId,
   type StoryChapterId,
@@ -1119,7 +1119,7 @@ function validateQualifiedStoryRun(
   if (
     !isRecord(value) ||
     typeof value["runId"] !== "string" ||
-    !isArcadeCabinetId(value["gameId"]) ||
+    !isBoundedLegacyCabinetSlug(value["gameId"]) ||
     value["storyStage"] !== stage ||
     value["playMode"] !== "story" ||
     typeof value["rulesVersion"] !== "string" ||

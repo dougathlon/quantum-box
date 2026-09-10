@@ -2,6 +2,7 @@ import type { RunContext } from "../core/run";
 import type { StoryChapterId, StoryStageId } from "../games/registry";
 import {
   QongStoryBankUnavailableError,
+  QongInstalledAuthorityMismatchError,
   requireInstalledQongRecoveryReference,
   validateQongSelectionReceipt,
   type QongPackSelectionReceipt,
@@ -558,17 +559,6 @@ function verifyInstalledQongRecovery(
   });
 }
 
-function isInstalledBankMismatch(error: unknown): error is Error {
-  return (
-    error instanceof Error &&
-    [
-      "Qong recovery does not reference the installed Story bank authority.",
-      "Qong recovery pack selection is absent from the installed Story bank.",
-      "Installed Qong recovery provenance is incomplete.",
-    ].includes(error.message)
-  );
-}
-
 function demoteMismatchedQongAuthority(save: QuantumBoxSave): QuantumBoxSave {
   const { qong: _rejectedQongRecovery, ...retainedRecoveries } =
     save.story.tutorialRecoveries;
@@ -607,7 +597,7 @@ function requirePersistedQongAuthority(
   try {
     verifyQongRecoveryAuthority(recovery);
   } catch (error) {
-    if (isInstalledBankMismatch(error)) {
+    if (error instanceof QongInstalledAuthorityMismatchError) {
       throw new QongRecoveryAuthorityMismatchError(error.message);
     }
     throw error;

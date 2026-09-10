@@ -147,3 +147,21 @@ workflow gates with a manual upload.
 For bugs, include the complete URL (including `?build=`), browser and operating
 system, fresh or migrated save, input method, exact steps, and a screenshot or
 recording when relevant.
+
+## Public source snapshot
+
+The collaborator snapshot is exported with `git archive`, using the
+`export-ignore` rules in `.gitattributes`. Private acquisition/operator notes,
+QA captures and experimental previews, superseded spatial Story scenes,
+retired Enclose implementation and their historical-only tests are excluded.
+Generated build output, credentials and local caches are not source exports.
+
+Compatibility types, recovery validators, legacy cabinet identifiers and stored
+fixture decoders remain where current saves or replays still depend on them.
+Their presence does not mean those cabinets or old Story scenes are shipped.
+Do not remove them merely because their former presentation is excluded.
+
+Validate the extracted archive itself: install with the frozen lockfile, run
+`pnpm scan:source` and `pnpm check`. A successful check in the private checkout
+does not establish that the public snapshot has all required imports or files.
+`pnpm check` collects browser tests; `pnpm test:e2e` executes them separately.

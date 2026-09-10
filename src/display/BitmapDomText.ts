@@ -985,7 +985,9 @@ export function auditBitmapCanvasPixels(image: ImageData): BitmapCanvasAudit {
   }
   return Object.freeze({
     unexpectedColours: Object.freeze([...unexpectedColours].sort()),
-    unexpectedAlphaValues: Object.freeze([...unexpectedAlphaValues].sort()),
+    unexpectedAlphaValues: Object.freeze(
+      [...unexpectedAlphaValues].sort((a, b) => a - b),
+    ),
     opaquePixelCount,
   });
 }

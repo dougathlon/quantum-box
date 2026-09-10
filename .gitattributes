@@ -63,3 +63,17 @@ tests/unit/tutorialEvidenceFailClosed.test.ts export-ignore
 tests/unit/tutorialRecoveryRecord.test.ts export-ignore
 tests/unit/tutorialRecoveryReplay.test.ts export-ignore
 tests/unit/tutorialRegistry.test.ts export-ignore
+
+# Local presentation experiments and manual-only browser harnesses.
+src/qa export-ignore
+tests/browser export-ignore
+tests/unit/typographyStudy.test.ts export-ignore
+scripts/render-terminal-story-opening-mockups.mjs export-ignore
+arcade-row-preview.html export-ignore
+hud-type-comparison.html export-ignore
+lettering-review.html export-ignore
+narrow-check.html export-ignore
+terminal-review.html export-ignore
+terminal-story-mockups.html export-ignore
+type-hierarchy-*.html export-ignore
+typography-lab.html export-ignore

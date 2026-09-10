@@ -9,11 +9,21 @@ import {
   chapterForStoryStage,
   gameForStoryStage,
   isArcadeCabinetId,
+  isBoundedLegacyCabinetSlug,
   isShippedArcadeCabinetId,
   nextStoryStage,
 } from "../../src/games/registry";
 
 describe("Quantum Box registry", () => {
+  it("separates migration slugs from recognized and shipped identifiers", () => {
+    expect(isBoundedLegacyCabinetSlug("retired-program")).toBe(true);
+    expect(isArcadeCabinetId("retired-program")).toBe(false);
+    expect(isShippedArcadeCabinetId("retired-program")).toBe(false);
+    expect(isArcadeCabinetId("quag")).toBe(true);
+    expect(isShippedArcadeCabinetId("quag")).toBe(false);
+    for (const value of [null, 3, "../qong", "A", "a".repeat(65)])
+      expect(isBoundedLegacyCabinetSlug(value)).toBe(false);
+  });
   it("ships five cabinets in the canonical demonstration order", () => {
     expect(GAME_IDS).toEqual(["qong", "skipixl", "fluxball", "quantman"]);
     expect(ARCADE_CABINET_IDS).toEqual([

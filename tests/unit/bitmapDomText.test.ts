@@ -215,3 +215,10 @@ describe("semantic DOM bitmap mirror", () => {
     expect(bitmapFocusCursorPlacement(0, 320)).toBeNull();
   });
 });
+
+it("orders diagnostic alpha values numerically", () => {
+  const data = new Uint8ClampedArray([0, 0, 0, 100, 0, 0, 0, 2, 0, 0, 0, 10]);
+  expect(
+    auditBitmapCanvasPixels({ data } as ImageData).unexpectedAlphaValues,
+  ).toEqual([2, 10, 100]);
+});

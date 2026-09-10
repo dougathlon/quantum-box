@@ -11,6 +11,14 @@ import {
   type QongPolarity,
 } from "./types";
 
+/** Valid persisted evidence identifies a different installed authority. */
+export class QongInstalledAuthorityMismatchError extends Error {
+  public constructor(message: string) {
+    super(message);
+    this.name = "QongInstalledAuthorityMismatchError";
+  }
+}
+
 export const QONG_PLAY_PACK_SCHEMA_VERSION = "quantum-box-qong-play-pack-v1";
 export const QONG_SELECTOR_PACK_SCHEMA_VERSION =
   "quantum-box-qong-selector-pack-v1";
@@ -327,7 +335,7 @@ export function requireQongRecoveryReferenceInBankArtifact(
     selector["contentSha256"] !== receipt.selectorContentSha256 ||
     !Array.isArray(selector["bits"])
   ) {
-    throw new Error(
+    throw new QongInstalledAuthorityMismatchError(
       "Qong recovery does not reference the installed Story bank authority.",
     );
   }
@@ -348,7 +356,7 @@ export function requireQongRecoveryReferenceInBankArtifact(
     selectorBits[receipt.selectorBitIndices[0]] !== receipt.selectorBits[0] ||
     selectorBits[receipt.selectorBitIndices[1]] !== receipt.selectorBits[1]
   ) {
-    throw new Error(
+    throw new QongInstalledAuthorityMismatchError(
       "Qong recovery pack selection is absent from the installed Story bank.",
     );
   }
@@ -358,7 +366,9 @@ export function requireQongRecoveryReferenceInBankArtifact(
   );
   const jobs = provenance["jobs"];
   if (!Array.isArray(jobs) || jobs.length !== QONG_TOTAL_RALLIES) {
-    throw new Error("Installed Qong recovery provenance is incomplete.");
+    throw new QongInstalledAuthorityMismatchError(
+      "Installed Qong recovery provenance is incomplete.",
+    );
   }
   requireMatchingRecoveryResult(
     requireRecord(reference.firstResult, "Qong recovery first result"),
