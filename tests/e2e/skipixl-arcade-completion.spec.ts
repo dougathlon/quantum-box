@@ -109,7 +109,7 @@ test("Arcade SkiPixl completes the production QPixl descent without Story author
     kind: "skipixl",
     difficulty: "easy",
     initials: "YOU",
-    rulesVersion: "skipixl-rules-v8",
+    rulesVersion: "skipixl-rules-v9",
     pack: {
       packId: plan.packId,
       contentSha256: plan.packContentSha256,
