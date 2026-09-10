@@ -441,7 +441,19 @@ export class BitmapDomTextRenderer {
         } else if (control.type === "checkbox" || control.type === "radio") {
           const size = Math.max(3, Math.min(5, rect.width, rect.height));
           const x = rect.left + Math.floor((rect.width - size) / 2);
-          const y = rect.top + Math.floor((rect.height - size) / 2);
+          const labelText = control
+            .closest("label")
+            ?.querySelector<HTMLElement>("[data-bitmap-flow]");
+          const y = labelText
+            ? Math.round(
+                toLogicalRect(
+                  labelText.getBoundingClientRect(),
+                  this.frame.getBoundingClientRect(),
+                ).top,
+              ) +
+              3 -
+              Math.floor(size / 2)
+            : rect.top + Math.floor((rect.height - size) / 2);
           this.context.fillStyle = CREAM;
           drawCanvasFrame(this.context, x, y, size, size);
           if (control.checked) {
@@ -744,7 +756,14 @@ export class BitmapDomTextRenderer {
         : style.textAlign === "right" || style.textAlign === "end"
           ? "right"
           : "left";
-    this.drawFocusCursor(owner);
+    const firstLineWidth = reading
+      ? terminalTextWidth(lines[0] ?? "")
+      : pixelTextWidth(lines[0] ?? "", pixel, spacing);
+    this.drawFocusCursor(
+      owner,
+      bitmapTextLineLeft(rect.left, rect.right, firstLineWidth, align),
+      top + Math.floor(capHeight / 2),
+    );
 
     this.context.save();
     this.context.beginPath();
@@ -793,7 +812,11 @@ export class BitmapDomTextRenderer {
     this.context.restore();
   }
 
-  private drawFocusCursor(owner: HTMLElement): void {
+  private drawFocusCursor(
+    owner: HTMLElement,
+    textLeft: number,
+    textMiddle: number,
+  ): void {
     if (owner.closest(".qb-terminal-actions")) return;
     const active = document.activeElement;
     if (!(active instanceof HTMLElement)) return;
@@ -821,7 +844,7 @@ export class BitmapDomTextRenderer {
       frameRect,
     );
     const placement = bitmapFocusCursorPlacement(
-      controlRect.left,
+      owner.closest("footer") ? textLeft : controlRect.left,
       controlRect.right,
     );
     if (!placement) return;
@@ -836,7 +859,7 @@ export class BitmapDomTextRenderer {
             toLogicalRect(readingAnchor.getBoundingClientRect(), frameRect).top,
           ) + 3,
         )
-      : Math.max(2, Math.round(controlRect.top + controlRect.height / 2));
+      : Math.max(2, textMiddle);
     this.context.fillStyle = CREAM;
     this.context.fillRect(placement.x, middle - 2, 1, 5);
     this.context.fillRect(placement.x + 1, middle - 1, 1, 3);

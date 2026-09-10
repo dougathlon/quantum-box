@@ -189,7 +189,7 @@ describe("Brown Box internal visual contract", () => {
       '<h1 class="qb-visually-hidden" tabindex="-1">TERMINAL</h1>',
     );
     expect(brownBoxCss).toContain(
-      "grid-template-columns: 8cqw minmax(0, 1fr) 29cqw",
+      "grid-template-columns: 6cqw minmax(0, 1fr) 29cqw",
     );
     expect(shellSource).toContain("TRANSCRIPT READY");
     expect(shellSource).toContain("RETRY REQUIRED");

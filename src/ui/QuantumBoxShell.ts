@@ -1332,6 +1332,10 @@ export class QuantumBoxShell {
           ArrowDown: "down",
           ArrowLeft: "left",
           ArrowRight: "right",
+          KeyW: "up",
+          KeyS: "down",
+          KeyA: "left",
+          KeyD: "right",
         } as const
       )[event.code as "ArrowUp"];
       if (direction || event.code === "Enter" || event.code === "Escape") {
