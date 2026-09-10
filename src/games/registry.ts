@@ -9,8 +9,8 @@ export type GameId = (typeof GAME_IDS)[number];
 export const ARCADE_CABINET_IDS = [
   "qong",
   "skipixl",
-  "fluxball",
   "quantman",
+  "fluxball",
   "quarry",
 ] as const;
 export type ShippedArcadeCabinetId = (typeof ARCADE_CABINET_IDS)[number];

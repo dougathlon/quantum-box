@@ -1,3 +1,7 @@
+import {
+  ARCADE_CABINET_IDS,
+  STORY_CHAPTER_IDS,
+} from "../../src/games/registry";
 import { describe, expect, it } from "vitest";
 
 import {
@@ -6,6 +10,17 @@ import {
 } from "../../src/app/arcade";
 
 describe("Arcade run seed", () => {
+  it("keeps Arcade and Terminal in ascending cabinet order", () => {
+    expect(ARCADE_CABINET_IDS).toEqual([
+      "qong",
+      "skipixl",
+      "quantman",
+      "fluxball",
+      "quarry",
+    ]);
+    expect(ARCADE_CABINET_IDS).toEqual(STORY_CHAPTER_IDS);
+  });
+
   it("accepts the complete uint32 range", () => {
     expect(parseArcadeRunSeed("0")).toBe(0);
     expect(parseArcadeRunSeed("4294967295")).toBe(0xffff_ffff);
