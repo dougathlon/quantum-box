@@ -825,10 +825,18 @@ export class BitmapDomTextRenderer {
       controlRect.right,
     );
     if (!placement) return;
-    const middle = Math.max(
-      2,
-      Math.round(controlRect.top + controlRect.height / 2),
-    );
+    const readingAnchor = control.matches("[data-bitmap-flow]")
+      ? control
+      : control.querySelector<HTMLElement>("[data-bitmap-flow]");
+    // Anchor to the visible first text line, not the enclosing row's centre.
+    const middle = readingAnchor
+      ? Math.max(
+          2,
+          Math.round(
+            toLogicalRect(readingAnchor.getBoundingClientRect(), frameRect).top,
+          ) + 3,
+        )
+      : Math.max(2, Math.round(controlRect.top + controlRect.height / 2));
     this.context.fillStyle = CREAM;
     this.context.fillRect(placement.x, middle - 2, 1, 5);
     this.context.fillRect(placement.x + 1, middle - 1, 1, 3);

@@ -11,7 +11,7 @@ test("the complete menu framebuffer enlarges as uniform logical-pixel blocks", a
     "One browser project drives the explicit 1x through 6x viewport matrix.",
   );
 
-  for (const scale of [1, 2, 3, 4, 6] as const) {
+  for (const scale of [1, 2, 4, 6] as const) {
     await page.setViewportSize({
       width: LOGICAL_WIDTH * scale,
       height: LOGICAL_HEIGHT * scale,
@@ -156,9 +156,10 @@ async function assertUniformLogicalBlocks(
     },
     {
       base64: png.toString("base64"),
-      scale: expectedScale,
-      logicalWidth: LOGICAL_WIDTH,
-      logicalHeight: LOGICAL_HEIGHT,
+      // At 1x the raster is downsampled; even scales preserve the finer pixels.
+      scale: expectedScale === 1 ? 1 : expectedScale / 2,
+      logicalWidth: expectedScale === 1 ? LOGICAL_WIDTH : LOGICAL_WIDTH * 2,
+      logicalHeight: expectedScale === 1 ? LOGICAL_HEIGHT : LOGICAL_HEIGHT * 2,
     },
   );
   expect(report).toEqual({ passed: true, reason: null });

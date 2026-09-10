@@ -1808,7 +1808,7 @@
   gap: 1.5cqw;
   min-height: 8cqh;
   margin-top: 1cqh;
-  border-top: 1px solid var(--qb-muted-tan);
+  border-top: 1px dotted var(--qb-muted-tan);
   padding-top: 1cqh;
   color: var(--qb-cream);
   font-size: 1.25cqw;
@@ -2574,4 +2574,8 @@
   width: 100%;
   max-width: none;
   text-align: left;
+}
+
+.qb-settings-data .qb-action {
+  border-bottom: 1px dotted var(--qb-muted-tan);
 }

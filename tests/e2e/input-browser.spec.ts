@@ -45,7 +45,7 @@ test("keyboard held action changes each cabinet and keyup applies cabinet releas
         ],
         search: { left: 40, top: 30, right: 260, bottom: 68 },
       },
-      release: "hold-steering-state",
+      release: "return-to-centre",
     },
     {
       gameId: "fluxball",
@@ -151,8 +151,14 @@ test("keyboard held action changes each cabinet and keyup applies cabinet releas
       expect(spriteDistance(releaseStart, releaseEnd)).toBeLessThanOrEqual(
         0.75,
       );
-    } else if (cabinet.release === "hold-steering-state") {
-      expect(releaseEnd.frameId).toBe(releaseStart.frameId);
+    } else if (cabinet.release === "return-to-centre") {
+      // The current session decelerates lateral velocity after release.
+      await expect
+        .poll(
+          async () =>
+            (await expectCanonicalSprite(page, cabinet.probe)).frameId,
+        )
+        .toBe("neutral");
     } else {
       // Quantman retains its travel direction after keyup, but the selected
       // measured topology may put a wall less than 300 ms ahead. The runtime

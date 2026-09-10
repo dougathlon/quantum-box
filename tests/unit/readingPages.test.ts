@@ -27,6 +27,19 @@ describe("shared refined reading face", () => {
       expect(d).not.toEqual(o);
     }
   });
+  it("distinguishes B from 8 at reading and compact sizes", () => {
+    for (const render of [
+      (text: string) => terminalGlyphRects(text),
+      (text: string) => pixelTextRects(text, { x: 0, y: 0, pixel: 1 }),
+    ]) {
+      const b = render("B"),
+        eight = render("8");
+      const height = Math.max(...b.map((r) => r.y + r.height));
+      for (let y = 0; y < height; y += 0.5)
+        expect(b.some((r) => r.x === 0 && r.y === y)).toBe(true);
+      expect(eight.some((r) => r.x === 0 && r.y === 0)).toBe(false);
+    }
+  });
   it("preserves every Story and tutorial word within the reading measure", () => {
     const bodies = Object.values(STORY_TERMINAL_PAGES).map((p) => p.body);
     for (const game of Object.values(ARCADE_CABINET_DEFINITIONS))

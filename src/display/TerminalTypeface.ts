@@ -122,7 +122,7 @@ export function terminalGlyphRects(text: string, x = 0, y = 0) {
           // D needs square stem terminals; rounding these makes it read as O.
           if (
             filled ||
-            (character === "D" && dx === 0) ||
+            ((character === "D" || character === "B") && dx === 0) ||
             (character === "5" && center && (dy === 0 || (dx === 0 && dy < 3)))
           )
             result.push({
