@@ -57,7 +57,7 @@ export type InputDeviceListener = (event: InputDeviceEvent) => void;
 
 const SYSTEM_KEYBOARD_ACTIONS: Readonly<Record<string, SemanticAction>> = {
   KeyX: "secondary",
-  Escape: "back",
+  Backspace: "back",
   KeyP: "pause",
   KeyM: "mute",
 };
@@ -126,8 +126,9 @@ export class InputController {
   private readonly onKeyDown = (event: KeyboardEvent): void => {
     if (isEditableTarget(event.target)) return;
     const action = this.keyboardAction(event.code);
-    if (!action || event.repeat) return;
+    if (!action) return;
     event.preventDefault();
+    if (event.repeat) return;
     this.emit({
       action,
       pressed: true,

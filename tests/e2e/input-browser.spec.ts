@@ -193,11 +193,11 @@ test("keyboard held action changes each cabinet and keyup applies cabinet releas
       "data-phase",
       "paused",
     );
-    await region.getByRole("button", { name: "PAUSE · ESC / B" }).click();
-    await region.getByRole("button", { name: "EXIT · ESC / B" }).click();
+    await region.getByRole("button", { name: "PAUSE · P / START" }).click();
+    await region.getByRole("button", { name: "EXIT · ⌫ / B" }).click();
     await expect(region).toBeHidden();
     await page
-      .getByRole("button", { name: "BACK · ESC / B", exact: true })
+      .getByRole("button", { name: "BACK · ⌫ / B", exact: true })
       .click();
   }
 

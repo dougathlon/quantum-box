@@ -113,6 +113,7 @@ export interface BuildFluxballRuleScheduleOptions {
   readonly runSeed: number;
   readonly gameplayRoundNumber: number;
   readonly stateCount: 2 | 3 | 4 | 5;
+  readonly varyAcquisitionCategories?: boolean;
   readonly ruleBank?: unknown;
 }
 
@@ -170,6 +171,7 @@ export function buildFluxballRuleSchedule({
   runSeed,
   gameplayRoundNumber,
   stateCount,
+  varyAcquisitionCategories = false,
   ruleBank = FLUXBALL_QGRAPH_RULE_BANK,
 }: BuildFluxballRuleScheduleOptions): readonly FluxballRuleScheduleState[] {
   if (
@@ -179,9 +181,21 @@ export function buildFluxballRuleSchedule({
   ) {
     throw new Error("Fluxball gameplay rounds must be 1 through 4.");
   }
+  const categories = [1, 2, 3, 4];
+  if (varyAcquisitionCategories) {
+    const rng = new DeterministicRng(mixSeed(runSeed, 0x43415453));
+    for (let index = categories.length - 1; index > 0; index -= 1) {
+      const target = Math.floor(rng.next() * (index + 1));
+      [categories[index], categories[target]] = [
+        categories[target]!,
+        categories[index]!,
+      ];
+    }
+  }
+  const category = categories[gameplayRoundNumber - 1]!;
   const sourceRoundBuckets = Object.freeze([
-    gameplayRoundNumber * 2 - 1,
-    gameplayRoundNumber * 2,
+    category * 2 - 1,
+    category * 2,
   ]) as readonly [number, number];
   const diagnostics: string[] = [];
   const bank =

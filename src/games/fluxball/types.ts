@@ -8,7 +8,8 @@ import type { ScoreBoard } from "./standalone/simulation";
 import type { PackSource } from "../../packs/types";
 import type { RuleAcquisitionSource } from "./standalone/rules/types";
 
-export const FLUXBALL_RULES_VERSION = "fluxball-rules-v6";
+export const FLUXBALL_RULES_VERSION = "fluxball-rules-v7";
+export const FLUXBALL_FIXED_SCHEDULE_RULES_VERSION = "fluxball-rules-v6";
 export const FLUXBALL_PREVIOUS_RULES_VERSION = "fluxball-rules-v5";
 export const FLUXBALL_LEGACY_RULES_VERSION = "fluxball-rules-v4";
 export const FLUXBALL_OLDER_RULES_VERSION = "fluxball-rules-v3";

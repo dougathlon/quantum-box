@@ -64,9 +64,7 @@ test("reading choices align their selectors and fit in every menu", async ({
   await checkReadingChoices(page);
   await page.getByRole("button", { name: "STORY", exact: true }).click();
   await checkReadingChoices(page);
-  await page
-    .getByRole("button", { name: "BACK · ESC / B", exact: true })
-    .click();
+  await page.getByRole("button", { name: "BACK · ⌫ / B", exact: true }).click();
   await page.getByRole("button", { name: "ARCADE", exact: true }).click();
   await checkReadingChoices(page);
   for (const game of ["qong", "skipixl", "quantman", "fluxball", "quarry"]) {
@@ -80,12 +78,10 @@ test("reading choices align their selectors and fit in every menu", async ({
       await expect(button).toHaveCSS("background-color", "rgba(0, 0, 0, 0)");
     }
     await page
-      .getByRole("button", { name: "BACK · ESC / B", exact: true })
+      .getByRole("button", { name: "BACK · ⌫ / B", exact: true })
       .click();
   }
-  await page
-    .getByRole("button", { name: "BACK · ESC / B", exact: true })
-    .click();
+  await page.getByRole("button", { name: "BACK · ⌫ / B", exact: true }).click();
   await page.getByRole("button", { name: "SETTINGS", exact: true }).click();
   for (const section of ["display", "sound", "controls", "data"]) {
     await page
@@ -207,9 +203,7 @@ test("Terminal and Arcade share number and title columns", async ({ page }) => {
         .getBoundingClientRect().left,
       title: row.querySelector("strong")!.getBoundingClientRect().left,
     }));
-  await page
-    .getByRole("button", { name: "BACK · ESC / B", exact: true })
-    .click();
+  await page.getByRole("button", { name: "BACK · ⌫ / B", exact: true }).click();
   await page.getByRole("button", { name: "TERMINAL", exact: true }).click();
   for (const row of await page.locator(".qb-terminal-index li").all()) {
     const terminal = await row.evaluate((el) => ({

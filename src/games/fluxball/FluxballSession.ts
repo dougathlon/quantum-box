@@ -32,6 +32,7 @@ import {
 } from "./standalone/simulation";
 import {
   FLUXBALL_RULES_VERSION,
+  FLUXBALL_FIXED_SCHEDULE_RULES_VERSION,
   FLUXBALL_PREVIOUS_RULES_VERSION,
   FLUXBALL_LEGACY_RULES_VERSION,
   FLUXBALL_OLDEST_RULES_VERSION,
@@ -96,7 +97,8 @@ export class FluxballSession {
   ) {
     validateContext(context, format);
     this.totalRounds =
-      context.rulesVersion === FLUXBALL_RULES_VERSION
+      context.rulesVersion === FLUXBALL_RULES_VERSION ||
+      context.rulesVersion === FLUXBALL_FIXED_SCHEDULE_RULES_VERSION
         ? FLUXBALL_TOTAL_ROUNDS
         : 4;
     if (
@@ -104,7 +106,8 @@ export class FluxballSession {
       !isCertifiedFluxballStorySeed(
         context.runSeed,
         format.competitorCount,
-        context.rulesVersion !== FLUXBALL_RULES_VERSION,
+        context.rulesVersion !== FLUXBALL_RULES_VERSION &&
+          context.rulesVersion !== FLUXBALL_FIXED_SCHEDULE_RULES_VERSION,
       )
     ) {
       throw new Error(
@@ -130,6 +133,10 @@ export class FluxballSession {
           runSeed: context.runSeed,
           gameplayRoundNumber: index + 1,
           stateCount,
+          varyAcquisitionCategories:
+            context.playMode === "arcade" &&
+            format.competitorCount === 4 &&
+            context.rulesVersion === FLUXBALL_RULES_VERSION,
         }).map((state) => ({
           ...state,
           rules: interpretRoundRules(state.trace, format.ruleMode),
@@ -455,6 +462,7 @@ function validateContext(context: RunContext, format: FluxballFormat): void {
   if (
     context.gameId !== "fluxball" ||
     (context.rulesVersion !== FLUXBALL_RULES_VERSION &&
+      context.rulesVersion !== FLUXBALL_FIXED_SCHEDULE_RULES_VERSION &&
       context.rulesVersion !== FLUXBALL_PREVIOUS_RULES_VERSION &&
       context.rulesVersion !== FLUXBALL_LEGACY_RULES_VERSION &&
       context.rulesVersion !== FLUXBALL_OLDER_RULES_VERSION &&
@@ -466,7 +474,8 @@ function validateContext(context: RunContext, format: FluxballFormat): void {
   }
   const currentDuration =
     context.rulesVersion === FLUXBALL_RULES_VERSION ||
-    context.rulesVersion === FLUXBALL_PREVIOUS_RULES_VERSION;
+    context.rulesVersion === FLUXBALL_PREVIOUS_RULES_VERSION ||
+    context.rulesVersion === FLUXBALL_FIXED_SCHEDULE_RULES_VERSION;
   const uniformMinuteDuration =
     context.rulesVersion === FLUXBALL_LEGACY_RULES_VERSION;
   const legacySplitDuration = !currentDuration && !uniformMinuteDuration;
@@ -479,7 +488,7 @@ function validateContext(context: RunContext, format: FluxballFormat): void {
   ) {
     throw new Error(
       currentDuration
-        ? "Quantum Box Fluxball v5/v6 requires 40-second rounds in every format."
+        ? "Quantum Box Fluxball v5/v6/v7 requires 40-second rounds in every format."
         : uniformMinuteDuration
           ? "Quantum Box Fluxball v4 requires 60-second rounds in every format."
           : "Older Quantum Box Fluxball requires 2P/40s or 4P/60s rounds.",

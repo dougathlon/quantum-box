@@ -12,3 +12,19 @@ export function toggleFullscreen(document: Document): Promise<void> {
     );
   return document.documentElement.requestFullscreen({ navigationUI: "hide" });
 }
+
+/** Observe actual fullscreen exits; repeated events must never toggle pause. */
+export function observeFullscreenExit(
+  document: Document,
+  onExit: () => void,
+): () => void {
+  let wasFullscreen = Boolean(document.fullscreenElement);
+  const onChange = (): void => {
+    const fullscreen = Boolean(document.fullscreenElement);
+    const exited = wasFullscreen && !fullscreen;
+    wasFullscreen = fullscreen;
+    if (exited) onExit();
+  };
+  document.addEventListener("fullscreenchange", onChange);
+  return () => document.removeEventListener("fullscreenchange", onChange);
+}

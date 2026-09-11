@@ -32,3 +32,30 @@ describe("fullscreen control", () => {
     ).rejects.toThrow("Denied");
   });
 });
+
+describe("fullscreen exit observation", () => {
+  it("calls once per exit, never on entry or duplicate notifications, and cleans up", async () => {
+    const { observeFullscreenExit } = await import("../../src/ui/Fullscreen");
+    const target = new EventTarget();
+    const document = Object.assign(target, {
+      fullscreenElement: null as object | null,
+    });
+    const exit = vi.fn();
+    const stop = observeFullscreenExit(document as unknown as Document, exit);
+    const change = () => target.dispatchEvent(new Event("fullscreenchange"));
+    change();
+    document.fullscreenElement = {};
+    change();
+    expect(exit).not.toHaveBeenCalled();
+    document.fullscreenElement = null;
+    change();
+    change();
+    expect(exit).toHaveBeenCalledOnce();
+    document.fullscreenElement = {};
+    change();
+    stop();
+    document.fullscreenElement = null;
+    change();
+    expect(exit).toHaveBeenCalledOnce();
+  });
+});

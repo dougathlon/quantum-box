@@ -33,6 +33,7 @@ import {
   GHOST_HOME_ROOMS,
   isGhostHomeRoom,
   tunnelDestination,
+  TUNNEL_ROW,
 } from "./MazeTraversal";
 import type {
   ActorSnapshot,
@@ -75,7 +76,7 @@ interface RuntimeGhost extends RuntimeActor {
 
 const DEFAULT_PLAYER_START = 95;
 const DEFAULT_GHOST_STARTS = GHOST_HOME_ROOMS;
-const DEFAULT_GHOST_RELEASE_TICKS = [120, 300, 480, 660] as const;
+const DEFAULT_GHOST_RELEASE_TICKS = [60, 150, 240, 330] as const;
 const GHOST_ROLES: readonly GhostRole[] = Object.freeze([
   "direct",
   "ambush",
@@ -315,8 +316,27 @@ export class QuantmanSession {
       if (!ghost.released) {
         if (this.activeTick < ghost.releaseTick) continue;
         ghost.released = true;
-        if (isGhostHomeRoom(ghost.spawnRoom))
-          resetActor(ghost, GHOST_HOME_EXIT_ROOM, "up");
+      }
+      // The den is fixed local geometry; its exit does not use measured walls.
+      if (isGhostHomeRoom(ghost.room)) {
+        if (ghost.nextRoom === null) {
+          const next =
+            ghost.room === 44
+              ? 45
+              : ghost.room === 54
+                ? 44
+                : ghost.room === 55
+                  ? 45
+                  : GHOST_HOME_EXIT_ROOM;
+          ghost.nextRoom = next;
+          ghost.facing = next === ghost.room + 1 ? "right" : "up";
+          ghost.movementDirection = ghost.facing;
+        }
+        this.advanceCrossing(
+          ghost,
+          TUNING.ghostRoomsPerSecond / TUNING.simulationHz,
+        );
+        continue;
       }
       const beforeRoom = ghost.room;
       if (ghost.nextRoom === null) {
@@ -343,13 +363,22 @@ export class QuantmanSession {
       }
       this.advanceCrossing(
         ghost,
-        TUNING.ghostRoomsPerSecond / TUNING.simulationHz,
+        (TUNING.ghostRoomsPerSecond / TUNING.simulationHz) *
+          (this.isTunnelMouth(ghost.room) ||
+          (ghost.nextRoom !== null && this.isTunnelMouth(ghost.nextRoom))
+            ? TUNING.ghostTunnelSpeedMultiplier
+            : 1),
       );
       if (ghost.room !== beforeRoom) {
         ghost.edgesCrossed += 1;
         this.totalGhostEdgesCrossed += 1;
       }
     }
+  }
+
+  private isTunnelMouth(room: number): boolean {
+    const { row, col } = this.graph.coordinate(room);
+    return row === TUNNEL_ROW && (col === 0 || col === this.graph.width - 1);
   }
 
   private tryBeginCrossing(
@@ -414,6 +443,7 @@ export class QuantmanSession {
   private clearLevel(): void {
     this.phase = "won";
     this.score += TUNING.levelClearScore + this.lives * TUNING.lifeBonusScore;
+    this.lives += 1;
     this.completion = Object.freeze({
       outcome: "LEVEL_CLEARED",
       runSeed: this.runSeed,

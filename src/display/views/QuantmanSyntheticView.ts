@@ -34,7 +34,12 @@ export const QUANTMAN_SYNTHETIC_VIEWPORT = Object.freeze({
 
 export interface QuantmanSyntheticHudModel {
   readonly mode: "HOLD" | "INVERT";
-  readonly phase: "READY" | "ACTIVE" | "PAUSED" | "SCREEN CLEARED" | "RUN LOST";
+  readonly phase:
+    | "READY"
+    | "ACTIVE"
+    | "PAUSED"
+    | "SCREEN CLEARED"
+    | "GAME OVER";
   readonly score: string;
   readonly lives: string;
   readonly remaining: string;
@@ -89,7 +94,7 @@ export function quantmanSyntheticHudModel(
         ? "ACTIVE"
         : state.phase === "won"
           ? "SCREEN CLEARED"
-          : "RUN LOST";
+          : "GAME OVER";
   const mode = state.mechanic === "stabilize-gaze" ? "HOLD" : "INVERT";
   const controls =
     state.phase === "won" || state.phase === "lost"

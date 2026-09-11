@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { gamepadActions } from "../../src/input/InputController";
 import { InputController } from "../../src/input/InputController";
@@ -195,5 +195,65 @@ describe("Qong input ownership", () => {
     const held = new Set(["p2-up", "p2-left"] as const);
     expect(qongAxisForPlayer(held, 1)).toBe(0);
     expect(qongAxisForPlayer(held, 2)).toBe(-1);
+  });
+});
+
+describe("fullscreen-safe keyboard navigation", () => {
+  afterEach(() => vi.unstubAllGlobals());
+  it("reserves Backspace and Tab and repairs only conflicting saved bindings", async () => {
+    const { restoreKeyboardBindings } = await import(
+      "../../src/input/KeyboardBindings"
+    );
+    const legacy = {
+      ...DEFAULT_KEYBOARD_BINDINGS,
+      A: { ...DEFAULT_KEYBOARD_BINDINGS.A, action: "Backspace" },
+      B: { ...DEFAULT_KEYBOARD_BINDINGS.B, action: "Tab" },
+    };
+    expect(() => validateKeyboardBindings(legacy)).toThrow("reserved");
+    expect(restoreKeyboardBindings(legacy)).toEqual(DEFAULT_KEYBOARD_BINDINGS);
+    expect(legacy.A.action).toBe("Backspace");
+  });
+
+  it("dispatches Backspace as Back, leaves Escape/Tab to the browser, and preserves editing", () => {
+    class EditableTarget {
+      tagName = "INPUT";
+      isContentEditable = false;
+    }
+    vi.stubGlobal("HTMLElement", EditableTarget);
+    const handlers = new Map<string, (event: unknown) => void>();
+    const target = {
+      addEventListener: (name: string, handler: (event: unknown) => void) =>
+        handlers.set(name, handler),
+      removeEventListener: () => undefined,
+      requestAnimationFrame: () => 1,
+      cancelAnimationFrame: () => undefined,
+    } as unknown as Window;
+    const controller = new InputController(target, {} as Document);
+    const signals: string[] = [];
+    controller.subscribe((signal) =>
+      signals.push(`${signal.action}:${signal.pressed}`),
+    );
+    const fire = (type: string, code: string, eventTarget: unknown = null) => {
+      let prevented = false;
+      handlers.get(type)!({
+        code,
+        repeat: false,
+        target: eventTarget,
+        preventDefault: () => {
+          prevented = true;
+        },
+      });
+      return prevented;
+    };
+    expect(fire("keydown", "Escape")).toBe(false);
+    expect(fire("keyup", "Escape")).toBe(false);
+    expect(fire("keydown", "Tab")).toBe(false);
+    expect(signals).toEqual([]);
+    expect(fire("keydown", "Backspace", new EditableTarget())).toBe(false);
+    expect(signals).toEqual([]);
+    expect(fire("keydown", "Backspace")).toBe(true);
+    expect(fire("keyup", "Backspace")).toBe(true);
+    expect(signals).toEqual(["back:true", "back:false"]);
+    controller.dispose();
   });
 });

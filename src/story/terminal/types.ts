@@ -10,7 +10,7 @@ export interface StoryTerminalPage {
   readonly body: readonly string[];
   readonly actions: readonly Readonly<{
     id: StoryTerminalActionId;
-    label: "CONTINUE" | "PLAY" | "RETRY";
+    label: "CONTINUE" | "PLAY" | "RETRY" | "FINISH";
   }>[];
 }
 

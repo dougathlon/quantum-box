@@ -139,3 +139,22 @@ describe("save authority failure classification", () => {
     ).toThrow();
   });
 });
+
+it("keeps saved progress when old bindings use newly reserved navigation keys", () => {
+  const save = createDefaultSave();
+  const restored = validateSave({
+    ...save,
+    settings: {
+      ...save.settings,
+      soundVolume: 0.37,
+      keyboardBindings: {
+        ...save.settings.keyboardBindings,
+        A: { ...save.settings.keyboardBindings.A, action: "Backspace" },
+      },
+    },
+    story: { ...save.story, attempts: { ...save.story.attempts, qong: 7 } },
+  });
+  expect(restored.settings.soundVolume).toBe(0.37);
+  expect(restored.story.attempts.qong).toBe(7);
+  expect(restored.settings.keyboardBindings.A.action).toBe("Space");
+});

@@ -1072,7 +1072,7 @@
 
 .qb-scoreboard-page {
   display: grid;
-  grid-template-rows: auto minmax(0, 1fr) auto auto auto;
+  grid-template-rows: auto minmax(0, 1fr);
   gap: 1.5cqh;
   min-height: 0;
   overflow: hidden;
@@ -1135,14 +1135,15 @@
 
 .qb-scoreboard-table li {
   min-height: 0;
-  border-top: 1px solid var(--qb-muted-tan);
   padding: 0 1cqw;
   font-size: 1.55cqw;
   letter-spacing: 0.08em;
 }
 
 .qb-scoreboard-table li[data-current="true"] {
-  border: 1px solid var(--qb-cream);
+  color: var(--qb-cream);
+  text-decoration: underline;
+  text-underline-offset: 0.5em;
 }
 
 .qb-scoreboard-table li strong {
@@ -2690,4 +2691,107 @@
 .qb-game-ui footer > span {
   white-space: nowrap;
   flex-shrink: 0;
+}
+
+.qb-score-entry {
+  grid-template-rows: auto auto 1fr;
+}
+.qb-score-entry-result {
+  text-align: center;
+  margin: 4cqh 0;
+}
+.qb-score-entry .qb-scoreboard-initials {
+  align-self: center;
+  justify-items: center;
+  grid-template-columns: 1fr;
+  gap: 2cqh;
+}
+.qb-score-entry .qb-scoreboard-initials > button {
+  justify-self: center;
+}
+.qb-score-entry .qb-initials-help {
+  grid-column: 1;
+  text-align: center;
+}
+
+.qb-scoreboard-list {
+  position: relative;
+  grid-template-rows: minmax(0, 1fr);
+  gap: 0;
+}
+.qb-scoreboard-list > header {
+  position: absolute;
+  top: 0;
+  right: 0;
+  border: 0;
+  padding: 0;
+  display: block;
+}
+.qb-scoreboard-list .qb-scoreboard-table {
+  grid-template-rows: 6cqh minmax(0, 1fr);
+}
+.qb-scoreboard-list .qb-scoreboard-columns {
+  border-bottom: 1px solid var(--qb-cream);
+}
+.qb-scoreboard-list .qb-scoreboard-columns,
+.qb-scoreboard-list .qb-scoreboard-table li {
+  padding-inline: 0;
+}
+
+.qb-arcade-detail:is(
+    .qb-arcade-detail--fluxball,
+    .qb-arcade-detail--qong,
+    .qb-arcade-detail--skipixl,
+    .qb-arcade-detail--quarry,
+    .qb-arcade-detail--quantman
+  )
+  .qb-arcade-tutorial {
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 3cqw;
+}
+.qb-tutorial-column {
+  display: grid;
+  align-content: start;
+  gap: 1cqh;
+  min-width: 0;
+}
+.qb-tutorial-column p {
+  margin: 0;
+}
+
+.qb-arcade-detail--quarry .qb-tutorial-column {
+  gap: 0.5cqh;
+}
+.qb-arcade-detail--quarry .qb-arcade-trials {
+  top: 53cqh;
+}
+
+.qb-arcade-detail--fluxball .qb-tutorial-column {
+  gap: 0.5cqh;
+}
+.qb-arcade-detail--fluxball .qb-arcade-trials {
+  top: 57cqh;
+}
+
+/* Only the selected Story action carries the flashing cursor. */
+.qb-terminal-page button:not(:focus) .qb-terminal-cursor {
+  visibility: hidden;
+}
+
+.qb-postscript-link {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.9375cqw;
+  padding: 0;
+  margin: 0;
+  border: 0;
+  background: transparent;
+  text-align: left;
+  min-height: 5.5556cqh;
+}
+.qb-postscript-link .qb-terminal-cursor {
+  flex: none;
+  width: 0.625cqw;
+  height: 3.8889cqh;
+  background: var(--qb-cream);
 }

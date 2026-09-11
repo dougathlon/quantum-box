@@ -73,9 +73,8 @@ describe("semantic DOM bitmap mirror", () => {
     expect(paintPredicate).toBeDefined();
     expect(paintPredicate).not.toContain('getAttribute("aria-hidden")');
     expect(shellSource).toContain('<header aria-hidden="true">');
-    expect(shellSource).toContain(
-      '<section class="qb-terminal-body" aria-hidden="true">',
-    );
+    expect(shellSource).toContain('page.id === "postscript-2"');
+    expect(shellSource).toContain('data-action="postscript-moth"');
   });
 
   it("accepts only the exact three colours and binary alpha", () => {

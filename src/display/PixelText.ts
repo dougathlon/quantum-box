@@ -43,6 +43,12 @@ const glyph = (source: string): PixelGlyph =>
   Object.freeze(source.trim().split("\n"));
 
 const GLYPHS: Readonly<Record<string, PixelGlyph>> = Object.freeze({
+  "⌫": glyph(`
+..#######
+.#..#.#.#
+#....#..#
+.#..#.#.#
+..#######`),
   " ": glyph(`
 .
 .

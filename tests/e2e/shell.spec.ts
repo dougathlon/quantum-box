@@ -148,10 +148,10 @@ test("Arcade overview contains five cabinets and every cabinet opens a terminal-
     expect(previewBox).not.toBeNull();
     expect(titleBox!.x).toBeLessThan(previewBox!.x);
     const back = detail.getByRole("button", {
-      name: "BACK · ESC / B",
+      name: "BACK · ⌫ / B",
       exact: true,
     });
-    await expect(back).toHaveText("ESC / B");
+    await expect(back).toHaveText("BACK · ⌫ / B");
     await expect(
       detail.getByRole("button", { name: "SELECT · ENTER / A", exact: true }),
     ).toBeEnabled();
@@ -186,7 +186,7 @@ test("Arcade score and mode controls use the intended row hierarchy", async ({
       expect(Math.abs(scoreBox!.x - launchBox!.x)).toBeLessThan(4);
     }
     await detail
-      .getByRole("button", { name: "BACK · ESC / B", exact: true })
+      .getByRole("button", { name: "BACK · ⌫ / B", exact: true })
       .click();
   }
 
@@ -206,7 +206,7 @@ test("Arcade score and mode controls use the intended row hierarchy", async ({
       expect(lowerBox!.y).toBeGreaterThan(upperBox!.y);
     }
     await detail
-      .getByRole("button", { name: "BACK · ESC / B", exact: true })
+      .getByRole("button", { name: "BACK · ⌫ / B", exact: true })
       .click();
   }
 });
@@ -242,8 +242,8 @@ test("Qong Arcade is playable without mutating Story authority", async ({
   await expect(game).toBeVisible();
   await expect(game).toContainText("RULE STATE: UNRESOLVED");
   await expect(game).toContainText("REVEALS LEFT 3/3");
-  await game.getByRole("button", { name: "PAUSE · ESC / B" }).click();
-  await game.getByRole("button", { name: "EXIT · ESC / B" }).click();
+  await game.getByRole("button", { name: "PAUSE · P / START" }).click();
+  await game.getByRole("button", { name: "EXIT · ⌫ / B" }).click();
   expect(
     await page.evaluate(() => window.__QUANTUM_BOX_TEST__?.getSave()),
   ).toEqual(saveBefore);
@@ -260,7 +260,7 @@ test("SkiPixl and Quantman expose their installed modes without a maze selector"
     "HARD",
   ]);
   await skipixl
-    .getByRole("button", { name: "BACK · ESC / B", exact: true })
+    .getByRole("button", { name: "BACK · ⌫ / B", exact: true })
     .click();
   const quantman = await openArcadeCabinet(page, "quantman");
   await expect(quantman.locator("[data-action='launch-arcade']")).toHaveText([
@@ -293,8 +293,8 @@ test("Fluxball uses three 40-second rounds and keeps hidden rule authority out o
     await expect(game).not.toContainText(
       /\bDIRECT\b|\bINVERTED\b|\bCARRY\b|\bSTRIKE\b|\bOPPOSITE\b|\bOWN\b|\bFIXTURE\b/u,
     );
-    await game.getByRole("button", { name: "PAUSE · ESC / B" }).click();
-    await game.getByRole("button", { name: "EXIT · ESC / B" }).click();
+    await game.getByRole("button", { name: "PAUSE · P / START" }).click();
+    await game.getByRole("button", { name: "EXIT · ⌫ / B" }).click();
   }
 });
 

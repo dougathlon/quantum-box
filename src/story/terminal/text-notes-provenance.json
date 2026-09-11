@@ -1,41 +1,24 @@
 {
   "schemaVersion": "quantum-box-terminal-copy-provenance-v1",
-  "sourceFilename": "QUANTUM BOX text notes.docx",
-  "sourceSha256": "a5d193623eeb1361f430db50e249180871e5752d756906ec483c7dc72a212148",
-  "authorityThrough": "end-of-quantman",
-  "runtimePageCorpusSha256": "ed3bee3b4cc24fc04ec7b28c2e3466ca4a88460ca9f3183ca4971fb6cc4fca05",
+  "sourceFilename": "Quantum Box agreed story text 2026-09-11 v2.docx",
+  "sourceSha256": "40b81f5188c8ea0a8213bc2450090432b61294d34e56465613e67635b45bfd29",
+  "authorityThrough": "end-of-demonstration",
+  "runtimePageCorpusSha256": "685e23b122783eba71b14fdb808829a02927b3622d80ca1a1533e2567f9ce335",
   "normalization": {
     "actionMarkers": ["CONTINUE", "PLAY", "RETRY"],
-    "excludedEditorialLabels": [
-      "Instruction",
-      "After first failure",
-      "After success",
-      "Post-game"
-    ],
     "excludedMaterial": [
-      "accidentally embedded project instruction",
-      "duplicated introductory passage"
+      "Editorial routing labels and screen numbering",
+      "Still to agree",
+      "Review appendix",
+      "Source record"
     ],
-    "displayOnlyTransformation": "command and engine identifiers are rendered uppercase; semantic identifiers retain their canonical values",
+    "displayOnlyTransformation": "Authored paragraphs reflow at the existing reading size; the final invitation is grouped into one paragraph. Bitmap rendering retains its existing uppercase presentation.",
     "authorizedRuntimeCorrections": [
-      {
-        "date": "2026-09-09",
-        "pages": ["qong-tutorial", "qong-loss-first"],
-        "from": "PRESS SPACE TO OBSERVE THE RULE.",
-        "to": "PRESS SPACE / A TO OBSERVE THE RULE.",
-        "reason": "Doug requested live cabinet keyboard/gamepad action vocabulary in the corrective pass. The source DOCX is unchanged."
-      },
-      {
-        "date": "2026-09-09",
-        "pages": ["qong-debrief-2"],
-        "from": "QRNG™!",
-        "to": "QRNG™ (QUANTUM RANDOM NUMBER GENERATION)!",
-        "reason": "Doug requested the expanded QRNG line during typography review. The source DOCX is unchanged."
-      }
+      "User requested removal of daily from PART OF DAILY LIFE.",
+      "Single line breaks after I KNOW WHAT YOU\u2019RE THINKING:, before QRNG, and before DIFFERENT NEIGHBOURS = WALL.",
+      "User requested Retry for every failed game: SkiPixl feasible gains a retry/continue page before its explanation; overloaded failure gains Retry.",
+      "Two postscript panels supplied directly by Doug on 2026-09-11, gated on all required Story clears; MOTH is an inline selectable external link, FINISH completes the story."
     ]
   },
-  "lateStoryCopy": {
-    "fluxball": "PLACEHOLDER",
-    "quarry": "PLACEHOLDER"
-  }
+  "lateStoryCopy": {}
 }

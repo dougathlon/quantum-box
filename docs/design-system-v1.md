@@ -36,7 +36,7 @@ placement.
 
 The Arcade trial sheet shares the terminal frame: title and engine above one
 top rule, Tutorial at left, mode/player/score controls at right, and a stable
-footer with real ESC / B and SELECT · ENTER / A controls. Information appears immediately rather than
+footer with real BACK · ⌫ / B and SELECT · ENTER / A controls. Information appears immediately rather than
 typing.
 
 ## Bitmap type and geometry
@@ -111,3 +111,5 @@ Visible changes require native and enlarged pixel inspection, a served desktop
 view, keyboard/pointer/gamepad focus checks, and exact palette/binary-alpha
 audits. Screenshots and tests do not replace human judgment of legibility,
 comprehension, sound, or feel.
+
+Keyboard navigation reserves Escape for browser fullscreen. Backspace (⌫) mirrors controller B; P/Start pauses and resumes. Leaving fullscreen pauses an unfinished game without toggling an already-paused game. Tab retains native focus traversal; Backspace edits initials while an initials slot is focused.

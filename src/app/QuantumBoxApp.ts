@@ -1,3 +1,5 @@
+import { postscriptUnlocked } from "../story/terminal/postscript";
+import { observeFullscreenExit } from "../ui/Fullscreen";
 import Phaser from "phaser";
 import { cabinetBackIntent } from "./CabinetBackIntent";
 
@@ -205,6 +207,7 @@ export class QuantumBoxApp {
   private activeQuarryHumanPlayerIds: readonly QuagPlayerId[] = ["A"];
   private activeQuarrySelection: QuarryQpuPackSelection | null = null;
   private completedReplay: ReplayBundle | null = null;
+  private stopFullscreenObserver: (() => void) | null = null;
   private unsubscribeInput: (() => void) | null = null;
   private unsubscribeDevices: (() => void) | null = null;
   private stopCanvasPaletteAudit: (() => void) | null = null;
@@ -299,6 +302,9 @@ export class QuantumBoxApp {
     root.addEventListener("pointerdown", this.onAudioGesture, true);
     root.addEventListener("keydown", this.onAudioGesture, true);
     window.addEventListener("blur", this.onWindowBlur);
+    this.stopFullscreenObserver = observeFullscreenExit(document, () => {
+      this.pauseForInterruption("Paused after leaving fullscreen.");
+    });
     window.addEventListener("focus", this.onAudioRecovery);
     document.addEventListener("visibilitychange", this.onVisibilityChange);
     this.monitorFrameId = requestAnimationFrame(this.monitorFrame);
@@ -352,6 +358,8 @@ export class QuantumBoxApp {
     this.fluxballRuntime?.stop();
     this.quantmanRuntime?.stop();
     this.quagRuntime?.stop();
+    this.stopFullscreenObserver?.();
+    this.stopFullscreenObserver = null;
     this.unsubscribeInput?.();
     this.unsubscribeInput = null;
     this.unsubscribeDevices?.();
@@ -768,7 +776,15 @@ export class QuantumBoxApp {
   }
 
   private openTerminalTranscript(chapterId: StoryChapterId): void {
-    const pageIds = TERMINAL_TRANSCRIPT_PAGE_IDS[chapterId];
+    const pageIds =
+      chapterId === "quarry" &&
+      postscriptUnlocked(this.saveRepository.snapshot().story.clearedStages)
+        ? [
+            ...TERMINAL_TRANSCRIPT_PAGE_IDS[chapterId],
+            "postscript-1",
+            "postscript-2",
+          ]
+        : TERMINAL_TRANSCRIPT_PAGE_IDS[chapterId];
     this.shell.updateSave(this.saveRepository.markTranscriptSeen(chapterId));
     this.terminalTranscript = Object.freeze({ chapterId, pageIds, index: 0 });
     this.presentTranscriptPage();
@@ -1742,7 +1758,7 @@ export class QuantumBoxApp {
         initialsEditable: recordedSequence !== null,
       });
       this.shell.announce(
-        `${terminal.cleared ? "Screen cleared" : "Run lost"}. Quantman ${terminal.mechanic} score recorded locally.`,
+        `${terminal.cleared ? "Screen cleared" : "Game over"}. Quantman ${terminal.mechanic} score recorded locally.`,
       );
     } else if (this.activeRun.playMode === "story") {
       this.recordActiveStoryOutcome(terminal.cleared ? "won" : "lost");
@@ -2355,6 +2371,10 @@ export class QuantumBoxApp {
   }
 
   private readonly onWindowBlur = (): void => {
+    this.pauseForInterruption("Paused after focus left the Quantum Box.");
+  };
+
+  private pauseForInterruption(message: string): void {
     const paused =
       this.qongRuntime?.pause() ??
       this.skipixlRuntime?.pause() ??
@@ -2365,8 +2385,8 @@ export class QuantumBoxApp {
     if (!paused) return;
     this.audio.play("pause");
     this.audio.setPaused(true);
-    this.shell.announce("Paused after focus left the Quantum Box.");
-  };
+    this.shell.announce(message);
+  }
 
   private readonly onAudioGesture = (): void => {
     void this.audio.unlock();

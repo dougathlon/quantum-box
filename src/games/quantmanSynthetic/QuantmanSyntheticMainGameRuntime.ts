@@ -291,7 +291,7 @@ export class QuantmanSyntheticMainGameRuntime {
     } else if (after.collectedRooms.length > before.collectedRooms.length) {
       this.callbacks.onFeedback?.("collectible");
     }
-    if (after.topologyHistory.length > before.topologyHistory.length) {
+    if (after.topologyWallMask !== before.topologyWallMask) {
       this.callbacks.onFeedback?.("topology-change");
     }
     if (before.phase !== "won" && after.phase === "won") {

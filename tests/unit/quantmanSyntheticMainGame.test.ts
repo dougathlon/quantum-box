@@ -16,6 +16,49 @@ import {
 } from "../../src/display/views/QuantmanSyntheticView";
 
 describe("Quantman synthetic main-game runtime", () => {
+  it.each(["stabilize-gaze", "inverse-gaze"] as const)(
+    "sounds only actual wall changes in %s",
+    (mechanic) => {
+      const feedback = vi.fn();
+      const runtime = new QuantmanSyntheticMainGameRuntime(
+        {
+          playMode: "arcade",
+          runSeed: 47,
+          mechanic,
+          scheduler: new ManualFrameScheduler(),
+        },
+        { present: vi.fn() },
+        callbacks({ onFeedback: feedback }),
+      );
+      const before = runtime.snapshot();
+      const sameWalls = {
+        ...before,
+        simulation: {
+          ...before.simulation,
+          topologyHistory: [...before.simulation.topologyHistory, "resampled"],
+        },
+      };
+      const route = runtime as unknown as {
+        routeFeedback(
+          previous: QuantmanSyntheticRuntimeSnapshot,
+          current: QuantmanSyntheticRuntimeSnapshot,
+        ): void;
+      };
+      route.routeFeedback(before, sameWalls);
+      expect(feedback).not.toHaveBeenCalled();
+      const mask = before.simulation.topologyWallMask;
+      const changed = {
+        ...sameWalls,
+        simulation: {
+          ...sameWalls.simulation,
+          topologyWallMask: (mask[0] === "0" ? "1" : "0") + mask.slice(1),
+        },
+      };
+      route.routeFeedback(sameWalls, changed);
+      expect(feedback).toHaveBeenCalledExactlyOnceWith("topology-change");
+    },
+  );
+
   it("pauses and resumes the ready screen without starting the run", () => {
     const scheduler = new ManualFrameScheduler();
     const present = vi.fn();
@@ -214,7 +257,7 @@ describe("Quantman synthetic cabinet presentation", () => {
       controls: "RETRY · X / X   CONTINUE · SPACE / A",
     });
     const lost = withPhase(ready, "lost");
-    expect(quantmanSyntheticHudModel(lost, false).phase).toBe("RUN LOST");
+    expect(quantmanSyntheticHudModel(lost, false).phase).toBe("GAME OVER");
     expect(quantmanSyntheticHudModel(ready, true).phase).toBe("PAUSED");
   });
 });

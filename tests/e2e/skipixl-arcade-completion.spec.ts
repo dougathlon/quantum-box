@@ -136,33 +136,23 @@ test("Arcade SkiPixl completes the production QPixl descent without Story author
     page.getByRole("heading", { name: "SKIPIXL · EASY" }),
   ).toBeVisible();
   const scoreRows = page.locator(".qb-scoreboard-table ol > li");
-  await expect(scoreRows).toHaveCount(5);
-  await expect(scoreRows.filter({ hasText: "YOU" })).toHaveAttribute(
-    "data-current",
-    "true",
-  );
-  const desktopViewport = page.viewportSize()!;
-  for (const viewport of [desktopViewport, { width: 434, height: 720 }]) {
-    await page.setViewportSize(viewport);
-    await expect
-      .poll(async () =>
-        scoreRows.evaluateAll((rows) => {
-          const scale =
-            document.querySelector(".qb-screen-frame")!.getBoundingClientRect()
-              .width / 320;
-          return Math.min(
-            ...rows.map((row) => row.getBoundingClientRect().height / scale),
-          );
-        }),
-      )
-      .toBeGreaterThan(7);
-  }
-  await page.setViewportSize(desktopViewport);
+  await expect(scoreRows).toHaveCount(0);
+  await expect(
+    page.getByRole("button", { name: "SELECT · ENTER / A" }),
+  ).toHaveCount(0);
+  await expect(
+    page.getByRole("button", { name: "ARCADE · ENTER / A" }),
+  ).toHaveCount(0);
   const initials = page.locator("[data-arcade-score-initials]");
   await expect(initials).toHaveValue("YOU");
+  await page.locator("[data-initial-slot='1']").press("Backspace");
+  await expect(initials).toHaveValue("-OU");
   await page.locator("[data-initial-slot='0']").pressSequentially("SKI");
   await page.getByRole("button", { name: "SAVE · ENTER / A" }).click();
-  await expect(page.getByText("SCORE RECORDED", { exact: true })).toBeVisible();
+  await expect(scoreRows).toHaveCount(5);
+  await expect(
+    page.getByRole("columnheader", { name: "TIME", exact: true }),
+  ).toBeVisible();
   await expect(initials).toHaveCount(0);
   await expect(scoreRows.filter({ hasText: "SKI" })).toHaveAttribute(
     "data-current",

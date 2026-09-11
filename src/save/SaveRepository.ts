@@ -1,3 +1,4 @@
+import { gatedStoryNode } from "../story/terminal/postscript";
 import type { RunContext } from "../core/run";
 import type { StoryChapterId, StoryStageId } from "../games/registry";
 import {
@@ -104,6 +105,7 @@ export class SaveRepository {
 
   /** Persist a terminal node before the UI or a cabinet transition begins. */
   public setStoryNode(nodeId: string): QuantumBoxSave {
+    nodeId = gatedStoryNode(nodeId, this.value.story.clearedStages);
     storyNode(nodeId);
     return this.commit({
       ...this.value,

@@ -3,15 +3,15 @@ import { cabinetBackIntent } from "../../src/app/CabinetBackIntent";
 
 describe("cabinet Back navigation", () => {
   it.each([false, true])(
-    "Escape/B opens pause during play, story=%s",
+    "Backspace/B opens pause during play, story=%s",
     (story) => {
       expect(cabinetBackIntent(false, false, story)).toBe("pause");
     },
   );
-  it("Escape/B exits paused Story to session continuation", () => {
+  it("Backspace/B exits paused Story to session continuation", () => {
     expect(cabinetBackIntent(false, true, true)).toBe("story-session");
   });
-  it("Escape/B exits paused Arcade through its normal return route", () => {
+  it("Backspace/B exits paused Arcade through its normal return route", () => {
     expect(cabinetBackIntent(false, true, false)).toBe("back");
   });
   it.each([false, true])("completed results retain Back, story=%s", (story) => {

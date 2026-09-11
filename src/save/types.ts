@@ -1,3 +1,4 @@
+import { gatedStoryNode } from "../story/terminal/postscript";
 import {
   STORY_SEQUENCE,
   isBoundedLegacyCabinetSlug,
@@ -21,7 +22,7 @@ import {
 } from "../tutorials/recovery";
 import {
   DEFAULT_KEYBOARD_BINDINGS,
-  validateKeyboardBindings,
+  restoreKeyboardBindings,
   type KeyboardBindings,
 } from "../input/KeyboardBindings";
 import {
@@ -229,9 +230,9 @@ export function validateSave(input: unknown): QuantumBoxSave {
     throw new Error("A cleared Story stage must also be experienced.");
   }
   const currentStage = earliestUnclearedStoryStage(clearedStages);
-  const currentNodeId = validateStoryNodeId(
-    rawCurrentNodeId,
-    nodeForStage(currentStage),
+  const currentNodeId = gatedStoryNode(
+    validateStoryNodeId(rawCurrentNodeId, nodeForStage(currentStage)),
+    clearedStages,
   );
   const transcriptSeen = requireUniqueArray(
     story["transcriptSeen"],
@@ -311,7 +312,7 @@ export function validateSave(input: unknown): QuantumBoxSave {
   // V1 saves created before independent volume existed migrate in place.
   const soundVolume =
     soundVolumeValue === undefined ? DEFAULT_SOUND_VOLUME : soundVolumeValue;
-  const keyboardBindings = validateKeyboardBindings(
+  const keyboardBindings = restoreKeyboardBindings(
     settings["keyboardBindings"] ?? DEFAULT_KEYBOARD_BINDINGS,
   );
   const backgroundProgrammeId = validateBackgroundProgrammeId(

@@ -99,13 +99,14 @@ describe.each(["stabilize-gaze", "inverse-gaze"] as const)(
       ).step({ direction: null, start: true });
 
       expect(cleared.phase).toBe("won");
+      expect(cleared.lives).toBe(4);
       expect(cleared.remainingCollectibles).toBe(0);
       expect(cleared.score).toBe(10 + 1_000 + 3 * 500);
       expect(cleared.completion).toEqual({
         outcome: "LEVEL_CLEARED",
         runSeed: 31,
         score: 2_510,
-        remainingLives: 3,
+        remainingLives: 4,
         simulationTicks: 1,
         fixtureId: QUANTMAN_SYNTHETIC_FIXTURE.fixtureId,
         fixtureSha256: QUANTMAN_SYNTHETIC_FIXTURE_CONTENT_SHA256,

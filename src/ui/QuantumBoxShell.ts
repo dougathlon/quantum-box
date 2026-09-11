@@ -1,3 +1,4 @@
+import { POSTSCRIPT_MOTH_URL } from "../story/terminal/postscript";
 import { toggleFullscreen } from "./Fullscreen";
 import { storyTextLayout } from "../display/StoryTextLayout";
 import { terminalTextWidth } from "../display/TerminalTypeface";
@@ -999,11 +1000,11 @@ export class QuantumBoxShell {
     back.removeAttribute("aria-label");
     back.textContent = navigating
       ? paused
-        ? "EXIT · ESC / B"
+        ? "EXIT · ⌫ / B"
         : this.cabinetPlayMode === "story"
           ? "BACK"
           : "BACK TO ARCADE"
-      : "PAUSE · ESC / B";
+      : "PAUSE · P / START";
     const pauseButton = panel.querySelector<HTMLButtonElement>(
       `[data-action='${cabinet}-pause']`,
     )!;
@@ -1169,6 +1170,10 @@ export class QuantumBoxShell {
       this.page === "arcade-detail";
     this.screenHeader.hidden = terminalLayout;
     this.screenFooter.hidden = terminalLayout;
+    required<HTMLElement>(
+      this.screenFooter,
+      "[data-ui='selection-hint']",
+    ).hidden = this.page === "scores";
     const scrollList =
       this.pageRoot.querySelector<HTMLElement>("[data-scroll-list]");
     if (scrollList) this.scrollPositionObserver.observe(scrollList);
@@ -1191,12 +1196,12 @@ export class QuantumBoxShell {
                 : this.page === "scores"
                   ? this.arcadeScoreboard?.initialsEditable
                     ? "button[data-initial-slot='0']"
-                    : "button[data-action='close-arcade-scores']"
+                    : "h1"
                   : this.page === "terminal"
                     ? "button[data-action='open-terminal-transcript'], button[data-action='retry-terminal-chapter']"
                     : this.page === "story-terminal" &&
                         this.terminalTypingComplete()
-                      ? "button[data-action='story-terminal-action']"
+                      ? "button[data-action='story-terminal-action'], button[data-action='postscript-moth']"
                       : this.page === "settings"
                         ? "button[data-action='settings-section'][aria-selected='true']"
                         : this.storyUnavailableMessage
@@ -1274,7 +1279,9 @@ export class QuantumBoxShell {
     if (!button || button.disabled || !this.root.contains(button)) return;
     const action = button.dataset["action"];
     if (action === "press-start") this.enterInternal();
-    else if (action === "continue-story") this.actions.onContinueStory();
+    else if (action === "postscript-moth") {
+      window.location.assign(POSTSCRIPT_MOTH_URL);
+    } else if (action === "continue-story") this.actions.onContinueStory();
     else if (action === "new-story") this.actions.onNewStory();
     else if (action === "back") this.handleBack();
     else if (action === "activate-page-control") {
@@ -1396,7 +1403,7 @@ export class QuantumBoxShell {
       const control = button.dataset["control"];
       if (isPlayerId(playerId) && isKeyboardControl(control)) {
         this.pendingBinding = { playerId, control };
-        button.textContent = "PRESS KEY · ESC CANCEL";
+        button.textContent = "PRESS KEY · ⌫ CANCEL";
         button.setAttribute("aria-pressed", "true");
         this.announce(`Waiting for Player ${playerId} ${control} key.`);
       }
@@ -1516,12 +1523,12 @@ export class QuantumBoxShell {
   };
 
   private readonly onKeyDown = (event: KeyboardEvent): void => {
+    if (event.code === "Escape") return;
     if (
       this.entered &&
       !this.cabinetActive &&
       !this.pendingBinding &&
-      this.page !== "scores" &&
-      this.page !== "story-terminal"
+      this.page !== "scores"
     ) {
       const direction = (
         {
@@ -1535,12 +1542,12 @@ export class QuantumBoxShell {
           KeyD: "right",
         } as const
       )[event.code as "ArrowUp"];
-      if (direction || event.code === "Enter" || event.code === "Escape") {
+      if (direction || event.code === "Enter" || event.code === "Backspace") {
         event.preventDefault();
         event.stopPropagation();
         if (event.repeat) return;
         if (direction) this.moveMenuFocus(direction);
-        else if (event.code === "Escape") this.handleBack();
+        else if (event.code === "Backspace") this.handleBack();
         else this.activateFocusedControl();
         return;
       }
@@ -1550,10 +1557,13 @@ export class QuantumBoxShell {
       !this.cabinetActive &&
       this.arcadeScoreboard?.initialsEditable
     ) {
-      if (event.code === "Escape") {
+      const editingInitials =
+        event.target instanceof Element &&
+        Boolean(event.target.closest("[data-initial-slot]"));
+      if (event.code === "Backspace" && !editingInitials) {
         event.preventDefault();
         event.stopPropagation();
-        this.returnFromArcadeSubpage();
+        if (!event.repeat) this.returnFromArcadeSubpage();
         return;
       }
       const typed = event.key.toUpperCase();
@@ -1623,7 +1633,7 @@ export class QuantumBoxShell {
     if (!this.pendingBinding || this.page !== "settings") return;
     event.preventDefault();
     event.stopPropagation();
-    if (event.code === "Escape") {
+    if (event.code === "Backspace") {
       this.pendingBinding = null;
       this.renderPage();
       this.announce("Keyboard binding cancelled.");
@@ -1782,17 +1792,17 @@ function shellMarkup(): string {
         <canvas class="qb-bitmap-ui" data-ui="bitmap-text" width="320" height="180" aria-hidden="true"></canvas>
         <header class="qb-screen-header"><span>QUANTUM BOX</span><span data-ui="breadcrumb">ARCHIVE INDEX</span></header>
         <section class="qb-page" data-ui="page"></section>
-        <footer class="qb-screen-footer"><button type="button" data-action="back" aria-label="BACK · ESC / B">ESC / B</button><button type="button" data-action="activate-page-control">SELECT · ENTER / A</button></footer>
+        <footer class="qb-screen-footer"><button type="button" data-action="back" aria-label="BACK · ⌫ / B">BACK · ⌫ / B</button><span data-ui="selection-hint">SELECT · ENTER / A</span></footer>
         <section class="qb-game-ui" data-ui="game" hidden>
           <section class="qb-cabinet-ui" data-cabinet="qong" role="region" aria-label="Qong game" hidden>
             <header class="qb-qong-score qb-visually-hidden"><div><small data-qong="left-label">YOU</small><strong data-qong="left-score">0</strong></div><div><span data-qong="round">ROUND: 1/7</span><small data-qong="rule-state">RULE STATE: UNRESOLVED</small><small data-qong="goal">GOAL: UNRESOLVED</small><small data-qong="winner">WINNER: UNRESOLVED</small></div><div><small data-qong="right-label">CPU</small><strong data-qong="right-score">0</strong></div></header>
             <output class="qb-qong-notice qb-visually-hidden" data-qong="notice" aria-live="polite"></output>
-            <footer class="qb-qong-controls"><button type="button" data-action="cabinet-back" aria-label="BACK · ESC / B">ESC / B</button><span data-qong="movement-controls">MOVE · W/S / ↑↓</span><button type="button" data-action="qong-replay" hidden>RETRY · X / X</button><span data-qong="observations">OBS 3</span><button type="button" data-action="qong-observe">OBSERVE · SPACE / A</button><button type="button" data-action="qong-pause">PAUSE · P / START</button></footer>
+            <footer class="qb-qong-controls"><button type="button" data-action="cabinet-back" aria-label="BACK · ⌫ / B">BACK · ⌫ / B</button><span data-qong="movement-controls">MOVE · W/S / ↑↓</span><button type="button" data-action="qong-replay" hidden>RETRY · X / X</button><span data-qong="observations">OBS 3</span><button type="button" data-action="qong-observe">OBSERVE · SPACE / A</button><button type="button" data-action="qong-pause">PAUSE · P / START</button></footer>
           </section>
           <section class="qb-cabinet-ui" data-cabinet="skipixl" role="region" aria-label="SkiPixl game" hidden>
             <header class="qb-skipixl-score qb-visually-hidden"><div><small><span data-skipixl="distance">4270</span> M · LIMIT <span data-skipixl="limit">1:00.00</span></small><strong data-skipixl="time">0:00.00</strong></div></header>
             <output class="qb-skipixl-notice qb-visually-hidden" data-skipixl="notice" aria-live="polite">QPIXL COURSE READY</output>
-            <footer class="qb-skipixl-controls"><button type="button" data-action="cabinet-back" aria-label="BACK · ESC / B">ESC / B</button><span>TURN · A/D / ←→</span><span>BOOST · S / ↓</span><button type="button" data-action="skipixl-replay" hidden>RETRY · X / X</button><button type="button" data-action="skipixl-continue" hidden>CONTINUE · SPACE / A</button><button type="button" data-action="skipixl-pause">PAUSE · P / START</button></footer>
+            <footer class="qb-skipixl-controls"><button type="button" data-action="cabinet-back" aria-label="BACK · ⌫ / B">BACK · ⌫ / B</button><span>TURN · A/D / ←→</span><span>BOOST · S / ↓</span><button type="button" data-action="skipixl-replay" hidden>RETRY · X / X</button><button type="button" data-action="skipixl-continue" hidden>CONTINUE · SPACE / A</button><button type="button" data-action="skipixl-pause">PAUSE · P / START</button></footer>
           </section>
           <section class="qb-cabinet-ui" data-cabinet="fluxball" role="region" aria-label="Fluxball game" hidden>
             <header class="qb-fluxball-hud qb-visually-hidden">
@@ -1804,16 +1814,16 @@ function shellMarkup(): string {
             </header>
             <output class="qb-fluxball-notice qb-visually-hidden" data-fluxball="notice" aria-live="polite"></output>
             <div class="qb-fluxball-reveal" data-fluxball="reveal"></div>
-            <footer class="qb-fluxball-controls"><button type="button" data-action="cabinet-back" aria-label="BACK · ESC / B">ESC / B</button><span>MOVE · WASD / ↑↓←→</span><span data-fluxball="controls">CHANGE RULES · SPACE / A</span><button type="button" data-action="fluxball-replay" hidden>RETRY · X / X</button><button type="button" data-action="fluxball-continue" hidden>NEXT ROUND · SPACE / A</button><button type="button" data-action="fluxball-pause">PAUSE · P / START</button></footer>
+            <footer class="qb-fluxball-controls"><button type="button" data-action="cabinet-back" aria-label="BACK · ⌫ / B">BACK · ⌫ / B</button><span>MOVE · WASD / ↑↓←→</span><span data-fluxball="controls">CHANGE RULES · SPACE / A</span><button type="button" data-action="fluxball-replay" hidden>RETRY · X / X</button><button type="button" data-action="fluxball-continue" hidden>NEXT ROUND · SPACE / A</button><button type="button" data-action="fluxball-pause">PAUSE · P / START</button></footer>
           </section>
           <section class="qb-cabinet-ui" data-cabinet="quantman" role="region" aria-label="Quantman QPU-derived gaze maze" hidden>
             <header class="qb-quantman-hud qb-visually-hidden"><div><small>REMAINING</small><strong data-quantman="fragments">100</strong></div><div><span data-quantman="lives">LIVES 3</span><span data-quantman="state">SCORE 00000 · READY</span><span data-quantman="focus">GAZE READY · RECORDED IBM FEZ RETURN</span></div><div><small>MODE</small><strong data-quantman="time">HOLD</strong></div></header>
             <output class="qb-quantman-notice qb-visually-hidden" data-quantman="notice" aria-live="polite">RECORDED IBM FEZ RETURN READY</output>
-            <footer class="qb-quantman-controls"><button type="button" data-action="cabinet-back" aria-label="BACK · ESC / B">ESC / B</button><span>MOVE · WASD / ↑↓←→</span><button type="button" data-action="quantman-replay" hidden>RETRY · X / X</button><button type="button" data-action="quantman-continue" hidden>CONTINUE · SPACE / A</button><button type="button" data-action="quantman-pause">PAUSE · P / START</button></footer>
+            <footer class="qb-quantman-controls"><button type="button" data-action="cabinet-back" aria-label="BACK · ⌫ / B">BACK · ⌫ / B</button><span>MOVE · WASD / ↑↓←→</span><button type="button" data-action="quantman-replay" hidden>RETRY · X / X</button><button type="button" data-action="quantman-continue" hidden>CONTINUE · SPACE / A</button><button type="button" data-action="quantman-pause">PAUSE · P / START</button></footer>
           </section>
           <section class="qb-cabinet-ui" data-cabinet="quag" role="region" aria-label="Quarry directed aerial hunt arena" hidden>
             <div class="qb-visually-hidden"><h2>QUARRY</h2><p data-quag="score">YOU A0 · B0 C0 D0</p><p data-quag="time">100</p><p data-quag="phase">STATE 1</p><p data-quag="targets">NO TARGET</p><output data-quag="notice" aria-live="polite">READY · YOU ARE A</output></div>
-            <footer class="qb-qgraph-controls"><button type="button" data-action="cabinet-back" aria-label="BACK · ESC / B">ESC / B</button><span data-quag="controls">MOVE · A/D / ←→</span><span>FLAP · SPACE / A</span><button type="button" data-action="quag-replay" hidden>RETRY · X / X</button><button type="button" data-action="quag-continue" hidden>CONTINUE · SPACE / A</button><button type="button" data-action="quag-restart" hidden>RESTART · X / X</button><button type="button" data-action="quag-pause">PAUSE · P / START</button></footer>
+            <footer class="qb-qgraph-controls"><button type="button" data-action="cabinet-back" aria-label="BACK · ⌫ / B">BACK · ⌫ / B</button><span data-quag="controls">MOVE · A/D / ←→</span><span>FLAP · SPACE / A</span><button type="button" data-action="quag-replay" hidden>RETRY · X / X</button><button type="button" data-action="quag-continue" hidden>CONTINUE · SPACE / A</button><button type="button" data-action="quag-restart" hidden>RESTART · X / X</button><button type="button" data-action="quag-pause">PAUSE · P / START</button></footer>
           </section>
         </section>
       </div>
@@ -1902,7 +1912,7 @@ function storyStartMarkup(save: QuantumBoxSave): string {
 }
 
 function terminalFooterMarkup(): string {
-  return `<footer class="qb-terminal-footer"><button type="button" data-action="back" aria-label="BACK · ESC / B">ESC / B</button><button type="button" data-action="activate-page-control">SELECT · ENTER / A</button></footer>`;
+  return `<footer class="qb-terminal-footer"><button type="button" data-action="back" aria-label="BACK · ⌫ / B">BACK · ⌫ / B</button><span data-ui="selection-hint">SELECT · ENTER / A</span></footer>`;
 }
 
 function terminalIndexMarkup(save: QuantumBoxSave): string {
@@ -1970,7 +1980,7 @@ function terminalPageMarkup(
   const accessible = [...page.header, ...page.body]
     .join("\n\n")
     .replaceAll("\n", " ");
-  return `<article class="qb-page-panel qb-terminal-page" data-terminal-page="${escapeHtml(page.id)}" style="--story-gap: ${(storyTextLayout(page).gap / 1.8).toFixed(4)}cqh; --reading-top: ${(terminalBodyTop(page.header) / 1.8).toFixed(4)}cqh; --reading-rule: ${((terminalBodyTop(page.header) - 6) / 1.8).toFixed(4)}cqh" data-terminal-density="${terminalDensity(page)}" data-terminal-complete="${complete}" data-reduced-motion="${reducedMotion}" aria-label="${escapeHtml(accessible)}"><header aria-hidden="true">${visibleHeader.map((text) => terminalTextBlock(text)).join("")}${transcriptPosition}</header><div class="qb-terminal-top-rule" aria-hidden="true" data-visible="${headerFinished}"></div><div class="qb-terminal-reading"><section class="qb-terminal-body" aria-hidden="true">${visibleBody.map((text) => terminalTextBlock(text, true)).join("")}</section><div class="qb-terminal-actions">${actions}</div></div><p class="qb-visually-hidden">${escapeHtml(accessible)}</p></article>`;
+  return `<article class="qb-page-panel qb-terminal-page" data-terminal-page="${escapeHtml(page.id)}" style="--story-gap: ${(storyTextLayout(page).gap / 1.8).toFixed(4)}cqh; --reading-top: ${(terminalBodyTop(page.header) / 1.8).toFixed(4)}cqh; --reading-rule: ${((terminalBodyTop(page.header) - 6) / 1.8).toFixed(4)}cqh" data-terminal-density="${terminalDensity(page)}" data-terminal-complete="${complete}" data-reduced-motion="${reducedMotion}" aria-label="${escapeHtml(accessible)}"><header aria-hidden="true">${visibleHeader.map((text) => terminalTextBlock(text)).join("")}${transcriptPosition}</header><div class="qb-terminal-top-rule" aria-hidden="true" data-visible="${headerFinished}"></div><div class="qb-terminal-reading"><section class="qb-terminal-body" ${page.id === "postscript-2" ? "" : 'aria-hidden="true"'}>${visibleBody.map((text) => (page.id === "postscript-2" && text === "[MOTH]" ? `<button type="button" class="qb-postscript-link" data-action="postscript-moth" aria-label="MOTH · ENTER / A"><span data-bitmap-flow class="qb-terminal-prompt-label" style="width: ${(terminalTextWidth("MOTH") + 4) / 3.2}cqw">MOTH</span><span class="qb-terminal-cursor" aria-hidden="true"></span></button>` : terminalTextBlock(text, true))).join("")}</section><div class="qb-terminal-actions">${actions}</div></div><p class="qb-visually-hidden">${escapeHtml(accessible)}</p></article>`;
 }
 
 function terminalDensity(
@@ -2028,11 +2038,7 @@ function howToPlayMarkup(
   const qong = gameId === "qong";
   const title = qong ? "QONG · UNRESOLVED RULE" : "FLUXBALL · HIDDEN RULES";
   const lines = qong
-    ? [
-        "EVERY ROUND IS EITHER OPPOSITE GOAL OR OWN GOAL.",
-        "SPACE / A OBSERVES THE RULE EARLY. A GOAL-LINE CROSSING OBSERVES IT AUTOMATICALLY.",
-        "THREE SHARED REVEALS ACROSS SEVEN ROUNDS. EITHER PLAYER CAN USE ONE.",
-      ]
+    ? ARCADE_INSTRUCTIONS.qong
     : [
         "THE BALL MAY CROSS ANY PHYSICAL GOAL. THE HIDDEN GOAL RULE DECIDES WHO RECEIVES THE POINT.",
         "GLOBAL SHARES ONE RULE SET. INDIVIDUAL GIVES EACH PLAYER A COUPLED HIDDEN SET.",
@@ -2063,9 +2069,19 @@ function arcadeGameMarkup(gameId: ShippedArcadeCabinetId): string {
   const engineName =
     game.engineId === "graph-v1" ? "QGRAPH-V1" : game.engineId.toUpperCase();
   const engineLabel = `${game.model} / ${engineName}`;
-  const tutorial = ARCADE_INSTRUCTIONS[gameId]
-    .map((text) => terminalTextBlock(text, true))
-    .join("");
+  const blocks = ARCADE_INSTRUCTIONS[gameId];
+  const split = { qong: 4, skipixl: 1, quantman: 2, fluxball: 4, quarry: 2 }[
+    gameId
+  ];
+  const tutorial =
+    split === 0
+      ? blocks.map((text) => terminalTextBlock(text, true)).join("")
+      : [blocks.slice(0, split), blocks.slice(split)]
+          .map(
+            (column) =>
+              `<div class="qb-tutorial-column">${column.map((text) => terminalTextBlock(text, true)).join("")}</div>`,
+          )
+          .join("");
   return `<section class="qb-page-panel qb-arcade-detail qb-arcade-detail--${gameId}" data-arcade-detail="${gameId}" aria-labelledby="arcade-${gameId}" aria-describedby="arcade-${gameId}-source"><header class="qb-arcade-detail-header"><div><h1 id="arcade-${gameId}" tabindex="-1" ${bitmapTextAttribute(game.title)}>${escapeHtml(game.title)}</h1><p ${bitmapTextAttribute(engineLabel)}>${escapeHtml(engineLabel)}</p></div>${arcadePreview(gameId)}</header><div class="qb-arcade-detail-rule qb-terminal-top-rule" aria-hidden="true"></div><div class="qb-arcade-detail-body"><section class="qb-arcade-tutorial" aria-label="Tutorial">${tutorial}</section><section class="qb-arcade-trials" aria-label="${escapeHtml(game.title)} trials"><h2 data-bitmap-text="PLAY">PLAY</h2><div class="qb-arcade-launches">${game.arcadeModes
     .map((mode, index) => {
       const label = arcadeModeLabel(mode);
@@ -2138,18 +2154,19 @@ function arcadeScoreboardPageMarkup(
     request.gameId === "skipixl"
       ? `SKIPIXL · ${request.mode}`
       : `QUANTMAN · ${arcadeModeLabel(request.mode)}`;
-  const resultHeading =
-    request.gameId === "skipixl"
-      ? "TIME · MISSED · HITS"
-      : "SCORE · RESULT · MAZE";
-  const result = request.resultLabel
-    ? `<p class="qb-scoreboard-result">${escapeHtml(request.resultLabel)}</p>`
-    : "";
+  const resultHeading = request.gameId === "skipixl" ? "TIME" : "SCORE";
   const initials =
     request.initialsEditable && request.highlightRecordSequence !== null
       ? `<form class="qb-scoreboard-initials" data-arcade-score-form data-record-sequence="${request.highlightRecordSequence}"><span class="qb-scoreboard-initials-label">INITIALS</span><div class="qb-scoreboard-initial-slots" role="group" aria-label="Three character score initials">${[...initialsDraft].map((character, index) => `<button type="button" data-action="initials-slot" data-initial-slot="${index}" data-bitmap-text="${escapeHtml(character)}" aria-label="Initial ${index + 1}: ${escapeHtml(character)}. Up and down change character.">${escapeHtml(character)}</button>`).join("")}</div><input type="hidden" value="${escapeHtml(initialsDraft)}" data-arcade-score-initials/><button type="submit" data-action="save-initials">SAVE · ENTER / A</button><p class="qb-initials-help">UP / DOWN CHANGE · LEFT / RIGHT SLOT · ENTER / A NEXT</p></form>`
       : "";
-  return `<div class="qb-page-panel qb-scoreboard-page"><header><p class="qb-kicker">TOP FIVE</p><h1 tabindex="-1">${escapeHtml(title)}</h1></header><div class="qb-scoreboard-table" role="table" aria-label="${escapeHtml(title)} top five scores"><div class="qb-scoreboard-columns" role="row"><span role="columnheader">RANK</span><span role="columnheader">INITIALS</span><span role="columnheader">${resultHeading}</span></div><ol role="rowgroup">${rows.join("")}</ol></div>${result}${initials}<button class="qb-scoreboard-close" type="button" data-action="close-arcade-scores">ARCADE · ENTER / A</button></div>`;
+  if (initials) {
+    const rank = board.findIndex(
+      (entry) => entry.recordedSequence === request.highlightRecordSequence,
+    );
+    const entry = board[rank];
+    return `<div class="qb-page-panel qb-scoreboard-page qb-score-entry"><header><p class="qb-kicker">NEW HIGH SCORE</p><h1 tabindex="-1">${escapeHtml(title)}</h1></header><p class="qb-score-entry-result">${entry ? arcadeScoreResult(entry) : ""} · RANK ${rank + 1}</p>${initials}</div>`;
+  }
+  return `<div class="qb-page-panel qb-scoreboard-page qb-scoreboard-list"><header><h1 tabindex="-1">${escapeHtml(title)}</h1></header><div class="qb-scoreboard-table" role="table" aria-label="${escapeHtml(title)} top five scores"><div class="qb-scoreboard-columns" role="row"><span role="columnheader">RANK</span><span role="columnheader">INITIALS</span><span role="columnheader">${resultHeading}</span></div><ol role="rowgroup">${rows.join("")}</ol></div></div>`;
 }
 
 function arcadeScoreboardEntries(
@@ -2157,7 +2174,9 @@ function arcadeScoreboardEntries(
   save: QuantumBoxSave,
 ): readonly (SkiPixlArcadeRecord | QuantmanArcadeRecord)[] {
   if (request.gameId === "skipixl") {
-    return save.arcadeRecords.skipixl[skiPixlScoreDifficulty(request.mode)];
+    return [
+      ...save.arcadeRecords.skipixl[skiPixlScoreDifficulty(request.mode)],
+    ].sort((left, right) => left.officialTimeMs - right.officialTimeMs);
   }
   return quantmanArcadeOverallBoard(
     save.arcadeRecords,
@@ -2169,8 +2188,8 @@ function arcadeScoreResult(
   entry: SkiPixlArcadeRecord | QuantmanArcadeRecord,
 ): string {
   return entry.kind === "skipixl"
-    ? `${(entry.officialTimeMs / 1_000).toFixed(2)} · ${entry.missedGates} · ${entry.collisions}`
-    : `${String(entry.score).padStart(5, "0")} · ${entry.outcome === "won" ? "CLEAR" : "LOST"} · ${escapeHtml(entry.topologyLabel)}`;
+    ? `${(entry.officialTimeMs / 1_000).toFixed(2)} S`
+    : `${String(entry.score).padStart(5, "0")}`;
 }
 
 function skiPixlScoreDifficulty(mode: string): SkiPixlArcadeDifficulty {
@@ -2335,7 +2354,7 @@ function fluxballLobbyMarkup(
     })
     .join(
       "",
-    )}</div><p class="qb-fluxball-lobby-mode" data-bitmap-flow>${format.ruleMode.toUpperCase()} RULEFIELD · CPU FILLS OPEN SLOTS</p><footer class="qb-terminal-footer"><button type="button" data-action="lobby-cancel" aria-label="BACK · ESC / B">ESC / B</button><button type="button" data-action="lobby-start">START · ENTER / A</button></footer></div>`;
+    )}</div><p class="qb-fluxball-lobby-mode" data-bitmap-flow>${format.ruleMode.toUpperCase()} RULEFIELD · CPU FILLS OPEN SLOTS</p><footer class="qb-terminal-footer"><button type="button" data-action="lobby-cancel" aria-label="BACK · ⌫ / B">BACK · ⌫ / B</button><button type="button" data-action="lobby-start">START · ENTER / A</button></footer></div>`;
 }
 
 function volumeSetting(volume: number): string {

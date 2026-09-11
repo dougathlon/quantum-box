@@ -17,6 +17,8 @@ export type KeyboardBindings = Readonly<
 
 export const RESERVED_KEY_CODES = Object.freeze([
   "Escape",
+  "Backspace",
+  "Tab",
   "KeyP",
   "KeyM",
   "KeyX",
@@ -36,6 +38,38 @@ export const DEFAULT_KEYBOARD_BINDINGS: KeyboardBindings = deepFreeze({
 });
 
 export function validateKeyboardBindings(value: unknown): KeyboardBindings {
+  return validateBindings(value, RESERVED_KEY_CODES);
+}
+
+/** Preserve old saves while freeing the two newly reserved navigation keys. */
+export function restoreKeyboardBindings(value: unknown): KeyboardBindings {
+  const bindings = validateBindings(
+    value,
+    RESERVED_KEY_CODES.filter((code) => code !== "Backspace" && code !== "Tab"),
+  );
+  const used = new Set(Object.values(bindings).flatMap(Object.values));
+  const restored = Object.fromEntries(
+    KEYBOARD_PLAYERS.map((player) => [player, { ...bindings[player] }]),
+  ) as Record<PlayerId, Record<KeyboardControl, string>>;
+  for (const player of KEYBOARD_PLAYERS) {
+    for (const control of KEYBOARD_CONTROLS) {
+      if (!["Backspace", "Tab"].includes(restored[player][control])) continue;
+      const replacement = [
+        DEFAULT_KEYBOARD_BINDINGS[player][control],
+        ..."ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("").map((key) => `Key${key}`),
+      ].find((code) => !used.has(code) && !RESERVED_KEY_CODES.includes(code));
+      if (!replacement) throw new Error("No unused keyboard binding remains.");
+      restored[player][control] = replacement;
+      used.add(replacement);
+    }
+  }
+  return validateKeyboardBindings(restored);
+}
+
+function validateBindings(
+  value: unknown,
+  reservedKeys: readonly string[],
+): KeyboardBindings {
   if (!isRecord(value)) throw new Error("Keyboard bindings are incomplete.");
   const seen = new Set<string>();
   const result = {} as Record<PlayerId, PlayerKeyboardBindings>;
@@ -50,7 +84,7 @@ export function validateKeyboardBindings(value: unknown): KeyboardBindings {
       if (typeof code !== "string" || code.length === 0) {
         throw new Error(`Player ${playerId} ${control} binding is invalid.`);
       }
-      if (RESERVED_KEY_CODES.includes(code)) {
+      if (reservedKeys.includes(code)) {
         throw new Error(
           `${displayKeyCode(code)} is reserved for system control.`,
         );

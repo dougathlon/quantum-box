@@ -1,0 +1,603 @@
+[
+  {
+    "id": "intro-1",
+    "header": [
+      "QUANTUM BOX",
+      "DEMONSTRATION PROGRAM",
+      "QBOX> RUN DEMO",
+      "5 PROGRAMS FOUND",
+      "DEMO SEQUENCE LOADED"
+    ],
+    "body": [
+      "WELCOME TO QUANTUM BOX.",
+      "INSIDE, YOU WILL FIND THE FUTURE OF ENTERTAINMENT.",
+      "FIVE GAMES\nFIVE EXPERIENCES\nFIVE WAYS TO PLAY WITH THE POWER OF QUANTUM COMPUTING.",
+      "THANK YOU FOR TAKING THE TIME TO\nREVIEW THIS PRODUCT DEMONSTRATION."
+    ],
+    "actions": ["CONTINUE"]
+  },
+  {
+    "id": "intro-2",
+    "header": ["QUANTUM BOX", "DEMONSTRATION PROGRAM"],
+    "body": [
+      "I KNOW WHAT YOU’RE THINKING:\nQUANTUM COMPUTERS HAVE BEEN BUILT FOR SERIOUS WORK.",
+      "SCIENCE\nINDUSTRY\nSIMULATION\nOPTIMIZATION",
+      "ISN’T IT A BIT SILLY TO USE THEM TO PLAY GAMES?"
+    ],
+    "actions": ["CONTINUE"]
+  },
+  {
+    "id": "intro-3",
+    "header": ["QUANTUM BOX", "DEMONSTRATION PROGRAM"],
+    "body": [
+      "BUT IT WAS PLAY, NOT WORK, THAT TURNED MAINFRAME\nMONOLITHS INTO CONSUMER PRODUCTS.",
+      "HIPPIES HACKING SPACEWAR! MADE COMPUTERS COOL.\nARCADES DEMANDING COINS MADE COMPUTERS COMMERCIAL.\nCONSOLES COMING HOME MADE COMPUTERS PART OF LIFE.",
+      "THE VIDEO GAME MADE CLASSICAL COMPUTING PERSONAL.\nIT’S TIME FOR QUANTUM TO HAVE ITS MAGNAVOX ODYSSEY MOMENT."
+    ],
+    "actions": ["CONTINUE"]
+  },
+  {
+    "id": "qong-intro",
+    "header": [
+      "QUANTUM BOX",
+      "PROGRAM 01 / QONG",
+      "QBOX> LOAD coin-toss-v1",
+      "ENGINE ................. COIN TOSS",
+      "RESULT BANK ............ LOADED",
+      "PROGRAM ................ READY"
+    ],
+    "body": [
+      "LET'S START WITH SOMETHING EVERYONE KNOWS.",
+      "PONG HAS A BALL,\nTWO PADDLES,\nAND TWO GOALS.",
+      "I'VE CHANGED ONE THING (OTHER THAN THE FIRST LETTER).",
+      "THE QUANTUM COMPUTER DECIDES WHAT A GOAL MEANS."
+    ],
+    "actions": ["CONTINUE"]
+  },
+  {
+    "id": "qong-tutorial",
+    "header": ["QUANTUM BOX", "PROGRAM 01 / TUTORIAL"],
+    "body": [
+      "EACH ROUND USES ONE OF TWO RULES.",
+      "OPPOSITE:\nSCORE THROUGH THE OTHER GOAL.",
+      "OWN:\nSCORE THROUGH YOUR OWN GOAL.",
+      "THE RULE BEGINS UNRESOLVED.",
+      "PRESS ACTION TO OBSERVE THE RULE.",
+      "YOU GET THREE OBSERVATIONS\nACROSS SEVEN ROUNDS.",
+      "OTHERWISE, YOU'LL HAVE TO WAIT FOR\nA GOAL TO FIND OUT WHO SCORED."
+    ],
+    "actions": ["PLAY"]
+  },
+  {
+    "id": "qong-loss-first",
+    "header": ["QUANTUM BOX", "PROGRAM 01 / QONG"],
+    "body": [
+      "TRY THAT AGAIN.",
+      "OPPOSITE:\nSCORE THROUGH THE OTHER GOAL.",
+      "OWN:\nSCORE THROUGH YOUR OWN GOAL.",
+      "PRESS ACTION TO OBSERVE THE RULE.",
+      "THREE OBSERVATIONS\nACROSS SEVEN ROUNDS."
+    ],
+    "actions": ["RETRY"]
+  },
+  {
+    "id": "qong-loss-later",
+    "header": ["QUANTUM BOX", "PROGRAM 01 / QONG"],
+    "body": ["ALRIGHT, YOU GET THE IDEA."],
+    "actions": ["RETRY", "CONTINUE"]
+  },
+  {
+    "id": "qong-success",
+    "header": ["QUANTUM BOX", "PROGRAM 01 / QONG"],
+    "body": ["WELL DONE."],
+    "actions": ["CONTINUE"]
+  },
+  {
+    "id": "qong-debrief-1",
+    "header": ["QUANTUM BOX", "PROGRAM 01 / QONG"],
+    "body": [
+      "THE BALL CAN CROSS A LINE\nBEFORE YOU KNOW\nWHAT THAT CROSSING MEANS.",
+      "TWO POSSIBLE OUTCOMES.\nEACH EQUALLY LIKELY.",
+      "ONLY WHEN THE QUBIT\nIS MEASURED\nDO YOU FIND OUT\nWHAT HAPPENED.",
+      "THINK WHAT YOU COULD DO\nWITH THAT."
+    ],
+    "actions": ["CONTINUE"]
+  },
+  {
+    "id": "qong-debrief-2",
+    "header": ["QUANTUM BOX", "PROGRAM 01 / QONG"],
+    "body": [
+      "YES, I KNOW.",
+      "IT SOUNDS JUST LIKE\nA COIN TOSS.",
+      "BUT THIS IS TRUE RANDOMNESS!\nQRNG™ (QUANTUM RANDOM NUMBER GENERATION)!",
+      "BESIDES,\nI HAVE SOME MORE THINGS\nTO SHOW YOU."
+    ],
+    "actions": ["CONTINUE"]
+  },
+  {
+    "id": "load-skipixl",
+    "header": ["QBOX> LOAD PROGRAM 02"],
+    "body": ["SKIPIXL ................. LOADING"],
+    "actions": ["CONTINUE"]
+  },
+  {
+    "id": "skipixl-intro",
+    "header": [
+      "QUANTUM BOX",
+      "PROGRAM 02 / SKIPIXL",
+      "QBOX> LOAD qpixl-v1",
+      "ENGINE ................. QPIXL",
+      "RESULT FIELD ........... LOADED",
+      "PROGRAM ................ READY"
+    ],
+    "body": [
+      "ONE QUANTUM RESULT\nCAN DECIDE AN OUTCOME.",
+      "BUT WHY STOP THERE?",
+      "THE QPIXL ENGINE RETURNS\nA WHOLE FIELD OF VALUES.",
+      "ENOUGH TO BUILD\nTHE WORLD YOU CAN PLAY IN.",
+      "SO I MADE A SKI SLOPE."
+    ],
+    "actions": ["CONTINUE"]
+  },
+  {
+    "id": "skipixl-feasible-tutorial",
+    "header": ["QUANTUM BOX", "PROGRAM 02 / TUTORIAL"],
+    "body": [
+      "GET TO THE BOTTOM\nBEFORE THE TIMER RUNS OUT.",
+      "PASS THROUGH THE GATES.",
+      "LEFT / RIGHT:\nTURN.",
+      "DOWN:\nGO FASTER.",
+      "YOU HAVE 60 SECONDS."
+    ],
+    "actions": ["PLAY"]
+  },
+  {
+    "id": "skipixl-feasible-response",
+    "header": ["QUANTUM BOX", "PROGRAM 02 / SKIPIXL"],
+    "body": [
+      "I STARTED WITH A GRID OF PIXEL VALUES.\nI SENT IT THROUGH THE QUANTUM COMPUTER.",
+      "WHAT CAME BACK WASN’T QUITE WHAT WENT IN.\nSO I TOOK THE DIFFERENCE.",
+      "WHERE THE VALUES CHANGED MOST,\nI PUT SOMETHING IN YOUR WAY.",
+      "TREES.\nMOGULS.",
+      "THEN I SET A COURSE THROUGH THEM.",
+      "QTG™!\n(QUANTUM TERRAIN GENERATION)."
+    ],
+    "actions": ["CONTINUE"]
+  },
+  {
+    "id": "skipixl-overloaded-intro",
+    "header": ["QUANTUM BOX", "PROGRAM 02 / SKIPIXL"],
+    "body": [
+      "THAT WAS THE SENSIBLE VERSION.",
+      "THEN I WONDERED\nWHAT WOULD HAPPEN\nIF I USED MORE OF THE FIELD.",
+      "QUITE A LOT MORE."
+    ],
+    "actions": ["CONTINUE"]
+  },
+  {
+    "id": "skipixl-overloaded-tutorial",
+    "header": ["QUANTUM BOX", "PROGRAM 02 / TUTORIAL"],
+    "body": [
+      "SAME RULES.",
+      "GET TO THE BOTTOM.",
+      "PASS THROUGH THE GATES.",
+      "LEFT / RIGHT:\nTURN.",
+      "DOWN:\nGO FASTER.",
+      "60 SECONDS."
+    ],
+    "actions": ["PLAY"]
+  },
+  {
+    "id": "skipixl-overloaded-success",
+    "header": ["QUANTUM BOX", "PROGRAM 02 / SKIPIXL"],
+    "body": ["YOU ACTUALLY MADE IT.", "I'M IMPRESSED.", "WAS IT... ENJOYABLE?"],
+    "actions": ["CONTINUE"]
+  },
+  {
+    "id": "skipixl-overloaded-failure",
+    "header": ["QUANTUM BOX", "PROGRAM 02 / SKIPIXL"],
+    "body": ["SORRY.", "I MAY HAVE PUSHED\nTHAT ONE\nA LITTLE TOO FAR."],
+    "actions": ["CONTINUE"]
+  },
+  {
+    "id": "skipixl-debrief-1",
+    "header": ["QUANTUM BOX", "PROGRAM 02 / SKIPIXL"],
+    "body": [
+      "OBVIOUSLY,\nTHIS IS JUST AN EXPERIMENT.",
+      "I DON'T ACTUALLY THINK\nTHE BEST USE OF QPIXL\nIS FILLING A SKI SLOPE\nWITH TREES.",
+      "IT'S MUCH BETTER\nWITH IMAGES."
+    ],
+    "actions": ["CONTINUE"]
+  },
+  {
+    "id": "skipixl-debrief-2",
+    "header": ["QUANTUM BOX", "PROGRAM 02 / SKIPIXL"],
+    "body": [
+      "IN FACT,\nTHE BACKGROUND YOU'VE BEEN\nLOOKING AT THIS WHOLE TIME\nIS BUILT FROM QPIXL DATA.",
+      "YOU CAN SEE MORE\nIN SETTINGS.",
+      "THEY’RE RATHER IMPRESSIVE.",
+      "RIGHT?"
+    ],
+    "actions": ["CONTINUE"]
+  },
+  {
+    "id": "load-quantman",
+    "header": ["QBOX> LOAD PROGRAM 03"],
+    "body": ["QUANTMAN ............... LOADING"],
+    "actions": ["CONTINUE"]
+  },
+  {
+    "id": "quantman-intro",
+    "header": [
+      "QUANTUM BOX",
+      "PROGRAM 03 / QUANTMAN",
+      "QBOX> LOAD labyrinth-v1",
+      "ENGINE ................. LABYRINTH",
+      "MAZE BANK .............. LOADED",
+      "PROGRAM ................ READY"
+    ],
+    "body": [
+      "WITH SKIPIXL, THE QUANTUM DATA\nBUILT THE COURSE BEFORE YOU ARRIVED.\nHOWEVER SURPRISING IT WAS, THE LEVEL STAYED THE SAME.\nAND NOTHING YOU DID COULD CHANGE HOW IT WORKED.",
+      "QUANTMAN IS DIFFERENT.\nTHE LEVEL CHANGES WHILE YOU'RE INSIDE IT.\nAND WHAT YOU DO CHANGES THE LEVEL."
+    ],
+    "actions": ["CONTINUE"]
+  },
+  {
+    "id": "quantman-tutorial",
+    "header": ["QUANTUM BOX", "PROGRAM 03 / TUTORIAL"],
+    "body": [
+      "CLEAR THE MAZE.",
+      "EAT THE DOTS.\nAVOID THE GHOSTS.",
+      "WHAT YOU FACE\nSTAYS AS IT IS.",
+      "LOOK AWAY\nAND IT MIGHT NOT STAY.",
+      "USE YOUR GAZE\nTO HOLD A ROUTE OPEN\nOR KEEP A WALL CLOSED."
+    ],
+    "actions": ["PLAY"]
+  },
+  {
+    "id": "quantman-loss-first",
+    "header": ["QUANTUM BOX", "PROGRAM 03 / QUANTMAN"],
+    "body": [
+      "TRY IT AGAIN.",
+      "DON'T JUST REMEMBER\nTHE MAZE.",
+      "MANAGE IT\nWITH YOUR GAZE."
+    ],
+    "actions": ["RETRY"]
+  },
+  {
+    "id": "quantman-loss-later",
+    "header": ["QUANTUM BOX", "PROGRAM 03 / QUANTMAN"],
+    "body": ["ALRIGHT.", "I THINK YOU GET THE IDEA."],
+    "actions": ["RETRY", "CONTINUE"]
+  },
+  {
+    "id": "quantman-success",
+    "header": ["QUANTUM BOX", "PROGRAM 03 / QUANTMAN"],
+    "body": ["WELL DONE."],
+    "actions": ["CONTINUE"]
+  },
+  {
+    "id": "quantman-explain-1",
+    "header": ["QUANTUM BOX", "PROGRAM 03 / QUANTMAN"],
+    "body": [
+      "If YOU THINK ABOUT IT,\nA MAZE IS REALLY\nA PATTERN OF CONNECTIONS.",
+      "THIS SPACE LEADS TO THAT ONE.",
+      "THAT ONE DOESN’T LEAD TO THIS SPACE.",
+      "CHANGE THE CONNECTIONS\nAND YOU CHANGE THE MAZE."
+    ],
+    "actions": ["CONTINUE"]
+  },
+  {
+    "id": "quantman-explain-2",
+    "header": ["QUANTUM BOX", "PROGRAM 03 / QUANTMAN"],
+    "body": [
+      "IN QUANTMAN,\nEACH OF 100 SPATIAL UNITS CORRESPONDS\nTO A QUBIT (QUANTUM BIT)",
+      "IN A MEASURED PATTERN, EACH SPACE GETS A 0 OR 1.",
+      "MATCHING NEIGHBOURS = PASSAGE.\nDIFFERENT NEIGHBOURS = WALL.",
+      "ONE PATTERN GIVES A COMPLETE MAZE."
+    ],
+    "actions": ["CONTINUE"]
+  },
+  {
+    "id": "quantman-explain-3",
+    "header": ["QUANTUM BOX", "PROGRAM 03 / QUANTMAN"],
+    "body": [
+      "DURING PLAY,\nTHE GAME KEEPS CYCLING\nTHROUGH THOSE CONFIGURATIONS.",
+      "YOUR GAZE SETS\nA CONDITION:",
+      "WHATEVER COMES NEXT,\nWHAT YOU'RE LOOKING AT\nHAS TO STAY THE SAME."
+    ],
+    "actions": ["CONTINUE"]
+  },
+  {
+    "id": "quantman-explain-5",
+    "header": ["QUANTUM BOX", "PROGRAM 03 / QUANTMAN"],
+    "body": [
+      "MAYBE QUANTUM COMPUTING\nDOESN'T JUST GIVE US\nNEW THINGS TO PLAY WITH.",
+      "MAYBE IT GIVES US\nNEW ROLES TO PLAY.",
+      "IN QUANTMAN,\nYOU PLAY THE OBSERVER.",
+      "QRP™!",
+      "QUANTUM ROLEPLAY!"
+    ],
+    "actions": ["CONTINUE"]
+  },
+  {
+    "id": "load-fluxball",
+    "header": ["QBOX> LOAD PROGRAM 04"],
+    "body": ["FLUXBALL ................ LOADING"],
+    "actions": ["CONTINUE"]
+  },
+  {
+    "id": "fluxball-intro",
+    "header": [
+      "QUANTUM BOX",
+      "PROGRAM 04 / FLUXBALL",
+      "QBOX> LOAD graph-v1",
+      "ENGINE ................. QGRAPH",
+      "RESULT BANK ............ LOADED",
+      "PROGRAM ................ READY"
+    ],
+    "body": [
+      "USUALLY, WHEN YOU START A GAME,\nYOU KNOW THE RULES.",
+      "WHAT YOU DON'T KNOW\nIS HOW IT WILL END.",
+      "BUT WHAT IF THE RULES\nWERE UNCERTAIN TOO?",
+      "NOT JUST WHO WINS.",
+      "HOW YOU MOVE.\nWHAT YOU CAN DO.\nWHAT COUNTS AS WINNING."
+    ],
+    "actions": ["CONTINUE"]
+  },
+  {
+    "id": "fluxball-shared-intro",
+    "header": ["QUANTUM BOX", "PROGRAM 04 / FLUXBALL"],
+    "body": [
+      "GAMES ARE MADE OF RULES.",
+      "CHANGE THE RULES\nAND YOU CHANGE THE GAME.",
+      "SO LET'S TRY GENERATING THOSE.",
+      "I'VE STARTED WITH SOMETHING SIMPLE:\nTWO PLAYERS AND A BALL.",
+      "YOU BOTH PLAY BY THE SAME RULES.",
+      "I JUST HAVEN'T TOLD YOU\nWHAT THEY ARE."
+    ],
+    "actions": ["CONTINUE"]
+  },
+  {
+    "id": "fluxball-global-pre",
+    "header": ["QUANTUM BOX", "PROGRAM 04 / TUTORIAL"],
+    "body": [
+      "MOVE:\nDIRECT OR INVERTED.",
+      "TOUCH THE BALL:\nCARRY IT OR STRIKE IT.",
+      "SCORE:\nTHROUGH THE OPPOSITE GOAL\nOR YOUR OWN.",
+      "TEST WHAT WORKS.\nWATCH WHAT HAPPENS.",
+      "PRESS ACTION TO CHANGE THE RULES.",
+      "ONE CHANGE PER ROUND.\nSHARED BETWEEN BOTH PLAYERS.\nFIRST TO PRESS USES IT.",
+      "THREE 40-SECOND ROUNDS.\nWIN MORE ROUNDS TO WIN THE MATCH."
+    ],
+    "actions": ["PLAY"]
+  },
+  {
+    "id": "fluxball-global-post-win",
+    "header": ["QUANTUM BOX", "PROGRAM 04 / FLUXBALL"],
+    "body": ["WELL DONE.", "SHALL WE MAKE IT\nMORE INTERESTING?"],
+    "actions": ["CONTINUE"]
+  },
+  {
+    "id": "fluxball-global-post-loss",
+    "header": ["QUANTUM BOX", "PROGRAM 04 / FLUXBALL"],
+    "body": [
+      "ANOTHER GO?",
+      "OR SHALL WE MAKE THINGS\nA LITTLE MORE INTERESTING?"
+    ],
+    "actions": ["RETRY", "CONTINUE"]
+  },
+  {
+    "id": "fluxball-split-intro",
+    "header": ["QUANTUM BOX", "PROGRAM 04 / FLUXBALL"],
+    "body": [
+      "SO FAR, ONE RULEBOOK.\nBOTH PLAYERS FOLLOW IT.",
+      "BUT WHY SHOULD THEY?",
+      "WHAT IF YOU COULD CARRY THE BALL,\nWHILE I COULD ONLY STRIKE IT?",
+      "WHAT IF THE GOAL THAT SCORED FOR YOU\nALSO SCORED FOR ME?",
+      "SAME BALL.\nSAME FIELD.",
+      "DIFFERENT GAMES."
+    ],
+    "actions": ["CONTINUE"]
+  },
+  {
+    "id": "fluxball-individual-pre",
+    "header": ["QUANTUM BOX", "PROGRAM 04 / TUTORIAL"],
+    "body": [
+      "NOW EACH PLAYER HAS THEIR OWN\nMOVEMENT, BALL AND SCORING RULES.",
+      "WHAT WORKS FOR THE OTHER PLAYER\nMAY NOT WORK FOR YOU.",
+      "FIND OUT BY PLAYING.",
+      "WATCH YOUR SCORE:\nA GOAL CAN BENEFIT BOTH OF YOU.",
+      "ACTION CHANGES BOTH PLAYERS' RULES.",
+      "ONE SHARED CHANGE PER ROUND.",
+      "SAME MATCH:\nTHREE 40-SECOND ROUNDS."
+    ],
+    "actions": ["PLAY"]
+  },
+  {
+    "id": "fluxball-individual-post-win",
+    "header": ["QUANTUM BOX", "PROGRAM 04 / FLUXBALL"],
+    "body": ["WELL DONE.", "LET ME SHOW YOU\nHOW I PUT THAT TOGETHER."],
+    "actions": ["CONTINUE"]
+  },
+  {
+    "id": "fluxball-individual-post-loss",
+    "header": ["QUANTUM BOX", "PROGRAM 04 / FLUXBALL"],
+    "body": [
+      "WE CAN TRY THAT AGAIN.",
+      "OR I CAN SHOW YOU\nHOW I PUT IT TOGETHER."
+    ],
+    "actions": ["RETRY", "CONTINUE"]
+  },
+  {
+    "id": "fluxball-explain-1",
+    "header": ["QUANTUM BOX", "PROGRAM 04 / FLUXBALL"],
+    "body": [
+      "YOU WERE SHARING A WORLD\nWITHOUT NECESSARILY\nPLAYING THE SAME GAME.",
+      "I USED THE QUANTUM GRAPH ENGINE\nTO RECORD MEASUREMENT RESULTS\nFOR BOTH PLAYERS TOGETHER.",
+      "EACH RESULT CONTAINS\nA VALUE FOR EACH PLAYER.",
+      "THE GAME DRAWS WHOLE PAIRS\nFROM THOSE RECORDED DISTRIBUTIONS.",
+      "ONE PAIR FOR MOVEMENT.\nONE FOR THE BALL.\nONE FOR SCORING."
+    ],
+    "actions": ["CONTINUE"]
+  },
+  {
+    "id": "fluxball-explain-2",
+    "header": ["QUANTUM BOX", "PROGRAM 04 / FLUXBALL"],
+    "body": [
+      "IN THE FIRST VERSION,\nI COMBINED EACH PAIR\nINTO A RULE YOU BOTH FOLLOWED.",
+      "IN THE SECOND,\nEACH PLAYER GOT THEIR OWN\nPART OF THE PAIR.",
+      "I STILL WROTE THE POSSIBLE RULES.",
+      "THE QUANTUM RESULTS DETERMINE\nHOW THEY'RE COMBINED\nAND DISTRIBUTED BETWEEN PLAYERS.",
+      "I CALL THIS QGG™!\nQUANTUM GAME GENERATION.",
+      "THIS BALL GAME IS JUST THE START.",
+      "IMAGINE THE POSSIBILITIES!"
+    ],
+    "actions": ["CONTINUE"]
+  },
+  {
+    "id": "load-quarry",
+    "header": ["QBOX> LOAD PROGRAM 05"],
+    "body": ["QUARRY ................. LOADING"],
+    "actions": ["CONTINUE"]
+  },
+  {
+    "id": "quarry-intro",
+    "header": [
+      "QUANTUM BOX",
+      "PROGRAM 05 / QUARRY",
+      "QBOX> LOAD graph-v1",
+      "ENGINE ................. QGRAPH",
+      "RESULT BANK ............ LOADED",
+      "PROGRAM ................ READY"
+    ],
+    "body": [
+      "ONE LAST GAME.",
+      "IN FLUXBALL,\nWE CHANGED THE RULES\nBETWEEN PLAYERS.",
+      "NOW LET'S CHANGE\nWHAT THEY ARE\nTO ONE ANOTHER.",
+      "SOMEONE CHASES.\nSOMEONE IS CHASED.",
+      "I TRIED IT WITH DUCKS."
+    ],
+    "actions": ["CONTINUE"]
+  },
+  {
+    "id": "quarry-tutorial",
+    "header": ["QUANTUM BOX", "PROGRAM 05 / TUTORIAL"],
+    "body": [
+      "LEFT / RIGHT:\nMOVE.",
+      "ACTION:\nFLAP.",
+      "WATCH WHO YOU HUNT\nAND WHO HUNTS YOU.",
+      "CATCH YOUR QUARRY\nFROM ABOVE TO SCORE.",
+      "KEEP YOUR HUNTERS\nFROM GETTING ABOVE YOU.",
+      "THE RELATIONSHIPS CHANGE\nEVERY 12 SECONDS.",
+      "YOU CAN BE SOMEONE'S HUNTER\nAND SOMEONE ELSE'S QUARRY\nAT THE SAME TIME."
+    ],
+    "actions": ["CONTINUE"]
+  },
+  {
+    "id": "quarry-pre",
+    "header": ["QUANTUM BOX", "PROGRAM 05 / TUTORIAL"],
+    "body": [
+      "THREE 60-SECOND ROUNDS.",
+      "EACH CATCH EARNS A POINT.",
+      "MOST POINTS IN A ROUND\nEARNS ONE ROUND WIN.",
+      "TIED LEADERS\nEACH EARN A WIN.",
+      "POINTS RESET.\nROUND WINS STAY.",
+      "WIN THE MOST ROUNDS\nTO WIN THE MATCH."
+    ],
+    "actions": ["PLAY"]
+  },
+  {
+    "id": "quarry-post-win",
+    "header": ["QUANTUM BOX", "PROGRAM 05 / QUARRY"],
+    "body": ["WELL DONE.", "ONE MORE THING\nABOUT THE DUCKS."],
+    "actions": ["CONTINUE"]
+  },
+  {
+    "id": "quarry-post-loss",
+    "header": ["QUANTUM BOX", "PROGRAM 05 / QUARRY"],
+    "body": ["ANOTHER GO?", "OR SHALL I EXPLAIN\nTHE DUCKS?"],
+    "actions": ["RETRY", "CONTINUE"]
+  },
+  {
+    "id": "quarry-explain-1",
+    "header": ["QUANTUM BOX", "PROGRAM 05 / QUARRY"],
+    "body": [
+      "REMEMBER QUANTMAN?",
+      "WE COMPARED NEIGHBOURING BITS\nTO MAKE PASSAGES AND WALLS.",
+      "HERE, EACH BIT STANDS\nFOR A RELATIONSHIP.",
+      "FOUR DUCKS.\nTWELVE POSSIBLE DIRECTIONS\nOF PURSUIT.",
+      "A HUNTS B.\nB HUNTS A.",
+      "TWO DIFFERENT BITS.",
+      "1: THE LINK IS ON.\n0: THE LINK IS OFF."
+    ],
+    "actions": ["CONTINUE"]
+  },
+  {
+    "id": "quarry-explain-2",
+    "header": ["QUANTUM BOX", "PROGRAM 05 / QUARRY"],
+    "body": [
+      "I USED THE QUANTUM GRAPH ENGINE\nTO RECORD TWELVE-BIT\nMEASUREMENT RESULTS.",
+      "EACH RESULT DEFINES\nA WHOLE PATTERN OF PURSUIT.",
+      "THE GAME DRAWS FROM\nTHOSE RECORDED PATTERNS,\nWEIGHTED BY HOW OFTEN\nTHEY APPEARED.",
+      "NOT A SEPARATE DRAW\nFOR EVERY DUCK.",
+      "ONE PATTERN THAT DETERMINES\nWHO HUNTS WHOM."
+    ],
+    "actions": ["CONTINUE"]
+  },
+  {
+    "id": "quarry-explain-3",
+    "header": ["QUANTUM BOX", "PROGRAM 05 / QUARRY"],
+    "body": [
+      "A HUNTS B.\nC HUNTS A.",
+      "A IS BOTH\nHUNTER AND QUARRY.",
+      "I DIDN'T ASSIGN A ROLE\nAND THEN FIND IT A RELATIONSHIP.",
+      "THE RELATIONSHIPS\nDETERMINE THE ROLE.",
+      "THE RELATIONS\nDETERMINE THE RELATA.",
+      "QRG™!\nQUANTUM ROLE GENERATION.",
+      "NOT JUST WHAT YOU CAN DO.",
+      "WHAT YOU ARE\nTO ONE ANOTHER."
+    ],
+    "actions": ["CONTINUE"]
+  },
+  {
+    "id": "ending-1",
+    "header": ["QUANTUM BOX", "DEMONSTRATION PROGRAM"],
+    "body": [
+      "FIVE GAMES.",
+      "I HOPE YOU CAN SEE\nMORE THAN FIVE GAMES HERE.",
+      "AN OPPORTUNITY\nTO MAKE QUANTUM COMPUTING\nPERSONAL.",
+      "A WHOLE NEW MARKET\nFOR A WHOLE NEW KIND\nOF ENTERTAINMENT.",
+      "QUANTUM BOX\nIN HOMES ALL OVER THE WORLD."
+    ],
+    "actions": ["CONTINUE"]
+  },
+  {
+    "id": "ending-2",
+    "header": ["QUANTUM BOX", "DEMONSTRATION PROGRAM"],
+    "body": [
+      "I'M ASKING FOR AN INVESTMENT\nOF APPROXIMATELY [REDACTED]\nTO GET THINGS UP AND RUNNING.",
+      "MOST OF THAT WILL GO TOWARDS\nACQUIRING THE QUANTUM DATA\nTHAT POWERS THE GAMES.",
+      "ONCE WE HAVE THAT PIPELINE\nIN PLACE,\nWE CAN BUILD ON IT.",
+      "MORE GAMES.\nOTHER APPLICATIONS.",
+      "A PLATFORM FOR QUANTUM CREATIVITY"
+    ],
+    "actions": ["CONTINUE"]
+  },
+  {
+    "id": "ending-3",
+    "header": ["QUANTUM BOX", "DEMONSTRATION PROGRAM"],
+    "body": [
+      "THANK YOU FOR YOUR TIME.",
+      "YOU CAN CONTACT ME AT [REDACTED]",
+      "I LOOK FORWARD\nTO DISCUSSING\nTHE NEXT STEPS."
+    ],
+    "actions": ["CONTINUE"]
+  },
+  {
+    "id": "ending-4",
+    "header": ["QUANTUM BOX", "DEMONSTRATION COMPLETE"],
+    "body": ["QBOX> END DEMO"],
+    "actions": ["CONTINUE"]
+  }
+]

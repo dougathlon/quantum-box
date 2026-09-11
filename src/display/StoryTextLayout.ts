@@ -1,41 +1,27 @@
 import type { StoryTerminalPage } from "../story/terminal/types";
 import { readingPages } from "./ReadingPages";
 
-// Reviewed prose wraps from the original narrow display. Paragraph boundaries
-// remain intact; omitted blocks keep their deliberate stacked presentation.
-const SOFT_BREAK_BLOCKS: Readonly<Record<string, readonly number[]>> = {
-  "intro-1": [1],
-  "intro-2": [0, 2],
-  "intro-3": [0, 1],
-  "qong-intro": [0, 1, 2, 3],
-  "qong-tutorial": [0, 1, 2, 5, 6],
-  "qong-loss-first": [1, 2, 4],
-  "qong-debrief-1": [0, 2, 3],
-  "qong-debrief-2": [1, 3],
-  "skipixl-intro": [0, 2, 3],
-  "skipixl-feasible-tutorial": [0, 2, 3],
-  "skipixl-feasible-response": [1, 2, 3],
-  "skipixl-overloaded-intro": [1],
-  "skipixl-overloaded-tutorial": [3, 4],
-  "skipixl-overloaded-failure": [1],
-  "skipixl-debrief-1": [0, 1, 2],
-  "skipixl-debrief-2": [0, 1],
-  "quantman-intro": [0, 1, 2],
-  "quantman-tutorial": [2, 3, 4],
-  "quantman-loss-first": [1, 2],
-  "quantman-success": [1],
-  "quantman-explain-1": [0, 1, 2, 4],
-  "quantman-explain-2": [0, 1, 2, 3, 4],
-  "quantman-explain-3": [0, 1, 2],
-  "quantman-explain-4": [0, 4],
-  "quantman-explain-5": [0, 1, 2, 5],
+// Keep deliberate lists stacked; prose reflows without changing its wording.
+const STACKED_BLOCKS: Readonly<Record<string, readonly number[]>> = {
+  "intro-1": [2],
+  "intro-2": [0, 1],
+  "qong-debrief-2": [2],
+  "quantman-explain-2": [2],
+  "qong-intro": [1],
+  "skipixl-feasible-response": [3],
+  "skipixl-feasible-failure": [3],
 };
 export function storyReadingBlocks(page: StoryTerminalPage): readonly string[] {
-  return page.body.map((block, index) =>
-    SOFT_BREAK_BLOCKS[page.id]?.includes(index)
-      ? block.replaceAll("\n", " ")
-      : block,
+  const blocks = page.body.map((block, index) =>
+    STACKED_BLOCKS[page.id]?.includes(index)
+      ? block
+      : block.replaceAll("\n", " "),
   );
+  // The concluding invitation is one thought; joining it keeps the complete
+  // explanation on one screen at the established reading size.
+  if (page.id === "fluxball-explain-2" && blocks.length === 7)
+    return [...blocks.slice(0, -2), blocks.slice(-2).join(" ")];
+  return blocks;
 }
 export function storyBodyTop(header: readonly string[]): number {
   return (

@@ -109,3 +109,15 @@ it("keeps Fluxball score glyph widths and heights uniform without changing the d
     ),
   ).toBe(true);
 });
+
+it("renders a distinct Backspace key glyph in both lettering sizes", async () => {
+  const { TERMINAL_GLYPHS, terminalGlyphRects, terminalTextWidth } =
+    await import("../../src/display/TerminalTypeface");
+  expect(TERMINAL_GLYPHS["⌫"]).toBeDefined();
+  expect(terminalTextWidth("⌫")).toBe(9);
+  expect(terminalGlyphRects("⌫")).not.toEqual(terminalGlyphRects("?"));
+  expect(pixelTextWidth("⌫", 1)).toBe(9);
+  expect(pixelTextRects("⌫", { x: 0, y: 0, pixel: 1 })).not.toEqual(
+    pixelTextRects("?", { x: 0, y: 0, pixel: 1 }),
+  );
+});

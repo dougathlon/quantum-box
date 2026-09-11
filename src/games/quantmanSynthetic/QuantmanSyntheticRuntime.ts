@@ -12,9 +12,9 @@ import type {
 } from "./labyrinth/types";
 
 export const QUANTMAN_SYNTHETIC_RULES_VERSION =
-  "quantman-synthetic-rules-v1" as const;
+  "quantman-synthetic-rules-v3" as const;
 export const QUANTMAN_QPU_RULES_VERSION =
-  "quantman-labyrinth-rules-v2" as const;
+  "quantman-labyrinth-rules-v4" as const;
 export const QUANTMAN_SYNTHETIC_REPLAY_SCHEMA_VERSION =
   "quantum-box-quantman-synthetic-replay-v1" as const;
 

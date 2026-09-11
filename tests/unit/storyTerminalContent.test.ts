@@ -1,3 +1,4 @@
+import agreed from "../fixtures/agreed-story-2026-09-11.json";
 import { describe, expect, it } from "vitest";
 import { createHash } from "node:crypto";
 
@@ -26,10 +27,10 @@ describe("canonical terminal Story content", () => {
 
   it("pins the approved DOCX and exact runtime page corpus", () => {
     expect(terminalCopyProvenance.sourceFilename).toBe(
-      "QUANTUM BOX text notes.docx",
+      "Quantum Box agreed story text 2026-09-11 v2.docx",
     );
     expect(terminalCopyProvenance.sourceSha256).toBe(
-      "a5d193623eeb1361f430db50e249180871e5752d756906ec483c7dc72a212148",
+      "40b81f5188c8ea0a8213bc2450090432b61294d34e56465613e67635b45bfd29",
     );
     expect(
       createHash("sha256")
@@ -38,13 +39,42 @@ describe("canonical terminal Story content", () => {
     ).toBe(terminalCopyProvenance.runtimePageCorpusSha256);
   });
 
-  it("preserves literal placeholders rather than inventing late-story copy", () => {
-    for (const page of Object.values(STORY_TERMINAL_PAGES).filter(
-      ({ chapterId }) => chapterId === "fluxball" || chapterId === "quarry",
-    )) {
-      if (page.id === "load-fluxball") continue;
-      expect(page.body).toEqual(["PLACEHOLDER"]);
+  it("matches every approved screen, including punctuation, headers and choices", () => {
+    expect(agreed).toHaveLength(55);
+    for (const expected of agreed) {
+      const actual = STORY_TERMINAL_PAGES[expected.id]!;
+      expect(actual.header, expected.id).toEqual(expected.header);
+      expect(actual.body, expected.id).toEqual(expected.body);
+      expect(
+        actual.actions.map((a) => a.label),
+        expected.id,
+      ).toEqual(
+        expected.id === "skipixl-overloaded-failure"
+          ? ["RETRY", "CONTINUE"]
+          : expected.actions,
+      );
     }
+    expect(Object.values(STORY_TERMINAL_PAGES)).toHaveLength(agreed.length + 3);
+  });
+  it("routes both Fluxball outcomes through the agreed explanations", () => {
+    for (const suffix of ["win", "loss"]) {
+      expect(storyNode(`fluxball-global-post-${suffix}`)).toMatchObject({
+        transitions: { continue: "fluxball-split-intro" },
+      });
+      expect(storyNode(`fluxball-individual-post-${suffix}`)).toMatchObject({
+        transitions: { continue: "fluxball-explain-1" },
+      });
+    }
+    expect(storyNode("fluxball-explain-1")).toMatchObject({
+      transitions: { continue: "fluxball-explain-2" },
+    });
+    expect(storyNode("quantman-explain-3")).toMatchObject({
+      transitions: { continue: "quantman-explain-5" },
+    });
+    expect(storyNode("quantman-explain-4")).toMatchObject({
+      pageId: "quantman-explain-5",
+      transitions: { continue: "load-fluxball" },
+    });
   });
 
   it("includes the trademark glyph in canonical copy", () => {
@@ -72,4 +102,20 @@ describe("canonical terminal Story content", () => {
       }
     }
   });
+});
+
+it("every Story loss offers a retry to that exact stage", () => {
+  for (const node of Object.values(STORY_NODES)) {
+    if (node.kind !== "outcome-branch") continue;
+    for (const id of [node.branches.lost, node.branches.firstLoss].filter(
+      Boolean,
+    )) {
+      const failure = storyNode(id!);
+      if (!("pageId" in failure)) throw new Error("Expected failure page");
+      expect(
+        STORY_TERMINAL_PAGES[failure.pageId]!.actions.map((a) => a.id),
+      ).toContain("retry");
+      expect(failure.transitions.retry).toBe(`game-${node.stageId}`);
+    }
+  }
 });

@@ -511,8 +511,9 @@ describe("Quantum Box Fluxball round contract", () => {
       expect(
         reveal.reveal?.epochs.every(
           (epoch) =>
-            epoch.sourceRoundBuckets[0] === 1 &&
-            epoch.sourceRoundBuckets[1] === 2,
+            epoch.sourceRoundBuckets[0] ===
+              reveal.reveal!.epochs[0]!.sourceRoundBuckets[0] &&
+            epoch.sourceRoundBuckets[1] === epoch.sourceRoundBuckets[0] + 1,
         ),
       ).toBe(true);
       const nextRound = session.continueAfterReveal();
