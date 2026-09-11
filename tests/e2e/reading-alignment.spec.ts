@@ -245,40 +245,17 @@ test("WASD navigates Settings inputs exactly like arrows", async ({ page }) => {
   await expect(radios.nth(1)).toBeFocused();
 });
 
-test("right footer cursor follows its painted label", async ({ page }) => {
+test("selection footer is a noninteractive hint", async ({ page }) => {
   await page.goto("/");
   await page.getByRole("button", { name: "PRESS START", exact: true }).click();
   await page.getByRole("button", { name: "SETTINGS", exact: true }).click();
-  const footer = page.locator('[data-action="activate-page-control"]');
-  await footer.focus();
-  await page.evaluate(
-    () =>
-      new Promise<void>((resolve) =>
-        requestAnimationFrame(() => requestAnimationFrame(() => resolve())),
-      ),
-  );
-  const gap = await footer.evaluate((el) => {
-    const frame = document
-      .querySelector(".qb-screen-frame")!
-      .getBoundingClientRect();
-    const box = el.getBoundingClientRect();
-    const scale = frame.width / 320;
-    const canvas = document.querySelector<HTMLCanvasElement>(
-      '[data-ui="bitmap-text"]',
-    )!;
-    const ctx = canvas.getContext("2d")!;
-    const y = Math.round((box.top + box.height / 2 - frame.top) / scale);
-    const start = Math.ceil((box.left - frame.left) / scale);
-    const end = Math.floor((box.right - frame.left) / scale);
-    const ink: number[] = [];
-    for (let x = start; x < end; x++) {
-      const p = ctx.getImageData(x * 2, y * 2, 1, 1).data;
-      if (p[0] === 214 && p[1] === 189 && p[2] === 139 && p[3] === 255)
-        ink.push(x);
-    }
-    return ink[0]! - start;
-  });
-  expect(gap).toBeGreaterThan(20);
+  const hint = page.locator('[data-ui="selection-hint"]');
+  await expect(hint).toHaveText("SELECT · ENTER / A");
+  await expect(
+    page.locator('[data-action="activate-page-control"]'),
+  ).toHaveCount(0);
+  expect(await hint.evaluate((el) => el.tagName)).toBe("SPAN");
+  expect(await hint.evaluate((el) => (el as HTMLElement).tabIndex)).toBe(-1);
 });
 
 test("Home and Story use identical footer geometry", async ({ page }) => {

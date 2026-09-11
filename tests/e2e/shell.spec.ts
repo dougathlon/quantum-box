@@ -152,9 +152,9 @@ test("Arcade overview contains five cabinets and every cabinet opens a terminal-
       exact: true,
     });
     await expect(back).toHaveText("BACK · ⌫ / B");
-    await expect(
-      detail.getByRole("button", { name: "SELECT · ENTER / A", exact: true }),
-    ).toBeEnabled();
+    await expect(detail.locator('[data-ui="selection-hint"]')).toHaveText(
+      "SELECT · ENTER / A",
+    );
     await back.click();
   }
 });
@@ -224,7 +224,7 @@ test("score controls always open a complete five-place board", async ({
   await expect(
     page.getByRole("heading", { name: "SKIPIXL · EASY" }),
   ).toBeVisible();
-  await expect(page.getByText("TOP FIVE", { exact: true })).toBeVisible();
+  await expect(page.getByText("TOP FIVE", { exact: true })).toHaveCount(0);
   await expect(page.locator(".qb-scoreboard-table ol > li")).toHaveCount(5);
   await expect(page.getByText("NO SCORES", { exact: true })).toHaveCount(0);
 });
