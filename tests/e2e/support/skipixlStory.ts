@@ -17,6 +17,7 @@ export interface SkiPixlBrowserPlan {
     elapsedSeconds: number;
     collisions: number;
     missedGates: number;
+    gateCount: number;
     targetSeconds: number;
     completedUnderLimit: boolean;
   }>;
@@ -112,6 +113,7 @@ export async function createArcadeSkiPixlBrowserPlan(
       durationMs: (ticks + 8) * fixedStepMs,
       expected: Object.freeze({
         elapsedSeconds: snapshot.elapsedSeconds,
+        gateCount: snapshot.gateResults.length,
         collisions: snapshot.collisions.length,
         missedGates: snapshot.gateResults.filter(
           (gate: { readonly passed: boolean }) => !gate.passed,
