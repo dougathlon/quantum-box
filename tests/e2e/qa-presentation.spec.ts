@@ -4,7 +4,7 @@ for (const [cabinet, mode] of [
   ["qong", "PLAYER / CPU"],
   ["skipixl", "EASY"],
   ["quantman", "HOLD"],
-  ["fluxball", "4P SPLIT"],
+  ["fluxball", "4-WAY SPLIT"],
   ["quarry", "1 PLAYER"],
 ] as const) {
   test(`${cabinet} shows Resume only while paused`, async ({ page }) => {
@@ -16,9 +16,7 @@ for (const [cabinet, mode] of [
       .click();
     await page.getByRole("button", { name: mode, exact: true }).click();
     if (cabinet === "fluxball") {
-      await page
-        .getByRole("button", { name: "START · ENTER / A", exact: true })
-        .click();
+      await page.getByRole("button", { name: "1 PLAYER", exact: true }).click();
     }
     await page
       .getByRole("button", { name: "PAUSE · P / START", exact: true })

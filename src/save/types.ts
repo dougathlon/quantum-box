@@ -842,6 +842,8 @@ function validateQongSelectorState(value: unknown): {
   });
 }
 
+export const SKIPIXL_ATTEMPT_HISTORY_LIMIT = 128;
+
 function defaultSkiPixlCutState(): SkiPixlStoryCutState {
   return deepFreeze({
     currentCut: "P84",
@@ -870,7 +872,7 @@ function validateSkiPixlCutState(value: unknown): SkiPixlStoryCutState {
     !Array.isArray(passes) ||
     passes.length > 3 ||
     !Array.isArray(attempts) ||
-    attempts.length > 128
+    attempts.length > SKIPIXL_ATTEMPT_HISTORY_LIMIT
   ) {
     throw new Error("Quantum Box save SkiPixl cut state is invalid.");
   }
@@ -904,21 +906,16 @@ function validateSkiPixlCutState(value: unknown): SkiPixlStoryCutState {
       collisionCount: candidate["collisionCount"],
     });
   });
-  const expectedCuts =
-    successfulPasses[0]?.cutId === "P90"
-      ? (["P90", "P84", "P78"] as const)
-      : (["P84", "P78"] as const);
-  const expectedCurrentCut =
-    successfulPasses.length === 0 && currentCut === "P90"
-      ? "P90"
-      : expectedCuts[
-          Math.min(successfulPasses.length, expectedCuts.length - 1)
-        ];
+  // Clears are an ordered subset: Story can continue after a loss, and
+  // Terminal can retry an earlier course without discarding later clears.
+  const cutOrder = ["P90", "P84", "P78"];
   if (
     successfulPasses.some(
-      (pass, index) => pass.cutId !== expectedCuts[index],
-    ) ||
-    currentCut !== expectedCurrentCut
+      (pass, index) =>
+        index > 0 &&
+        cutOrder.indexOf(pass.cutId) <=
+          cutOrder.indexOf(successfulPasses[index - 1]!.cutId),
+    )
   ) {
     throw new Error("Quantum Box SkiPixl pass sequence is inconsistent.");
   }

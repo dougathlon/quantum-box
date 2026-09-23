@@ -278,13 +278,13 @@ test("Fluxball uses three 40-second rounds and keeps hidden rule authority out o
   await enterArcade(page);
   await openArcadeCabinet(page, "fluxball");
   for (const mode of [
-    "2P SHARED",
-    "2P SPLIT",
-    "4P SHARED",
-    "4P SPLIT",
+    "2-WAY SHARED",
+    "2-WAY SPLIT",
+    "4-WAY SHARED",
+    "4-WAY SPLIT",
   ] as const) {
     await page.getByRole("button", { name: mode }).click();
-    await page.getByRole("button", { name: "START · ENTER / A" }).click();
+    await page.getByRole("button", { name: "1 PLAYER" }).click();
     const game = page.getByRole("region", { name: "Fluxball game" });
     await expect(game).toBeVisible();
     await expect(game).toContainText("R 1/3");

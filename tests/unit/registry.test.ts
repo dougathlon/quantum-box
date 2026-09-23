@@ -15,6 +15,12 @@ import {
 } from "../../src/games/registry";
 
 describe("Quantum Box registry", () => {
+  it("offers only one and two human Quarry modes", () => {
+    expect(ARCADE_CABINET_DEFINITIONS.quarry.arcadeModes).toEqual([
+      "1 PLAYER",
+      "2 PLAYER",
+    ]);
+  });
   it("separates migration slugs from recognized and shipped identifiers", () => {
     expect(isBoundedLegacyCabinetSlug("retired-program")).toBe(true);
     expect(isArcadeCabinetId("retired-program")).toBe(false);

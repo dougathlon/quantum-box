@@ -245,6 +245,7 @@ describe("shared cabinet pause rendering", () => {
     const dense: QuagSnapshot = {
       ...snapshot,
       phase: "active",
+      humanPlayerIds: ["A", "B"],
       directedRelations: [
         "A>B",
         "A>C",

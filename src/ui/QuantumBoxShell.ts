@@ -1,3 +1,5 @@
+import { ControllerSetup, controllerSetupMarkup } from "./ControllerSetup";
+import { LOCAL_HUMAN_PLAYERS } from "../input/LocalPlayers";
 import { POSTSCRIPT_MOTH_URL } from "../story/terminal/postscript";
 import { toggleFullscreen } from "./Fullscreen";
 import { storyTextLayout } from "../display/StoryTextLayout";
@@ -127,7 +129,8 @@ export interface QuantumBoxShellActions {
   readonly onFluxballLobbyAction: (
     action:
       | Readonly<{ kind: "toggle"; playerId: PlayerId }>
-      | Readonly<{ kind: "start" | "cancel" }>,
+      | Readonly<{ kind: "start"; humanCount?: 1 | 2 }>
+      | Readonly<{ kind: "cancel" }>,
   ) => void;
 }
 
@@ -200,6 +203,12 @@ export class QuantumBoxShell {
   private selectedArcadeCabinet: ShippedArcadeCabinetId | null = null;
   private fluxballLobbyOpen = false;
   private backgroundActivationGeneration = 0;
+  private controllerSetupOpen = false;
+  private controllerSetup: ControllerSetup | null = null;
+  public get capturingController(): boolean {
+    return this.controllerSetup?.capturing ?? false;
+  }
+
   private pendingBinding: {
     readonly playerId: PlayerId;
     readonly control: KeyboardControl;
@@ -325,6 +334,13 @@ export class QuantumBoxShell {
       this.title,
       "[data-action='press-start']",
     ).focus();
+  }
+
+  public showControlsSettings(controllerSetup = false): void {
+    this.enterInternal();
+    this.settingsSection = "controls";
+    this.controllerSetupOpen = controllerSetup;
+    this.showPage("settings");
   }
 
   public showPage(page: ShellPage): void {
@@ -490,6 +506,14 @@ export class QuantumBoxShell {
 
   public handleBack(): void {
     if (!this.entered) return;
+    if (this.controllerSetupOpen) {
+      this.controllerSetupOpen = false;
+      this.renderPage();
+      this.pageRoot
+        .querySelector<HTMLButtonElement>('[data-action="controller-setup"]')
+        ?.focus();
+      return;
+    }
     if (this.fluxballLobbyOpen) {
       this.actions.onFluxballLobbyAction({ kind: "cancel" });
       return;
@@ -1112,6 +1136,7 @@ export class QuantumBoxShell {
 
   public destroy(): void {
     this.stopTerminalTyping();
+    this.controllerSetup?.destroy();
     this.titleField.destroy();
     this.viewportField.destroy();
     this.bitmapText.destroy();
@@ -1127,6 +1152,10 @@ export class QuantumBoxShell {
   }
 
   private renderPage(): void {
+    this.controllerSetup?.destroy();
+    this.controllerSetup = null;
+    if (this.page !== "settings" || this.settingsSection !== "controls")
+      this.controllerSetupOpen = false;
     this.fluxballLobbyOpen = false;
     this.scrollPositionObserver.disconnect();
     this.shell.dataset["page"] = this.page;
@@ -1143,6 +1172,13 @@ export class QuantumBoxShell {
       this.settingsPlayerId,
       this.arcadeInitialsDraft.join(""),
     );
+    if (this.controllerSetupOpen) {
+      required(this.pageRoot, ".qb-settings-panel h2").textContent =
+        "CONTROLLER SETUP";
+      const panel = required<HTMLElement>(this.pageRoot, ".qb-settings-scroll");
+      panel.innerHTML = controllerSetupMarkup;
+      this.controllerSetup = new ControllerSetup(panel);
+    }
     // Primary choices share the terminal reading face; metadata stays compact.
     for (const element of this.pageRoot.querySelectorAll(
       ".qb-primary-menu-row > span, .qb-primary-menu-row strong, .qb-arcade-select-number, .qb-arcade-select-row > strong, .qb-arcade-mode > button, .qb-terminal-index li span, .qb-terminal-index li strong, .qb-settings-sections span, .qb-settings-sections strong, .qb-settings-panel h2, .qb-settings label > span, .qb-settings-page .qb-action, .qb-story-start nav button, .qb-page-panel h1:not(.qb-visually-hidden)",
@@ -1278,6 +1314,7 @@ export class QuantumBoxShell {
         : null;
     if (!button || button.disabled || !this.root.contains(button)) return;
     const action = button.dataset["action"];
+    if (action !== "rebind-key") this.pendingBinding = null;
     if (action === "press-start") this.enterInternal();
     else if (action === "postscript-moth") {
       window.location.assign(POSTSCRIPT_MOTH_URL);
@@ -1319,9 +1356,20 @@ export class QuantumBoxShell {
         this.actions.onRetryTerminalChapter(chapterId);
       }
     } else if (action === "controller-setup") {
-      window.location.assign(
-        new URL("controller-setup.html", document.baseURI).href,
-      );
+      this.pendingBinding = null;
+      this.controllerSetupOpen = true;
+      this.renderPage();
+      this.pageRoot
+        .querySelector<HTMLButtonElement>('[data-action="controller-map"]')
+        ?.focus();
+    } else if (action === "controller-map") {
+      this.controllerSetup?.start();
+    } else if (action === "controller-done") {
+      this.controllerSetupOpen = false;
+      this.renderPage();
+      this.pageRoot
+        .querySelector<HTMLButtonElement>('[data-action="controller-setup"]')
+        ?.focus();
     } else if (action === "settings-section") {
       const section = button.dataset["settingsSection"];
       if (isSettingsSection(section)) {
@@ -1335,7 +1383,10 @@ export class QuantumBoxShell {
       }
     } else if (action === "settings-player") {
       const playerId = button.dataset["playerId"];
-      if (isPlayerId(playerId)) {
+      if (
+        isPlayerId(playerId) &&
+        LOCAL_HUMAN_PLAYERS.some((id) => id === playerId)
+      ) {
         this.settingsPlayerId = playerId;
         this.renderPage();
         this.pageRoot
@@ -1395,7 +1446,10 @@ export class QuantumBoxShell {
         this.actions.onFluxballLobbyAction({ kind: "toggle", playerId });
       }
     } else if (action === "lobby-start") {
-      this.actions.onFluxballLobbyAction({ kind: "start" });
+      this.actions.onFluxballLobbyAction({
+        kind: "start",
+        humanCount: button.dataset["humanCount"] === "2" ? 2 : 1,
+      });
     } else if (action === "lobby-cancel") {
       this.actions.onFluxballLobbyAction({ kind: "cancel" });
     } else if (action === "rebind-key") {
@@ -1403,8 +1457,14 @@ export class QuantumBoxShell {
       const control = button.dataset["control"];
       if (isPlayerId(playerId) && isKeyboardControl(control)) {
         this.pendingBinding = { playerId, control };
-        button.textContent = "PRESS KEY · ⌫ CANCEL";
-        button.setAttribute("aria-pressed", "true");
+        this.renderPage();
+        const target = this.pageRoot.querySelector<HTMLButtonElement>(
+          `[data-action="rebind-key"][data-player-id="${playerId}"][data-control="${control}"]`,
+        )!;
+        target.querySelector("b")!.textContent = "PRESS KEY";
+        target.setAttribute("aria-pressed", "true");
+        target.focus();
+        this.bitmapText.renderNow();
         this.announce(`Waiting for Player ${playerId} ${control} key.`);
       }
     } else if (action === "reset-keymap") {
@@ -1524,6 +1584,13 @@ export class QuantumBoxShell {
 
   private readonly onKeyDown = (event: KeyboardEvent): void => {
     if (event.code === "Escape") return;
+    // Cabinet actions come from semantic input, not native focused-button clicks.
+    if (
+      this.cabinetActive &&
+      (event.code === "Space" || event.code === "Enter")
+    ) {
+      event.preventDefault();
+    }
     if (
       this.entered &&
       !this.cabinetActive &&
@@ -1611,7 +1678,7 @@ export class QuantumBoxShell {
     }
     const terminalActionKey =
       event.code === "Enter" ||
-      KEYBOARD_PLAYERS.some(
+      LOCAL_HUMAN_PLAYERS.some(
         (playerId) =>
           this.save.settings.keyboardBindings[playerId].action === event.code,
       );
@@ -1633,12 +1700,8 @@ export class QuantumBoxShell {
     if (!this.pendingBinding || this.page !== "settings") return;
     event.preventDefault();
     event.stopPropagation();
-    if (event.code === "Backspace") {
-      this.pendingBinding = null;
-      this.renderPage();
-      this.announce("Keyboard binding cancelled.");
-      return;
-    }
+    if (event.repeat) return;
+    if (event.code === "Backspace") return;
     const { playerId, control } = this.pendingBinding;
     try {
       const keyboardBindings = validateKeyboardBindings({
@@ -2222,10 +2285,10 @@ function arcadeModeLabel(mode: string): string {
   const labels: Readonly<Record<string, string>> = {
     "HUMAN / CPU": "PLAYER / CPU",
     "LOCAL TWO PLAYER": "PLAYER / PLAYER",
-    "2 PLAYER / GLOBAL": "2P SHARED",
-    "2 PLAYER / INDIVIDUAL": "2P SPLIT",
-    "4 PLAYER / GLOBAL": "4P SHARED",
-    "4 PLAYER / INDIVIDUAL": "4P SPLIT",
+    "2 PLAYER / GLOBAL": "2-WAY SHARED",
+    "2 PLAYER / INDIVIDUAL": "2-WAY SPLIT",
+    "4 PLAYER / GLOBAL": "4-WAY SHARED",
+    "4 PLAYER / INDIVIDUAL": "4-WAY SPLIT",
     "STABILIZE GAZE": "HOLD",
     "INVERSE GAZE": "INVERT",
   };
@@ -2319,7 +2382,7 @@ function setting(
 }
 
 function keyboardSettings(save: QuantumBoxSave, playerId: PlayerId): string {
-  const playerTabs = KEYBOARD_PLAYERS.map(
+  const playerTabs = LOCAL_HUMAN_PLAYERS.map(
     (candidate) =>
       `<button type="button" data-action="settings-player" data-player-id="${candidate}" aria-selected="${candidate === playerId}">${candidate}</button>`,
   ).join("");
@@ -2339,22 +2402,10 @@ function backgroundProgrammeSettings(save: QuantumBoxSave): string {
 
 function fluxballLobbyMarkup(
   format: FluxballFormat,
-  humanPlayerIds: readonly PlayerId[],
-  save: QuantumBoxSave,
+  _humanPlayerIds: readonly PlayerId[],
+  _save: QuantumBoxSave,
 ): string {
-  const players =
-    format.competitorCount === 2 ? (["A", "B"] as const) : KEYBOARD_PLAYERS;
-  return `<div class="qb-page-panel qb-fluxball-lobby"><header><p class="qb-kicker">ARCADE · ${format.competitorCount} PLAYER</p><h1 tabindex="-1" data-bitmap-flow class="qb-reading-choice">FLUXBALL JOIN</h1></header><p>PRESS EACH PLAYER'S ACTION KEY TO TOGGLE HUMAN / CPU.</p><div class="qb-fluxball-lobby-slots">${players
-    .map((playerId) => {
-      const human = humanPlayerIds.includes(playerId);
-      const key = displayKeyCode(
-        save.settings.keyboardBindings[playerId].action,
-      );
-      return `<button type="button" data-action="lobby-toggle" data-player-id="${playerId}" aria-pressed="${human}"><strong>${playerId}</strong><span>${human ? "HUMAN" : "CPU"}</span><small>${escapeHtml(key)}</small></button>`;
-    })
-    .join(
-      "",
-    )}</div><p class="qb-fluxball-lobby-mode" data-bitmap-flow>${format.ruleMode.toUpperCase()} RULEFIELD · CPU FILLS OPEN SLOTS</p><footer class="qb-terminal-footer"><button type="button" data-action="lobby-cancel" aria-label="BACK · ⌫ / B">BACK · ⌫ / B</button><button type="button" data-action="lobby-start">START · ENTER / A</button></footer></div>`;
+  return `<div class="qb-page-panel qb-fluxball-lobby"><header><p class="qb-kicker">ARCADE · ${format.competitorCount} COMPETITORS · ${format.ruleMode === "global" ? "SHARED" : "SPLIT"}</p><h1 tabindex="-1" data-bitmap-flow class="qb-reading-choice">FLUXBALL PLAYERS</h1></header><p>CPU FILLS THE REMAINING PLACES.</p><div class="qb-fluxball-lobby-slots"><button type="button" data-action="lobby-start" data-human-count="1">1 PLAYER</button><button type="button" data-action="lobby-start" data-human-count="2">2 PLAYERS</button></div><footer class="qb-terminal-footer"><button type="button" data-action="lobby-cancel" aria-label="BACK · ⌫ / B">BACK · ⌫ / B</button></footer></div>`;
 }
 
 function volumeSetting(volume: number): string {

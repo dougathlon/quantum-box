@@ -129,12 +129,20 @@ function drawHud(g: Phaser.GameObjects.Graphics, snapshot: QuagSnapshot): void {
     `TIME ${hud.time}`,
   ];
   const hunts = quagHuntRows(snapshot);
+  for (const [index, text] of hunts.entries()) {
+    drawPixelText(g, text, {
+      x: hunts.length === 2 ? [83, 239][index]! : centers[index]!,
+      y: 9,
+      pixel: 1,
+      colour: BROWN_BOX_PALETTE.cream,
+      align: "center",
+    });
+  }
   for (const [index, id] of QUAG_PLAYER_IDS.entries()) {
     const player = snapshot.players.find((entry) => entry.id === id)!;
     for (const [y, text] of [
       [1, metadata[index]!],
-      [9, hunts[index]!],
-      [16, `${player.roundScore} PTS ${player.roundWins} WINS`],
+      [16, `${id} ${player.roundScore} PTS ${player.roundWins} WINS`],
     ] as const) {
       drawPixelText(g, text, {
         x: centers[index]!,

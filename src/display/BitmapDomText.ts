@@ -704,15 +704,23 @@ export class BitmapDomTextRenderer {
     const clipLeft = Math.max(0, Math.ceil(rect.left));
     const clipRight = Math.min(LOGICAL_WIDTH, Math.floor(rect.right));
     const roundedWidth = Math.max(1, clipRight - clipLeft);
-    const { pixel, spacing } = owner.closest(
-      ".qb-terminal-page, .qb-terminal-footer, .qb-screen-footer, [data-bitmap-flow]",
-    )
-      ? { pixel: 1, spacing: 1 }
-      : bitmapTextLayout(normalized, roundedWidth, rect.height);
+    const navigationFooter = owner.closest(
+      '.qb-game-ui[data-navigation="true"] footer',
+    );
+    const compactText =
+      navigationFooter || owner.closest("[data-controller-status]");
+    const { pixel, spacing } =
+      compactText ||
+      owner.closest(
+        ".qb-terminal-page, .qb-terminal-footer, .qb-screen-footer, [data-bitmap-flow]",
+      )
+        ? { pixel: 1, spacing: 1 }
+        : bitmapTextLayout(normalized, roundedWidth, rect.height);
     const flow = owner.matches("[data-bitmap-flow]");
     const reading =
       flow ||
-      (rect.height >= 10 &&
+      (!compactText &&
+        rect.height >= 10 &&
         !normalized.includes("\n") &&
         terminalTextWidth(normalized) <= roundedWidth &&
         !owner.closest(

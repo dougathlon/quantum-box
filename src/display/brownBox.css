@@ -1770,7 +1770,7 @@
 
 .qb-keymap-players {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 0.6cqw;
 }
 
@@ -2794,4 +2794,25 @@
   width: 0.625cqw;
   height: 3.8889cqh;
   background: var(--qb-cream);
+}
+
+.qb-controller-setup {
+  display: grid;
+  gap: 2cqh;
+}
+.qb-controller-setup p {
+  margin: 0;
+  font-size: 1.5625cqw;
+  line-height: 1.4;
+}
+.qb-controller-setup [data-controller-status] {
+  height: 6cqh;
+}
+
+.qb-controller-setup .qb-action {
+  border: 0;
+  border-bottom: 1px dotted var(--qb-muted-tan);
+  min-height: 8cqh;
+  padding: 1.5cqh 0;
+  text-align: left;
 }

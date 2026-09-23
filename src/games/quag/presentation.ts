@@ -67,6 +67,19 @@ export function quagHumanQuarrySummary(snapshot: QuagSnapshot): string {
 /** Fixed hunter order keeps changing relations readable without tracking birds. */
 export function quagHuntRows(snapshot: QuagSnapshot): readonly string[] {
   const relations = quagRelationPresentation(snapshot);
+  if (snapshot.humanPlayerIds.length === 1) {
+    const human = snapshot.humanPlayerIds[0]!;
+    const prey = QUAG_PLAYER_IDS.filter((id) =>
+      relations.some((edge) => edge.sourceId === human && edge.targetId === id),
+    );
+    const predators = QUAG_PLAYER_IDS.filter((id) =>
+      relations.some((edge) => edge.sourceId === id && edge.targetId === human),
+    );
+    return [
+      `YOU HUNT ${prey.join("+") || "NONE"}`,
+      `HUNTS YOU ${predators.join("+") || "NONE"}`,
+    ];
+  }
   return QUAG_PLAYER_IDS.map((hunter) => {
     const targets = QUAG_PLAYER_IDS.filter((target) =>
       relations.some(

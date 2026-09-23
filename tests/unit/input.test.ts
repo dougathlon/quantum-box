@@ -97,6 +97,36 @@ describe("Quantum Box gamepad map", () => {
 });
 
 describe("Quantum Box gamepad lifecycle", () => {
+  it("does not let a third controller drive player B", () => {
+    let frame: FrameRequestCallback | null = null;
+    const pad = {
+      id: "THIRD",
+      index: 2,
+      connected: true,
+      mapping: "standard",
+      axes: [0, -1],
+      buttons: [],
+    } as unknown as Gamepad;
+    const target = {
+      navigator: { getGamepads: () => [null, null, pad] },
+      addEventListener: () => undefined,
+      removeEventListener: () => undefined,
+      requestAnimationFrame: (callback: FrameRequestCallback) => {
+        frame = callback;
+        return 1;
+      },
+      cancelAnimationFrame: () => undefined,
+    } as unknown as Window;
+    const controller = new InputController(target, {} as Document);
+    const inputs = vi.fn();
+    const devices = vi.fn();
+    controller.subscribe(inputs);
+    controller.subscribeDevices(devices);
+    (frame as unknown as FrameRequestCallback)(0);
+    expect(inputs).not.toHaveBeenCalled();
+    expect(devices).not.toHaveBeenCalled();
+    controller.dispose();
+  });
   it("announces connection, releases held controls, and reconnects once", () => {
     let frame: FrameRequestCallback | null = null;
     const testPad = {

@@ -50,7 +50,7 @@ test("keyboard held action changes each cabinet and keyup applies cabinet releas
     },
     {
       gameId: "fluxball",
-      launch: "2P SHARED",
+      launch: "2-WAY SHARED",
       region: "Fluxball game",
       movementKeys: ["w"],
       probe: {
@@ -87,7 +87,7 @@ test("keyboard held action changes each cabinet and keyup applies cabinet releas
       .getByRole("button", { name: cabinet.launch, exact: true })
       .click();
     if (cabinet.gameId === "fluxball") {
-      await page.getByRole("button", { name: "START · ENTER / A" }).click();
+      await page.getByRole("button", { name: "1 PLAYER" }).click();
     } else if (cabinet.gameId === "quantman") {
       await page.keyboard.press("Space");
     }

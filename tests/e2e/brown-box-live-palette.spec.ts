@@ -41,7 +41,7 @@ test("the live menu and every Arcade cabinet render inside the exact Brown Box p
   for (const cabinet of [
     { button: "PLAYER / CPU", id: "qong", region: "Qong game" },
     { button: "EASY", id: "skipixl", region: "SkiPixl game" },
-    { button: "2P SHARED", id: "fluxball", region: "Fluxball game" },
+    { button: "2-WAY SHARED", id: "fluxball", region: "Fluxball game" },
     {
       button: "HOLD",
       id: "quantman",
@@ -63,7 +63,7 @@ test("the live menu and every Arcade cabinet render inside the exact Brown Box p
       .getByRole("button", { name: cabinet.button, exact: true })
       .click();
     if (cabinet.id === "fluxball") {
-      await page.getByRole("button", { name: "START · ENTER / A" }).click();
+      await page.getByRole("button", { name: "1 PLAYER" }).click();
     }
     await expect(
       page.getByRole("region", { name: cabinet.region }),

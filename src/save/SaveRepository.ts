@@ -26,6 +26,7 @@ import {
 } from "./ArcadeRecords";
 import {
   createDefaultSave,
+  SKIPIXL_ATTEMPT_HISTORY_LIMIT,
   SAVE_SCHEMA_VERSION,
   validateSave,
   type QuantumBoxSave,
@@ -303,7 +304,10 @@ export class SaveRepository {
     ) {
       throw new Error("SkiPixl attempt receipt does not match the Story run.");
     }
-    const completedAttempts = [...current.completedAttempts, result.attempt];
+    const completedAttempts = [
+      ...current.completedAttempts,
+      result.attempt,
+    ].slice(-SKIPIXL_ATTEMPT_HISTORY_LIMIT);
     if (!result.qualified) {
       return this.commit({
         ...this.value,

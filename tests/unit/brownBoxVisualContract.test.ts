@@ -170,8 +170,8 @@ describe("Brown Box internal visual contract", () => {
     for (const label of [
       '"HUMAN / CPU": "PLAYER / CPU"',
       '"LOCAL TWO PLAYER": "PLAYER / PLAYER"',
-      '"2 PLAYER / GLOBAL": "2P SHARED"',
-      '"2 PLAYER / INDIVIDUAL": "2P SPLIT"',
+      '"2 PLAYER / GLOBAL": "2-WAY SHARED"',
+      '"2 PLAYER / INDIVIDUAL": "2-WAY SPLIT"',
     ]) {
       expect(shellSource).toContain(label);
     }

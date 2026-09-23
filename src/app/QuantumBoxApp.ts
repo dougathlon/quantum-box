@@ -1,3 +1,4 @@
+import { LOCAL_HUMAN_PLAYERS } from "../input/LocalPlayers";
 import { postscriptUnlocked } from "../story/terminal/postscript";
 import { observeFullscreenExit } from "../ui/Fullscreen";
 import Phaser from "phaser";
@@ -308,6 +309,17 @@ export class QuantumBoxApp {
     window.addEventListener("focus", this.onAudioRecovery);
     document.addEventListener("visibilitychange", this.onVisibilityChange);
     this.monitorFrameId = requestAnimationFrame(this.monitorFrame);
+    if (
+      new URLSearchParams(window.location.search).get("returnTo") === "controls"
+    ) {
+      this.shell.showControlsSettings(
+        new URLSearchParams(window.location.search).get("controller") === "1",
+      );
+      const url = new URL(window.location.href);
+      url.searchParams.delete("returnTo");
+      url.searchParams.delete("controller");
+      window.history.replaceState(null, "", url);
+    }
     if (import.meta.env.DEV) {
       const qaParams = new URLSearchParams(window.location.search);
       const qaRoute = qaParams.get("qa");
@@ -386,6 +398,7 @@ export class QuantumBoxApp {
   }
 
   private readonly onInput = (signal: InputSignal): void => {
+    if (signal.source === "gamepad" && this.shell.capturingController) return;
     if (signal.pressed) void this.audio.unlock();
     if (signal.pressed && isTransitionAction(signal.action)) {
       this.input.latchUntilRelease(signal.action);
@@ -396,11 +409,10 @@ export class QuantumBoxApp {
     }
     if (this.fluxballLobby) {
       if (!signal.pressed) return;
-      const playerId = playerIdForAction(signal.action);
       if (signal.action === "primary" || signal.action === "start")
         this.shell.activateFocusedControl();
-      else if (playerId) this.toggleFluxballLobbyPlayer(playerId);
-      else if (signal.action === "secondary") this.startFluxballFromLobby();
+      else if (signal.action === "secondary")
+        this.shell.activateFocusedControl();
       else if (signal.action.endsWith("-up")) this.shell.moveMenuFocus("up");
       else if (signal.action.endsWith("-down"))
         this.shell.moveMenuFocus("down");
@@ -633,19 +645,25 @@ export class QuantumBoxApp {
   private handleFluxballLobbyAction(
     action:
       | Readonly<{ kind: "toggle"; playerId: PlayerId }>
-      | Readonly<{ kind: "start" | "cancel" }>,
+      | Readonly<{ kind: "start"; humanCount?: 1 | 2 }>
+      | Readonly<{ kind: "cancel" }>,
   ): void {
     if (action.kind === "toggle")
       this.toggleFluxballLobbyPlayer(action.playerId);
-    else if (action.kind === "start") this.startFluxballFromLobby();
-    else this.cancelFluxballLobby();
+    else if (action.kind === "start") {
+      if (this.fluxballLobby) {
+        this.fluxballLobby.humanPlayerIds.clear();
+        for (const id of LOCAL_HUMAN_PLAYERS.slice(0, action.humanCount ?? 1))
+          this.fluxballLobby.humanPlayerIds.add(id);
+      }
+      this.startFluxballFromLobby();
+    } else this.cancelFluxballLobby();
   }
 
   private toggleFluxballLobbyPlayer(playerId: PlayerId): void {
     const lobby = this.fluxballLobby;
     if (!lobby) return;
-    const active: readonly PlayerId[] =
-      lobby.competitorCount === 2 ? ["A", "B"] : ["A", "B", "C", "D"];
+    const active: readonly PlayerId[] = LOCAL_HUMAN_PLAYERS;
     if (!active.includes(playerId)) return;
     if (lobby.humanPlayerIds.has(playerId))
       lobby.humanPlayerIds.delete(playerId);
@@ -2463,8 +2481,8 @@ export class QuantumBoxApp {
 function quarryHumanPlayersForMode(
   mode: string,
 ): readonly QuagPlayerId[] | null {
-  const count = Number(/^([1-4]) PLAYER$/.exec(mode)?.[1] ?? 0);
-  if (count < 1 || count > 4) return null;
+  const count = Number(/^([1-2]) PLAYER$/.exec(mode)?.[1] ?? 0);
+  if (count < 1 || count > 2) return null;
   return Object.freeze((["A", "B", "C", "D"] as const).slice(0, count));
 }
 
@@ -2531,13 +2549,6 @@ function skiPixlDifficultyForCut(cutId: "P90" | "P84" | "P78"): string {
 
 function resolveRunSeed(requestedRunSeed?: number): number {
   return requestedRunSeed ?? crypto.getRandomValues(new Uint32Array(1))[0] ?? 0;
-}
-
-function playerIdForAction(action: InputSignal["action"]): PlayerId | null {
-  const match = /^p([1-4])-action$/.exec(action);
-  return match
-    ? ((["A", "B", "C", "D"] as const)[Number(match[1]) - 1] ?? null)
-    : null;
 }
 
 function isTransitionAction(action: InputSignal["action"]): boolean {

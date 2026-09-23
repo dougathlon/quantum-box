@@ -1,3 +1,4 @@
+import { LOCAL_HUMAN_LIMIT } from "./LocalPlayers";
 import { readGamepad } from "./GamepadMapping";
 import {
   DEFAULT_KEYBOARD_BINDINGS,
@@ -173,7 +174,7 @@ export class InputController {
     if (systemAction) return systemAction;
     for (
       let playerIndex = 0;
-      playerIndex < KEYBOARD_PLAYERS.length;
+      playerIndex < LOCAL_HUMAN_LIMIT;
       playerIndex += 1
     ) {
       const playerId = KEYBOARD_PLAYERS[playerIndex];
@@ -194,7 +195,8 @@ export class InputController {
     if (this.disposed) return;
     const seen = new Set<string>();
     for (const gamepad of this.windowTarget.navigator.getGamepads()) {
-      if (!gamepad || !gamepad.connected) continue;
+      if (!gamepad || !gamepad.connected || gamepad.index >= LOCAL_HUMAN_LIMIT)
+        continue;
       const id = `gamepad:${gamepad.index}`;
       seen.add(id);
       if (!this.gamepadState.has(id)) {

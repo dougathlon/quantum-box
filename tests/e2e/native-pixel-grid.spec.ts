@@ -52,7 +52,7 @@ test("moving frames from all five cabinets remain on the native grid", async ({
   for (const cabinet of [
     { id: "qong", launch: "PLAYER / CPU", key: "w" },
     { id: "skipixl", launch: "EASY", key: "ArrowLeft" },
-    { id: "fluxball", launch: "2P SHARED", key: "d" },
+    { id: "fluxball", launch: "2-WAY SHARED", key: "d" },
     { id: "quantman", launch: "HOLD", key: "ArrowRight" },
     { id: "quarry", launch: "1 PLAYER", key: "w" },
   ] as const) {
@@ -65,7 +65,7 @@ test("moving frames from all five cabinets remain on the native grid", async ({
       .getByRole("button", { name: cabinet.launch, exact: true })
       .click();
     if (cabinet.id === "fluxball") {
-      await page.getByRole("button", { name: "START · ENTER / A" }).click();
+      await page.getByRole("button", { name: "1 PLAYER" }).click();
     }
     await page.keyboard.down(cabinet.key);
     await page.waitForTimeout(180);

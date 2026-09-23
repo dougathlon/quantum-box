@@ -194,7 +194,7 @@ export const ARCADE_CABINET_DEFINITIONS = Object.freeze({
     model: "QB-05",
     engineId: "graph-v1",
     archiveGlyph: "↗◇↙",
-    arcadeModes: ["1 PLAYER", "2 PLAYER", "3 PLAYER", "4 PLAYER"],
+    arcadeModes: ["1 PLAYER", "2 PLAYER"],
     sourceLabel: "IBM FEZ QGRAPH BANK",
     bitmapSourceLabel: "QB-05 QPU QGRAPH",
     brief: {

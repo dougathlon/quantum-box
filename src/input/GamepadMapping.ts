@@ -6,6 +6,9 @@ export interface GamepadButtonMapping {
   select: number;
 }
 const mappingCache = new Map<string, GamepadButtonMapping | null>();
+export function clearControllerMappingCache(): void {
+  mappingCache.clear();
+}
 export function controllerMappingKey(id: string): string {
   return `qbox-controller-v1:${id}`;
 }
