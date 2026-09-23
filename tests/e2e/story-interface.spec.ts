@@ -98,8 +98,9 @@ test("Settings retain the Brown Box hierarchy without stacked utility clutter", 
     name: "Player key profiles",
   });
   await expect(profiles).toBeVisible();
-  await profiles.getByRole("button", { name: "C", exact: true }).click();
-  const playerC = page.getByRole("region", { name: "Player C bindings" });
-  await expect(playerC).toBeVisible();
-  await expect(playerC.getByRole("button")).toHaveCount(5);
+  await expect(profiles.getByRole("button")).toHaveCount(2);
+  await profiles.getByRole("button", { name: "B", exact: true }).click();
+  const playerB = page.getByRole("region", { name: "Player B bindings" });
+  await expect(playerB).toBeVisible();
+  await expect(playerB.getByRole("button")).toHaveCount(5);
 });

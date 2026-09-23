@@ -190,7 +190,22 @@ test("Arcade score and mode controls use the intended row hierarchy", async ({
       .click();
   }
 
-  for (const cabinet of ["fluxball", "quarry"] as const) {
+  const quarry = await openArcadeCabinet(page, "quarry");
+  const quarryModes = quarry.locator(".qb-arcade-mode");
+  await expect(quarryModes).toHaveCount(2);
+  await expect(quarryModes.nth(0)).toHaveText("1 PLAYER");
+  await expect(quarryModes.nth(1)).toHaveText("2 PLAYER");
+  const firstPlayerBox = await quarryModes.nth(0).boundingBox();
+  const secondPlayerBox = await quarryModes.nth(1).boundingBox();
+  expect(firstPlayerBox).not.toBeNull();
+  expect(secondPlayerBox).not.toBeNull();
+  expect(Math.abs(firstPlayerBox!.y - secondPlayerBox!.y)).toBeLessThan(4);
+  expect(secondPlayerBox!.x).toBeGreaterThan(firstPlayerBox!.x);
+  await quarry
+    .getByRole("button", { name: "BACK · ⌫ / B", exact: true })
+    .click();
+
+  for (const cabinet of ["fluxball"] as const) {
     const detail = await openArcadeCabinet(page, cabinet);
     const modes = detail.locator(".qb-arcade-mode");
     await expect(modes).toHaveCount(4);
