@@ -88,6 +88,8 @@ export class FluxballCpuPolicy {
   private lastGoalKey = "";
   private lastDecisionTick = -1;
   private cachedDecision: FluxballCpuDecision | null = null;
+  private strikeSide: -1 | 1 | null = null;
+  private strikeThrough = false;
 
   public constructor(
     private readonly playerId: PlayerId,
@@ -117,6 +119,7 @@ export class FluxballCpuPolicy {
   public decide(observation: FluxballPublicSportSnapshot): FluxballCpuDecision {
     const player = observation.players[this.playerId];
     if (!player) throw new Error(`CPU Player ${this.playerId} is not active.`);
+    this.observeGoal(observation);
     this.observe(observation, player);
     const interval =
       observation.activePlayerIds.length === 4
@@ -141,6 +144,10 @@ export class FluxballCpuPolicy {
     let target: Axis = looseBallTarget;
     let reason: FluxballCpuDecision["reason"] = "intercept-loose-ball";
 
+    if (ball.carrierId !== null) {
+      this.strikeSide = null;
+      this.strikeThrough = false;
+    }
     if (ball.carrierId === this.playerId) {
       target = carryApproach(player, targetGoal, observation);
       reason = "carry-to-believed-goal";
@@ -158,29 +165,9 @@ export class FluxballCpuPolicy {
         reason = "challenge-carrier";
       }
     } else if (this.belief.interaction === "STRIKE") {
-      const strikeDirection = normalizeAxis({
-        x: targetGoal.x - ball.x,
-        y: targetGoal.y - ball.y,
-      });
-      const stagingDistance = 42;
-      const stagingPoint = {
-        x: ball.x - strikeDirection.x * stagingDistance,
-        y: ball.y - strikeDirection.y * stagingDistance,
-      };
-      const stagingDelta = {
-        x: stagingPoint.x - player.x,
-        y: stagingPoint.y - player.y,
-      };
-      if (Math.hypot(stagingDelta.x, stagingDelta.y) < 13) {
-        target = {
-          x: ball.x + strikeDirection.x * 12,
-          y: ball.y + strikeDirection.y * 12,
-        };
-        reason = "strike-through-ball";
-      } else {
-        target = stagingPoint;
-        reason = "stage-strike";
-      }
+      const approach = this.lineUpStrike(player, targetGoal, observation);
+      target = approach.target;
+      reason = approach.reason;
     }
 
     const desiredWorldMotion = normalizeAxis({
@@ -200,6 +187,90 @@ export class FluxballCpuPolicy {
       desiredWorldMotion,
       rawInput: inputFromAxis(controlMotion),
     });
+  }
+
+  private lineUpStrike(
+    player: FluxballPublicPlayer,
+    goal: Axis,
+    observation: FluxballPublicSportSnapshot,
+  ): { target: Axis; reason: "stage-strike" | "strike-through-ball" } {
+    const ball = observation.ball;
+    const forward = normalizeAxis({ x: goal.x - ball.x, y: goal.y - ball.y });
+    const side = { x: -forward.y, y: forward.x };
+    const dx = player.x - ball.x;
+    const dy = player.y - ball.y;
+    const along = dx * forward.x + dy * forward.y;
+    const across = dx * side.x + dy * side.y;
+    const margin = TUNING.courtPadding + TUNING.playerRadius;
+    const onCourt = (point: Axis): Axis => ({
+      x: clamp(point.x, margin, observation.court.width - margin),
+      y: clamp(point.y, margin, observation.court.height - margin),
+    });
+    const staging = onCourt({
+      x: ball.x - forward.x * 60,
+      y: ball.y - forward.y * 60,
+    });
+    // Commit to contact once lined up, including a staging point clipped by
+    // the sideline. Reversing back to staging halfway through causes stalling.
+    if (along >= 0 || Math.abs(across) > 40) this.strikeThrough = false;
+    if (
+      along < -20 &&
+      (Math.abs(across) < 12 ||
+        Math.hypot(player.x - staging.x, player.y - staging.y) < 16)
+    )
+      this.strikeThrough = true;
+    if (this.strikeThrough) {
+      return {
+        target: { x: ball.x + forward.x * 48, y: ball.y + forward.y * 48 },
+        reason: "strike-through-ball",
+      };
+    }
+    const path = { x: staging.x - player.x, y: staging.y - player.y };
+    const lengthSquared = path.x * path.x + path.y * path.y;
+    const closest =
+      lengthSquared === 0
+        ? 0
+        : clamp(
+            ((ball.x - player.x) * path.x + (ball.y - player.y) * path.y) /
+              lengthSquared,
+            0,
+            1,
+          );
+    const clearance = Math.hypot(
+      player.x + path.x * closest - ball.x,
+      player.y + path.y * closest - ball.y,
+    );
+    const stagingClearance = Math.hypot(staging.x - ball.x, staging.y - ball.y);
+    if (clearance >= Math.min(44, stagingClearance - 0.5))
+      return { target: staging, reason: "stage-strike" };
+
+    // Stay on one side while getting behind a loose ball. This is a short
+    // clearance waypoint, not an orbit or a change to carrier pursuit.
+    const behind = (sign: number): Axis => ({
+      x: ball.x + side.x * sign * 90 - forward.x * 70,
+      y: ball.y + side.y * sign * 90 - forward.y * 70,
+    });
+    if (this.strikeSide === null) {
+      const preferred = across < 0 ? -1 : 1;
+      const boundaryCost = (sign: number): number => {
+        const point = behind(sign);
+        const clamped = onCourt(point);
+        return Math.hypot(point.x - clamped.x, point.y - clamped.y);
+      };
+      this.strikeSide =
+        boundaryCost(preferred) <= boundaryCost(-preferred)
+          ? preferred
+          : preferred === 1
+            ? -1
+            : 1;
+    }
+    const waypointAlong =
+      across * this.strikeSide >= 55 ? -70 : Math.max(-70, along);
+    const target = onCourt({
+      x: ball.x + side.x * this.strikeSide * 90 + forward.x * waypointAlong,
+      y: ball.y + side.y * this.strikeSide * 90 + forward.y * waypointAlong,
+    });
+    return { target, reason: "stage-strike" };
   }
 
   private observe(
@@ -266,6 +337,8 @@ export class FluxballCpuPolicy {
       contact.playerId === this.playerId
     ) {
       this.lastContactKey = contactKey;
+      this.strikeSide = null;
+      this.strikeThrough = false;
       this.belief.interaction =
         contact.consequence === "possession" || contact.consequence === "steal"
           ? "CARRY"
@@ -273,25 +346,35 @@ export class FluxballCpuPolicy {
       this.belief.interactionConfidence = 1;
       this.belief.observations += 1;
     }
+  }
 
+  private observeGoal(observation: FluxballPublicSportSnapshot): void {
     const goal = observation.latestGoal;
-    const goalKey = goal ? `${goal.roundNumber}:${goal.eventId}` : "";
-    if (goal && goalKey !== this.lastGoalKey) {
-      this.lastGoalKey = goalKey;
-      const own = ownGoalFor(this.playerId);
-      const opposite = oppositeGoalFor(this.playerId);
-      if (goal.physicalGoal === own || goal.physicalGoal === opposite) {
-        this.belief.targetGoal =
-          (goal.scoreAfter[this.playerId] ?? 0) >
-          (previous?.score[this.playerId] ?? 0)
-            ? goal.physicalGoal
-            : goal.physicalGoal === own
-              ? opposite
-              : own;
-        this.belief.purposeConfidence = 1;
-        this.belief.observations += 1;
-      }
+    if (!goal) return;
+    const goalKey = `${goal.roundNumber}:${goal.eventId}`;
+    if (goalKey === this.lastGoalKey) return;
+    this.lastGoalKey = goalKey;
+    this.strikeSide = null;
+    this.strikeThrough = false;
+    const own = ownGoalFor(this.playerId);
+    const opposite = oppositeGoalFor(this.playerId);
+    if (goal.physicalGoal !== own && goal.physicalGoal !== opposite) return;
+
+    // Public recipients describe this goal's scoreboard change. A previous
+    // frame may already contain the updated score or predate several goals.
+    const beneficial = goal.awardedPlayerIds.includes(this.playerId);
+    const targetGoal = beneficial
+      ? goal.physicalGoal
+      : goal.physicalGoal === own
+        ? opposite
+        : own;
+    if (targetGoal !== this.belief.targetGoal) {
+      this.belief.targetGoal = targetGoal;
+      // Do not keep issuing a decision based on a disproven scoring belief.
+      this.cachedDecision = null;
     }
+    this.belief.purposeConfidence = 1;
+    this.belief.observations += 1;
   }
 
   private believedTargetGoal(

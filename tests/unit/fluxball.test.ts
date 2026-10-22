@@ -969,6 +969,276 @@ describe("Fluxball v2 response and collision feel", () => {
 });
 
 describe("Fluxball CPU information boundary", () => {
+  it("changes its scoring intention on the first contradictory goal at normal decision cadence", () => {
+    const policy = new FluxballCpuPolicy("B", 30);
+    const before = {
+      ...publicObservation(0, 600, 100),
+      ball: { ...publicObservation(0, 600, 100).ball, carrierId: "B" as const },
+    };
+    expect(policy.decide(before).target.x).toBeLessThan(0);
+    expect(policy.snapshotBelief().targetGoal.value).toBe("UNKNOWN");
+    const unhelpfulGoal = {
+      eventId: 1,
+      roundNumber: 1,
+      tick: 1,
+      ruleStateIndex: 0,
+      physicalGoal: "A" as const,
+      awardedPlayerIds: ["A" as const],
+      scoreAfter: { A: 1, B: 0 },
+    };
+    const after = {
+      ...before,
+      tick: 1,
+      roundTick: 1,
+      latestGoal: unhelpfulGoal,
+      score: unhelpfulGoal.scoreAfter,
+    };
+    const decision = policy.decide(after);
+    expect(policy.snapshotBelief().targetGoal.value).toBe("B");
+    expect(decision.target.x).toBeGreaterThan(800);
+    expect(decision.rawInput.right).toBe(true);
+    expect(decision.rawInput.left).toBe(false);
+    // A rule-change notification alone supplies no new scoring knowledge.
+    policy.decide({ ...after, tick: 2, roundTick: 2, ruleStateIndex: 1 });
+    expect(policy.snapshotBelief().targetGoal.value).toBe("B");
+    const contradiction = {
+      ...unhelpfulGoal,
+      eventId: 2,
+      tick: 2,
+      ruleStateIndex: 1,
+      physicalGoal: "B" as const,
+      scoreAfter: { A: 2, B: 0 },
+    };
+    const revised = policy.decide({
+      ...after,
+      tick: 2,
+      roundTick: 2,
+      ruleStateIndex: 1,
+      latestGoal: contradiction,
+      score: contradiction.scoreAfter,
+    });
+    expect(policy.snapshotBelief().targetGoal.value).toBe("A");
+    expect(revised.target.x).toBeLessThan(0);
+    expect(revised.rawInput.left).toBe(true);
+  });
+
+  it.each([true, false])(
+    "learns a goal's own-score benefit from that event, independently of a previous snapshot (beneficial=%s)",
+    (beneficial) => {
+      const policy = new FluxballCpuPolicy("B", 30);
+      const before = publicObservation(10, 600, 100);
+      const goal = {
+        eventId: 3,
+        roundNumber: 1,
+        tick: 10,
+        ruleStateIndex: 0,
+        physicalGoal: "A" as const,
+        awardedPlayerIds: beneficial
+          ? (["A", "B"] as PlayerId[])
+          : (["A"] as PlayerId[]),
+        scoreAfter: { A: 4, B: 3 },
+      };
+      // Earlier points must not be confused with a point awarded by this goal.
+      policy.decide({ ...before, score: goal.scoreAfter, latestGoal: goal });
+      expect(policy.snapshotBelief().targetGoal.value).toBe(
+        beneficial ? "A" : "B",
+      );
+      const observations = policy.snapshotBelief().observations;
+      // Freeze/repeated snapshots must neither lose nor count the same evidence twice.
+      for (let repeat = 0; repeat < 5; repeat++)
+        policy.decide({
+          ...before,
+          goalFreezeTicksRemaining: 5 - repeat,
+          score: goal.scoreAfter,
+          latestGoal: goal,
+        });
+      expect(policy.snapshotBelief().targetGoal.value).toBe(
+        beneficial ? "A" : "B",
+      );
+      expect(policy.snapshotBelief().observations).toBe(observations);
+    },
+  );
+
+  it("does not discard a newly visible goal when the movement clock has not advanced", () => {
+    const policy = new FluxballCpuPolicy("B", 30);
+    const before = publicObservation(10, 600, 100);
+    policy.decide({ ...before, score: { A: 2, B: 3 } });
+    const goal = {
+      eventId: 3,
+      roundNumber: 1,
+      tick: 10,
+      ruleStateIndex: 0,
+      physicalGoal: "A" as const,
+      awardedPlayerIds: ["A"] as PlayerId[],
+      scoreAfter: { A: 2, B: 3 },
+    };
+    policy.decide({
+      ...before,
+      latestGoal: goal,
+      score: goal.scoreAfter,
+      goalFreezeTicksRemaining: 5,
+    });
+    expect(policy.snapshotBelief().targetGoal.value).toBe("B");
+  });
+
+  it.each([
+    [2, "global"],
+    [2, "individual"],
+    [4, "global"],
+    [4, "individual"],
+  ] as const)(
+    "keeps each CPU's scoring belief consistent with visible goals across recorded %i-player %s rounds",
+    (count, mode) => {
+      let observedGoals = 0;
+      for (const seed of [0, 1, 3, 19, 31, 41]) {
+        const session = arcadeSession(count, mode, ["A"], seed);
+        for (let round = 1; round <= 3; round++) {
+          let before = session.snapshot();
+          let lastGoal = -1;
+          for (let step = 0; before.phase === "active" && step < 1200; step++) {
+            const after = session.step({ players: {} });
+            const goal = before.sport?.latestGoal;
+            if (goal && goal.eventId !== lastGoal) {
+              lastGoal = goal.eventId;
+              observedGoals += 1;
+              for (const id of [
+                "B",
+                ...(count === 4 ? (["C", "D"] as const) : []),
+              ] as const) {
+                const opposite = { B: "A", C: "D", D: "C" }[id];
+                if (goal.physicalGoal !== id && goal.physicalGoal !== opposite)
+                  continue;
+                const expected = goal.awardedPlayerIds.includes(id)
+                  ? goal.physicalGoal
+                  : goal.physicalGoal === id
+                    ? opposite
+                    : id;
+                expect(after.cpuBeliefs[id]!.targetGoal.value).toBe(expected);
+              }
+            }
+            before = after;
+          }
+          expect(before.phase).toBe("reveal");
+          session.continueAfterReveal();
+        }
+      }
+      expect(observedGoals).toBeGreaterThan(0);
+    },
+  );
+
+  it.each([
+    ["global", 1, 3],
+    ["individual", 3, 1],
+    ["individual", 3, 2],
+    ["individual", 3, 3],
+  ] as const)(
+    "does not repeat a disproven scoring direction in the reproduced %s seed %i round %i",
+    (mode, seed, targetRound) => {
+      const session = arcadeSession(2, mode, ["A"], seed);
+      for (let round = 1; round < targetRound; round++) {
+        advanceToReveal(session);
+        session.continueAfterReveal();
+      }
+      let before = session.snapshot();
+      let previousGoal = -1;
+      let usefulGoals = 0;
+      let learnedHarmfulGoals = 0;
+      for (let step = 0; before.phase === "active" && step < 1000; step++) {
+        const after = session.step({ players: {} });
+        const goal = after.sport?.latestGoal;
+        if (goal && goal.eventId !== previousGoal) {
+          previousGoal = goal.eventId;
+          if (goal.awardedPlayerIds.includes("B")) usefulGoals++;
+          else if (before.cpuBeliefs.B!.targetGoal.value !== "UNKNOWN")
+            learnedHarmfulGoals++;
+        }
+        before = after;
+      }
+      expect(before.phase).toBe("reveal");
+      // A stationary human makes this a repeatable shot-execution regression,
+      // not a demand that a CPU can never be outplayed or score an own goal.
+      expect(learnedHarmfulGoals).toBe(0);
+      expect(usefulGoals).toBeGreaterThan(0);
+    },
+  );
+
+  it.each([
+    ["A", 400, 230, 280, 230],
+    ["B", 400, 230, 520, 230],
+    ["C", 400, 230, 400, 110],
+    ["D", 400, 230, 400, 350],
+    ["B", 400, 60, 520, 60],
+    ["B", 400, 400, 520, 400],
+    ["C", 60, 230, 60, 110],
+    ["D", 740, 230, 740, 350],
+  ] as const)(
+    "lines up a purposeful kick toward %s from ball (%i,%i) and player (%i,%i)",
+    (id, ballX, ballY, playerX, playerY) => {
+      const sport = new SportSimulation({
+        roundNumber: 1,
+        activePlayerIds: ["A", "B", "C", "D"],
+        rules: fourPlayerPurposeRules("OWN"),
+      });
+      const state = sportInternals(sport);
+      for (const other of ["A", "B", "C", "D"] as const) {
+        state.players[other]!.x = 80 + (other.charCodeAt(0) % 2) * 640;
+        state.players[other]!.y = 80 + (other.charCodeAt(0) % 3) * 150;
+      }
+      Object.assign(state.players[id]!, { x: playerX, y: playerY });
+      state.ball = { x: ballX, y: ballY, vx: 0, vy: 0, carrierId: null };
+      const cpu = new FluxballCpuPolicy(id, 1);
+      const visible = createPublicSportSnapshot(sport.getSnapshot());
+      // Prior public events establish STRIKE and the beneficial side. Rules
+      // and hidden mappings are never passed to the policy.
+      cpu.decide({
+        ...visible,
+        latestContact: {
+          eventId: 99,
+          roundNumber: 1,
+          tick: 0,
+          ruleStateIndex: 0,
+          playerId: id,
+          previousCarrierId: null,
+          consequence: "strike",
+        },
+        latestGoal: {
+          eventId: 99,
+          roundNumber: 1,
+          tick: 0,
+          ruleStateIndex: 0,
+          physicalGoal: id,
+          awardedPlayerIds: [id],
+          scoreAfter: visible.score,
+        },
+      });
+      let contact = null;
+      for (let tick = 0; tick < 240 && !contact; tick++) {
+        const decision = cpu.decide(
+          createPublicSportSnapshot(sport.getSnapshot()),
+        );
+        expect(Object.values(decision.rawInput).some(Boolean)).toBe(true);
+        const packet = sport.step({ [id]: decision.rawInput });
+        contact =
+          packet.events.find(
+            (event) => event.type === "BALL_CONTACT" && event.playerId === id,
+          ) ?? null;
+      }
+      expect(contact?.type).toBe("BALL_CONTACT");
+      if (contact?.type !== "BALL_CONTACT")
+        throw new Error("CPU failed to kick within twelve seconds.");
+      const goal = {
+        A: { x: 0, y: 230 },
+        B: { x: 800, y: 230 },
+        C: { x: 400, y: 0 },
+        D: { x: 400, y: 460 },
+      }[id];
+      expect(
+        contact.ballVelocityAfter.x * (goal.x - ballX) +
+          contact.ballVelocityAfter.y * (goal.y - ballY),
+      ).toBeGreaterThan(0);
+    },
+  );
+
   it("corrects a live simulation inversion only after visible displacement evidence", () => {
     const rules = directStrikeRules();
     const sport = new SportSimulation({
