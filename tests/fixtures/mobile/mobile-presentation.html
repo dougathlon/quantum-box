@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Quantum Box — mobile presentation checks</title>
+    <style>
+      .review {
+        position: fixed;
+        z-index: 60;
+        top: 8px;
+        right: 8px;
+        max-height: 80vh;
+        overflow: auto;
+        background: #2b1c14;
+        color: #d6bd8b;
+        font: 12px monospace;
+      }
+      .review button {
+        min-height: 44px;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="app"></div>
+    <aside class="review">
+      <button id="run">Run presentation checks</button>
+      <output id="summary">Not run</output>
+      <details>
+        <summary>Results</summary>
+        <ol id="results"></ol>
+      </details>
+    </aside>
+    <script type="module" src="./mobile-presentation.ts"></script>
+  </body>
+</html>

@@ -32,7 +32,7 @@ export class ScreenScene extends Phaser.Scene {
   private activeSurface: "library" | "cabinet" | "quag" = "library";
   private readonly display = new BrownBoxDisplay(this);
 
-  public constructor() {
+  public constructor(private readonly onReady?: () => void) {
     super({ key: SCREEN_SCENE_KEY });
   }
 
@@ -46,6 +46,7 @@ export class ScreenScene extends Phaser.Scene {
     this.background = this.display.createNativePixelPlane().setDepth(1);
     this.drawLibraryField();
     this.game.canvas.setAttribute("aria-hidden", "true");
+    this.onReady?.();
   }
 
   public showLibrary(): void {
@@ -60,7 +61,9 @@ export class ScreenScene extends Phaser.Scene {
     paused: boolean,
   ): void {
     this.leaveQuag();
-    renderQong(this.background, snapshot, opponent, paused);
+    renderQong(this.background, snapshot, opponent, paused, {
+      hideHud: this.mobileHud,
+    });
   }
 
   public showQongStoryCourt(
@@ -79,7 +82,9 @@ export class ScreenScene extends Phaser.Scene {
     paused: boolean,
   ): void {
     this.leaveQuag();
-    renderSkiPixl(this.background, snapshot, payload, paused);
+    renderSkiPixl(this.background, snapshot, payload, paused, {
+      hideHud: this.mobileHud,
+    });
   }
 
   public showSkiPixlStorySlope(
@@ -94,7 +99,7 @@ export class ScreenScene extends Phaser.Scene {
 
   public showFluxball(snapshot: FluxballSnapshot, paused: boolean): void {
     this.leaveQuag();
-    renderFluxball(this.background, snapshot, paused);
+    renderFluxball(this.background, snapshot, paused, false, this.mobileHud);
   }
 
   public showQuantmanSynthetic(
@@ -102,7 +107,7 @@ export class ScreenScene extends Phaser.Scene {
     paused: boolean,
   ): void {
     this.leaveQuag();
-    renderQuantmanSynthetic(this.background, snapshot, paused);
+    renderQuantmanSynthetic(this.background, snapshot, paused, this.mobileHud);
   }
 
   public showQuag(
@@ -114,7 +119,17 @@ export class ScreenScene extends Phaser.Scene {
       drawQuagArena(this.quagArena, snapshot.arenaId);
     }
     this.activeSurface = "quag";
-    renderQuag(this.background, snapshot, paused, interpolationAlpha);
+    renderQuag(
+      this.background,
+      snapshot,
+      paused,
+      interpolationAlpha,
+      this.mobileHud,
+    );
+  }
+
+  private get mobileHud(): boolean {
+    return document.documentElement.dataset["mobile"] === "true";
   }
 
   private leaveQuag(): void {

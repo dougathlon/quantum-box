@@ -19,6 +19,7 @@ export function renderQong(
   paused: boolean,
   options: Readonly<{
     hidePaddles?: boolean;
+    hideHud?: boolean;
     refinedHudPreview?: boolean;
   }> = {},
 ): void {
@@ -63,6 +64,7 @@ export function renderQong(
     BROWN_BOX_PALETTE.cream,
   );
 
+  if (options.hideHud) return;
   if (view.paused) {
     drawCabinetPauseHeader(g);
     return;

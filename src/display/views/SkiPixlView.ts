@@ -58,7 +58,7 @@ export function renderSkiPixl(
   snapshot: SkiPixlSnapshot,
   payload: SkiPixlPackPayload,
   paused: boolean,
-  options: Readonly<{ hideCompletionPrompt?: boolean }> = {},
+  options: Readonly<{ hideCompletionPrompt?: boolean; hideHud?: boolean }> = {},
 ): void {
   const view = skiPixlDisplayView(snapshot, payload, paused);
   const g = graphics.clear();
@@ -78,6 +78,7 @@ export function renderSkiPixl(
   drawSpeedSpray(g, snapshot);
   drawSkier(g, snapshot);
 
+  if (options.hideHud) return;
   if (paused) {
     drawCabinetPauseHeader(g);
     return;

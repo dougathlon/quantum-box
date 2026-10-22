@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, viewport-fit=cover"
+    />
+    <title>Quantum Box — touch input regression checks</title>
+    <style>
+      body {
+        margin: 0;
+        color: #d6bd8b;
+        background: #2b1c14;
+        font: 16px monospace;
+      }
+      main {
+        position: fixed;
+        inset: 8px max(8px, calc((100vw - 600px) / 2));
+        z-index: 60;
+        overflow: auto;
+      }
+      button {
+        color: inherit;
+        background: inherit;
+        font: inherit;
+        min-height: 44px;
+        border: 1px solid currentColor;
+      }
+      h1 {
+        font-size: 18px;
+      }
+      ol {
+        padding-left: 28px;
+      }
+      li {
+        margin-bottom: 8px;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="app"></div>
+    <main>
+      <h1>Touch input regression checks</h1>
+      <p>
+        Synthetic pointer events exercise the production touch adapter. Native
+        pointer capture is stubbed because browsers reject capture for synthetic
+        pointers. These checks do not prove physical multi-touch or gesture
+        behavior.
+      </p>
+      <button id="run">Run touch checks</button>
+      <output aria-live="polite" id="summary">Not run</output>
+      <ol id="results"></ol>
+    </main>
+    <script type="module" src="./mobile-input.ts"></script>
+  </body>
+</html>

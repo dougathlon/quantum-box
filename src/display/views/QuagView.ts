@@ -82,6 +82,7 @@ export function renderQuag(
   snapshot: QuagSnapshot,
   paused: boolean,
   interpolationAlpha = 1,
+  hideHud = false,
 ): void {
   const g = graphics.clear();
   const sinceShift =
@@ -106,6 +107,7 @@ export function renderQuag(
     }
     drawPlayer(g, player, position, snapshot.tick, snapshot, arena);
   }
+  if (hideHud) return;
   if (paused) {
     drawCabinetPauseHeader(g);
     return;

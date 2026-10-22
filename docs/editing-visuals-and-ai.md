@@ -62,14 +62,16 @@ them. Stored quantum results provide game conditions; they do not implement the
 opponents. Shared observation/belief/decision types live in
 [agents/contracts.ts](../src/agents/contracts.ts).
 
-| System                   | Decision owner                                                               | What to change and what it may see                                                                                                                           |
-| ------------------------ | ---------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| Qong CPU                 | [QongCpuPolicy.ts](../src/games/qong/QongCpuPolicy.ts)                       | Goal-event belief updates, defend/concede choice and aiming offset. Uses public ball/paddle state and observed goals, not the unrevealed polarity.           |
-| Fluxball CPU             | [FluxballCpuPolicy.ts](../src/games/fluxball/FluxballCpuPolicy.ts)           | Decision cadence, probing, learned action/interaction/goal beliefs, pursuit and support. Input is a public sport snapshot; do not pass hidden sampled rules. |
-| Quarry CPU               | [QuagCpuPolicy.ts](../src/games/quag/QuagCpuPolicy.ts)                       | Target distance, intercept offsets, flap cadence and patrol destinations. Sees current players, outgoing targets and arena; respects wrap and grace.         |
-| Quantman ghosts          | [GhostPolicy.ts](../src/games/quantmanSynthetic/game/GhostPolicy.ts)         | Role targets, shortest open paths, frightened behavior and deterministic fallback. Sees current maze/player state, not future sampled mazes.                 |
-| SkiPixl evaluation pilot | [SkiPixlPublicPolicy.ts](../src/games/skipixl/SkiPixlPublicPolicy.ts)        | Navigability evaluation from the same forward observation window; not an opponent or an autopilot for the human.                                             |
-| Quantman collector       | [CollectorPolicy.ts](../src/games/quantmanSynthetic/game/CollectorPolicy.ts) | Evaluation/test driver, separate from the player-controlled game and ghost policy.                                                                           |
+| System                   | Decision owner                                                               | What to change and what it may see                                                                                                                   |
+| ------------------------ | ---------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Qong CPU                 | [QongCpuPolicy.ts](../src/games/qong/QongCpuPolicy.ts)                       | Fresh per-rally defend/concede guess, 250 ms public-reveal response and aiming offset. No previous-outcome prediction or hidden polarity.            |
+| Fluxball CPU             | [FluxballCpuPolicy.ts](../src/games/fluxball/FluxballCpuPolicy.ts)           | Independent learned action/interaction/goal beliefs and pursuit. Input is a public sport snapshot; no CPU support roles or hidden sampled rules.     |
+| Quarry CPU               | [QuagCpuPolicy.ts](../src/games/quag/QuagCpuPolicy.ts)                       | Target distance, intercept offsets, flap cadence and patrol destinations. Sees current players, outgoing targets and arena; respects wrap and grace. |
+| Quantman ghosts          | [GhostPolicy.ts](../src/games/quantmanSynthetic/game/GhostPolicy.ts)         | Role targets, shortest open paths, frightened behavior and deterministic fallback. Sees current maze/player state, not future sampled mazes.         |
+| SkiPixl evaluation pilot | [SkiPixlPublicPolicy.ts](../src/games/skipixl/SkiPixlPublicPolicy.ts)        | Navigability evaluation from the same forward observation window; not an opponent or an autopilot for the human.                                     |
+| Quantman collector       | [CollectorPolicy.ts](../src/games/quantmanSynthetic/game/CollectorPolicy.ts) | Evaluation/test driver, separate from the player-controlled game and ghost policy.                                                                   |
+
+The [NPC behavior guide](npc-behavior.md) explains current decisions, evidence, timings and limitations for all four opponent policies, with dated verbatim source copies.
 
 For policy integration, inspect the matching session:
 [QongSession.ts](../src/games/qong/QongSession.ts),

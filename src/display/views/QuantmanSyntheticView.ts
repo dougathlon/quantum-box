@@ -68,12 +68,14 @@ export function renderQuantmanSynthetic(
   graphics: Phaser.GameObjects.Graphics,
   runtime: QuantmanSyntheticRuntimeSnapshot,
   paused: boolean,
+  hideHud = false,
 ): void {
   const state = runtime.simulation;
   const g = graphics.clear();
   drawTopology(g, state);
   drawCollectibles(g, state);
   drawActors(g, state);
+  if (hideHud) return;
   if (paused) {
     drawCabinetPauseHeader(g, QUANTMAN_SYNTHETIC_VIEWPORT.boardTop);
     return;

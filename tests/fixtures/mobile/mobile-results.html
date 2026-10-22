@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Quantum Box — result control regression checks</title>
+    <style>
+      .review {
+        position: fixed;
+        z-index: 60;
+        inset: 8px 130px auto;
+        max-height: 70vh;
+        overflow: auto;
+        color: #d6bd8b;
+        background: #2b1c14;
+        font: 14px monospace;
+      }
+      .review button {
+        min-height: 44px;
+        color: inherit;
+        background: inherit;
+        font: inherit;
+        border: 1px solid currentColor;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="app"></div>
+    <aside class="review">
+      <p>
+        UI-only fixture using local control snapshots. No save writes or QPU
+        claims.
+      </p>
+      <button id="run">Run result checks</button>
+      <output id="summary">Not run</output>
+      <output id="actions">0 cabinet actions</output>
+      <ol id="results"></ol>
+    </aside>
+    <script type="module" src="./mobile-results.ts"></script>
+  </body>
+</html>

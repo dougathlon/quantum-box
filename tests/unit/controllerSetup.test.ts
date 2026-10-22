@@ -56,3 +56,29 @@ it("calibrates distinct buttons, refreshes cached mappings and waits for release
   expect(readGamepad(pad).primary).toBe(true);
   setup.destroy();
 });
+
+it("ignores a second controller in the single-player setup", () => {
+  let frame: FrameRequestCallback = () => {};
+  const pad = {
+    connected: true,
+    index: 1,
+    buttons: [{ pressed: false }],
+  } as unknown as Gamepad;
+  vi.stubGlobal("navigator", { getGamepads: () => [pad] });
+  vi.stubGlobal("requestAnimationFrame", (callback: FrameRequestCallback) => {
+    frame = callback;
+    return 1;
+  });
+  vi.stubGlobal("cancelAnimationFrame", vi.fn());
+  const status = { textContent: "" };
+  const setup = new ControllerSetup(
+    { querySelector: () => status } as unknown as HTMLElement,
+    1,
+  );
+  setup.start();
+  frame(0);
+  (pad.buttons[0] as { pressed: boolean }).pressed = true;
+  frame(0);
+  expect(status.textContent).toBe("RELEASE BUTTONS, THEN PRESS A.");
+  setup.destroy();
+});

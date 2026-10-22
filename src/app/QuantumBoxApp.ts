@@ -1,3 +1,5 @@
+import { isMobilePresentation, permitsArcadeMode } from "../mobile/MobileMode";
+import { TouchControls } from "../mobile/TouchControls";
 import { LOCAL_HUMAN_PLAYERS } from "../input/LocalPlayers";
 import { postscriptUnlocked } from "../story/terminal/postscript";
 import { observeFullscreenExit } from "../ui/Fullscreen";
@@ -149,6 +151,7 @@ export class QuantumBoxApp {
   private readonly saveRepository: SaveRepository;
   private readonly shell: QuantumBoxShell;
   private readonly input: InputController;
+  private readonly touchControls: TouchControls;
   private readonly game: Phaser.Game;
   private readonly audio: SynthAudio;
   private readonly frameMonitor = new FrameMonitor();
@@ -159,7 +162,8 @@ export class QuantumBoxApp {
   private qongRuntime: QongRuntime | null = null;
   private readonly qongStoryBankPromise: Promise<QongStoryPackBank>;
   private readonly quarryQpuBankPromise: Promise<QuarryQpuBank>;
-  private readonly quantmanQpuBankPromise: Promise<QuantmanQpuBank>;
+  private arcadeLaunchGeneration = 0;
+  private quantmanQpuBankPromise: Promise<QuantmanQpuBank> | null = null;
   private activeQongPack: CommittedPack<QongPackPayload> | null = null;
   private activeQongSelection: QongStoryPackSelection | null = null;
   private skipixlRuntime: SkiPixlRuntime | null = null;
@@ -228,8 +232,12 @@ export class QuantumBoxApp {
           this.game.scale.refresh();
           this.audio.requestBackgroundCue("key-is-opaque");
         },
-        onTitleReturned: () => this.audio.requestBackgroundCue(null),
+        onTitleReturned: () => {
+          this.arcadeLaunchGeneration += 1;
+          this.audio.requestBackgroundCue(null);
+        },
         onPageChanged: (page) => {
+          this.arcadeLaunchGeneration += 1;
           if (page !== "story-terminal") {
             this.storyPresentationGeneration += 1;
             this.storyTerminalTransitionInFlight = false;
@@ -264,20 +272,21 @@ export class QuantumBoxApp {
     void this.qongStoryBankPromise.catch(() => undefined);
     this.quarryQpuBankPromise = loadInstalledQuarryQpuBank();
     void this.quarryQpuBankPromise.catch(() => undefined);
-    this.quantmanQpuBankPromise = loadInstalledQuantmanQpuBank();
-    void this.quantmanQpuBankPromise.catch(() => undefined);
     this.developerAudit =
       import.meta.env.DEV &&
       new URLSearchParams(window.location.search).get("debug") === "beliefs"
         ? new DeveloperAudit(root)
         : null;
+    this.shell.setLoading(true);
     this.game = new Phaser.Game({
       type: Phaser.AUTO,
       parent: this.shell.getCanvasHost(),
       width: LOGICAL_SCREEN.width * 2,
       height: LOGICAL_SCREEN.height * 2,
       transparent: true,
-      scene: [ScreenScene],
+      scene: [
+        new ScreenScene(() => queueMicrotask(() => this.onScreenReady())),
+      ],
       render: { antialias: false, pixelArt: true, roundPixels: true },
       scale: {
         mode: Phaser.Scale.FIT,
@@ -293,6 +302,7 @@ export class QuantumBoxApp {
       this.saveRepository.snapshot().settings.keyboardBindings,
     );
     this.unsubscribeInput = this.input.subscribe(this.onInput);
+    this.touchControls = new TouchControls(root, this.input);
     this.unsubscribeDevices = this.input.subscribeDevices((event) => {
       this.shell.announce(
         event.connected
@@ -309,17 +319,6 @@ export class QuantumBoxApp {
     window.addEventListener("focus", this.onAudioRecovery);
     document.addEventListener("visibilitychange", this.onVisibilityChange);
     this.monitorFrameId = requestAnimationFrame(this.monitorFrame);
-    if (
-      new URLSearchParams(window.location.search).get("returnTo") === "controls"
-    ) {
-      this.shell.showControlsSettings(
-        new URLSearchParams(window.location.search).get("controller") === "1",
-      );
-      const url = new URL(window.location.href);
-      url.searchParams.delete("returnTo");
-      url.searchParams.delete("controller");
-      window.history.replaceState(null, "", url);
-    }
     if (import.meta.env.DEV) {
       const qaParams = new URLSearchParams(window.location.search);
       const qaRoute = qaParams.get("qa");
@@ -354,16 +353,28 @@ export class QuantumBoxApp {
           })
           .catch((error: unknown) => this.reportDevPaletteError(error));
       }
-      if (qaRoute === "story-terminal") {
-        requestAnimationFrame(() => {
-          this.shell.enterInternal();
-          this.continueStory();
-        });
-      }
     }
   }
 
+  private onScreenReady(): void {
+    this.shell.setLoading(false);
+    const url = new URL(window.location.href);
+    if (
+      import.meta.env.DEV &&
+      url.searchParams.get("qa") === "story-terminal"
+    ) {
+      this.shell.enterInternal();
+      this.continueStory();
+    }
+    if (url.searchParams.get("returnTo") !== "controls") return;
+    this.shell.showControlsSettings(url.searchParams.get("controller") === "1");
+    url.searchParams.delete("returnTo");
+    url.searchParams.delete("controller");
+    window.history.replaceState(null, "", url);
+  }
+
   public destroy(): void {
+    this.arcadeLaunchGeneration += 1;
     this.storyPresentationGeneration += 1;
     this.qongRuntime?.stop();
     this.skipixlRuntime?.stop();
@@ -378,6 +389,7 @@ export class QuantumBoxApp {
     this.unsubscribeDevices = null;
     this.stopCanvasPaletteAudit?.();
     this.stopCanvasPaletteAudit = null;
+    this.touchControls.destroy();
     this.input.dispose();
     this.root.removeEventListener("pointerdown", this.onAudioGesture, true);
     this.root.removeEventListener("keydown", this.onAudioGesture, true);
@@ -524,11 +536,23 @@ export class QuantumBoxApp {
     this.inputPresentationFrameIds.add(frameId);
   };
 
+  private loadQuantmanBank(): Promise<QuantmanQpuBank> {
+    // Quantman's full measured corpus is needed only when a maze is launched.
+    // The existing validator remains the authority before any run can begin.
+    return (this.quantmanQpuBankPromise ??=
+      loadInstalledQuantmanQpuBank().catch((error: unknown) => {
+        this.quantmanQpuBankPromise = null;
+        throw error;
+      }));
+  }
+
   private async launchArcade(
     gameId: ArcadeCabinetId,
     mode: string,
     options: ArcadeLaunchOptions,
   ): Promise<void> {
+    if (!permitsArcadeMode(mode, isMobilePresentation())) return;
+    const generation = ++this.arcadeLaunchGeneration;
     if (gameId === "qong") {
       const opponent: QongOpponent =
         mode === "LOCAL TWO PLAYER" ? "local" : "cpu";
@@ -565,6 +589,14 @@ export class QuantumBoxApp {
     if (gameId === "fluxball") {
       const format = fluxballFormatForArcadeMode(mode, options.localPlayers);
       if (format) {
+        if (isMobilePresentation()) {
+          this.startFluxball(
+            "arcade",
+            { ...format, humanPlayerIds: ["A"] },
+            options.runSeed,
+          );
+          return;
+        }
         this.fluxballLobby = {
           mode,
           runSeed: options.runSeed,
@@ -583,8 +615,10 @@ export class QuantumBoxApp {
         mode === "STABILIZE GAZE" ||
         mode === "INVERSE GAZE")
     ) {
+      this.shell.setArcadeModeLoading(mode, true);
       try {
-        const bank = await this.quantmanQpuBankPromise;
+        const bank = await this.loadQuantmanBank();
+        if (generation !== this.arcadeLaunchGeneration) return;
         const fixture = this.selectNextQuantmanArcadeFixture(
           bank,
           options.runSeed,
@@ -600,11 +634,15 @@ export class QuantumBoxApp {
           options.runOrigin,
         );
       } catch (error) {
+        if (generation !== this.arcadeLaunchGeneration) return;
         this.shell.showStoryUnavailable(
           error instanceof Error
             ? error.message
             : "The installed Quantman QPU bank failed local validation.",
         );
+      } finally {
+        if (generation === this.arcadeLaunchGeneration)
+          this.shell.setArcadeModeLoading(mode, false);
       }
       return;
     }
@@ -653,7 +691,10 @@ export class QuantumBoxApp {
     else if (action.kind === "start") {
       if (this.fluxballLobby) {
         this.fluxballLobby.humanPlayerIds.clear();
-        for (const id of LOCAL_HUMAN_PLAYERS.slice(0, action.humanCount ?? 1))
+        for (const id of LOCAL_HUMAN_PLAYERS.slice(
+          0,
+          isMobilePresentation() ? 1 : (action.humanCount ?? 1),
+        ))
           this.fluxballLobby.humanPlayerIds.add(id);
       }
       this.startFluxballFromLobby();
@@ -664,7 +705,11 @@ export class QuantumBoxApp {
     const lobby = this.fluxballLobby;
     if (!lobby) return;
     const active: readonly PlayerId[] = LOCAL_HUMAN_PLAYERS;
-    if (!active.includes(playerId)) return;
+    if (
+      !active.includes(playerId) ||
+      (isMobilePresentation() && playerId !== "A")
+    )
+      return;
     if (lobby.humanPlayerIds.has(playerId))
       lobby.humanPlayerIds.delete(playerId);
     else lobby.humanPlayerIds.add(playerId);
@@ -697,7 +742,9 @@ export class QuantumBoxApp {
       competitorCount: lobby.competitorCount,
       ruleMode: lobby.ruleMode,
       roundSeconds: 40,
-      humanPlayerIds: [...lobby.humanPlayerIds].sort(),
+      humanPlayerIds: isMobilePresentation()
+        ? ["A"]
+        : [...lobby.humanPlayerIds].sort(),
     };
     const runSeed = lobby.runSeed;
     this.fluxballLobby = null;
@@ -890,7 +937,7 @@ export class QuantumBoxApp {
         return;
       }
       if (stage === "quantman-hold") {
-        const bank = await this.quantmanQpuBankPromise;
+        const bank = await this.loadQuantmanBank();
         if (
           generation !== this.storyPresentationGeneration ||
           this.hasActiveCabinet()
@@ -1822,7 +1869,7 @@ export class QuantumBoxApp {
       return;
     }
     try {
-      const bank = await this.quantmanQpuBankPromise;
+      const bank = await this.loadQuantmanBank();
       const runSeed = resolveRunSeed();
       const fixture = this.selectNextQuantmanArcadeFixture(bank, runSeed);
       this.startQuantman(
@@ -2417,6 +2464,7 @@ export class QuantumBoxApp {
   private readonly onVisibilityChange = (): void => {
     const visible = document.visibilityState === "visible";
     this.audio.setDocumentVisible(visible);
+    if (!visible) this.pauseForInterruption("Paused while the game is hidden.");
     if (visible) this.onAudioRecovery();
   };
 

@@ -145,6 +145,21 @@ test("Arcade SkiPixl completes the production QPixl descent without Story author
   await page.locator("[data-initial-slot='1']").press("Backspace");
   await expect(initials).toHaveValue("-OU");
   await page.locator("[data-initial-slot='0']").pressSequentially("SKI");
+  // Exercise the touch score editor against the same completed, persisted run.
+  await page.setViewportSize({ width: 844, height: 390 });
+  await page.evaluate(() => {
+    document.documentElement.dataset["mobile"] = "true";
+  });
+  await page
+    .getByRole("button", { name: "Increase initial 1", exact: true })
+    .click();
+  await expect(page.locator('[data-mobile-initial-slot="0"]')).toHaveText("T");
+  await expect(initials).toHaveValue("TKI");
+  await page
+    .getByRole("button", { name: "Decrease initial 1", exact: true })
+    .click();
+  await expect(page.locator('[data-mobile-initial-slot="0"]')).toHaveText("S");
+  await expect(initials).toHaveValue("SKI");
   await page.getByRole("button", { name: "SAVE · ENTER / A" }).click();
   await expect(scoreRows).toHaveCount(5);
   await expect(

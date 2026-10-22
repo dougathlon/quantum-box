@@ -27,11 +27,13 @@ export function renderFluxball(
   snapshot: FluxballSnapshot,
   paused: boolean,
   refinedHudPreview = false,
+  hideHud = false,
 ): void {
   const view = fluxballDisplayView(snapshot, paused);
   const g = graphics.clear();
   const sport = view.sport;
   if (!sport) {
+    if (hideHud) return;
     if (view.paused) drawCabinetPauseHeader(g);
     else drawHud(g, snapshot, refinedHudPreview);
     return;
@@ -145,6 +147,7 @@ export function renderFluxball(
     });
   }
 
+  if (hideHud) return;
   if (view.paused) {
     drawCabinetPauseHeader(g);
     return;

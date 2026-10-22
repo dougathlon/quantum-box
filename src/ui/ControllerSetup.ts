@@ -7,7 +7,7 @@ import { LOCAL_HUMAN_LIMIT } from "../input/LocalPlayers";
 export const controllerSetupMarkup = `
 <div class="qb-controller-setup">
 <p>D-PAD: MOVE<br>A: SELECT / ACTION<br>B / SELECT: BACK<br>START: PAUSE</p>
-<p>CONTROLLER 1: PLAYER A<br>CONTROLLER 2: PLAYER B</p>
+<p>CONTROLLER 1: PLAYER A<span data-controller-player-b><br>CONTROLLER 2: PLAYER B</span></p>
 <p>BUTTONS NOT MATCHING? MAP THEM BELOW.</p>
 <button class="qb-action" data-action="controller-map">MAP BUTTONS</button>
 <p data-controller-status role="status">CONNECT A CONTROLLER AND PRESS A BUTTON.</p>
@@ -25,7 +25,10 @@ export class ControllerSetup {
   public get capturing(): boolean {
     return this.mapping !== null || this.waitingForRelease;
   }
-  public constructor(private readonly root: HTMLElement) {
+  public constructor(
+    private readonly root: HTMLElement,
+    private readonly humanLimit: number = LOCAL_HUMAN_LIMIT,
+  ) {
     this.frame = requestAnimationFrame(this.poll);
   }
   public start(): void {
@@ -44,7 +47,7 @@ export class ControllerSetup {
   }
   private readonly poll = (): void => {
     const pads = [...navigator.getGamepads()].filter((pad): pad is Gamepad =>
-      Boolean(pad?.connected && pad.index < LOCAL_HUMAN_LIMIT),
+      Boolean(pad?.connected && pad.index < this.humanLimit),
     );
     if (this.mapping) {
       const pad =

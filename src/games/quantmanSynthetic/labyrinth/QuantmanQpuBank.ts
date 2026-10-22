@@ -1,5 +1,3 @@
-import installedBankArtifact from "../data/quantman-labyrinth-ibm-fez-bank-v3.json" with { type: "json" };
-
 import { sha256CanonicalJson } from "../../../core/canonicalJson";
 import { asUint32Seed, deriveSeed } from "../../../core/determinism";
 import { validateLabyrinthFixture } from "./LabyrinthFixture";
@@ -38,6 +36,15 @@ export class QuantmanQpuBankUnavailableError extends Error {
 }
 
 export async function loadInstalledQuantmanQpuBank(): Promise<QuantmanQpuBank> {
+  const { default: installedBankArtifact } = await import(
+    "../data/quantman-labyrinth-ibm-fez-bank-v3.json",
+    { with: { type: "json" } }
+  ).catch((cause: unknown) => {
+    throw new Error(
+      "Quantman's maze bank could not be loaded. Check your connection and reload the page.",
+      { cause },
+    );
+  });
   return validateQuantmanQpuBank(installedBankArtifact);
 }
 

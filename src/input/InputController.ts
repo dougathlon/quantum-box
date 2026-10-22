@@ -41,7 +41,7 @@ export type SemanticAction = (typeof SEMANTIC_ACTIONS)[number];
 export interface InputSignal {
   readonly action: SemanticAction;
   readonly pressed: boolean;
-  readonly source: "keyboard" | "gamepad";
+  readonly source: "keyboard" | "gamepad" | "touch";
   readonly deviceId: string;
   readonly capturedAtMs: number;
 }
@@ -87,6 +87,21 @@ export class InputController {
     this.frameId = windowTarget.requestAnimationFrame(this.pollGamepads);
   }
 
+  private readonly touchActions = new Set<SemanticAction>();
+
+  public setTouchAction(action: SemanticAction, pressed: boolean): void {
+    if (this.disposed || this.touchActions.has(action) === pressed) return;
+    if (pressed) this.touchActions.add(action);
+    else this.touchActions.delete(action);
+    this.emit({
+      action,
+      pressed,
+      source: "touch",
+      deviceId: "touch:0",
+      capturedAtMs: performance.now(),
+    });
+  }
+
   public subscribe(listener: InputListener): () => void {
     this.listeners.add(listener);
     return () => this.listeners.delete(listener);
@@ -113,6 +128,7 @@ export class InputController {
 
   public dispose(): void {
     if (this.disposed) return;
+    for (const action of this.touchActions) this.setTouchAction(action, false);
     this.disposed = true;
     this.windowTarget.cancelAnimationFrame(this.frameId);
     this.windowTarget.removeEventListener("keydown", this.onKeyDown);

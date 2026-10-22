@@ -218,6 +218,10 @@ export class BitmapDomTextRenderer {
 
   public renderNow(): void {
     this.animationFrame = 0;
+    if (document.documentElement.dataset["mobile"] === "true") {
+      this.context.clearRect(0, 0, LOGICAL_WIDTH, LOGICAL_HEIGHT);
+      return;
+    }
     const frameRect = this.frame.getBoundingClientRect();
     this.layoutFlowText(frameRect);
     this.context.clearRect(0, 0, LOGICAL_WIDTH, LOGICAL_HEIGHT);

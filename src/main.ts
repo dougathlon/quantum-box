@@ -1,6 +1,7 @@
 import { QuantumBoxApp } from "./app/QuantumBoxApp";
 import "./styles.css";
 import "./display/brownBox.css";
+import "./mobile/mobile.css";
 
 const root = document.querySelector<HTMLElement>("#app");
 if (!root) throw new Error("Quantum Box requires an #app root element.");

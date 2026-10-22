@@ -136,6 +136,64 @@ describe("Quantman synthetic main-game runtime", () => {
     runtime.stop();
   });
 
+  it("retains a touch swipe that presses and releases between simulation ticks", () => {
+    const scheduler = new ManualFrameScheduler();
+    const runtime = new QuantmanSyntheticMainGameRuntime(
+      {
+        playMode: "arcade",
+        runSeed: 47,
+        mechanic: "stabilize-gaze",
+        scheduler,
+      },
+      { present: vi.fn() },
+      callbacks(),
+    );
+    runtime.start();
+    runtime.handleInput({ ...signal("p1-right", true, 1), source: "touch" });
+    runtime.handleInput({ ...signal("p1-right", false, 2), source: "touch" });
+    scheduler.advance(17);
+    expect(runtime.replayTape().inputs).toEqual([
+      { direction: "right", start: true },
+    ]);
+    scheduler.advance(17);
+    expect(runtime.replayTape().inputs.at(-1)).toEqual({
+      direction: null,
+      start: false,
+    });
+    expect(runtime.snapshot().simulation.player.movementDirection).toBe(
+      "right",
+    );
+    runtime.handleInput({ ...signal("p1-up", true, 35), source: "touch" });
+    runtime.handleInput({ ...signal("p1-up", false, 36), source: "touch" });
+    scheduler.advance(17);
+    expect(runtime.replayTape().inputs.at(-1)?.direction).toBe("up");
+    runtime.stop();
+  });
+
+  it("clears an unconsumed touch turn when play is interrupted", () => {
+    const scheduler = new ManualFrameScheduler();
+    const runtime = new QuantmanSyntheticMainGameRuntime(
+      {
+        playMode: "arcade",
+        runSeed: 47,
+        mechanic: "stabilize-gaze",
+        scheduler,
+      },
+      { present: vi.fn() },
+      callbacks(),
+    );
+    runtime.start();
+    runtime.handleInput({ ...signal("p1-right", true, 1), source: "touch" });
+    runtime.handleInput({ ...signal("p1-right", false, 2), source: "touch" });
+    runtime.pause();
+    scheduler.advance(17);
+    runtime.togglePause();
+    scheduler.advance(17);
+    expect(runtime.snapshot().simulation.phase).toBe("ready");
+    expect(runtime.replayTape().inputs).toEqual([]);
+    runtime.stop();
+  });
+
   it("freezes simulation while paused and delegates retry as a fresh run", () => {
     const scheduler = new ManualFrameScheduler();
     const freshRun = vi.fn();
