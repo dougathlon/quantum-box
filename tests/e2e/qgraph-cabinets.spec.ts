@@ -249,11 +249,14 @@ test("native 320 by 180 keeps all five Arcade cabinets on one screen", async ({
 
 async function verifyNativeFit(browser: Browser): Promise<void> {
   const context = await browser.newContext({
-    hasTouch: true,
+    // This checks the native desktop grid. A coarse touch pointer now selects
+    // the mobile layout, whose larger hit targets intentionally scroll.
+    hasTouch: false,
     viewport: { width: 320, height: 180 },
   });
   const page = await context.newPage();
   await page.goto(E2E_ORIGIN);
+  await expect(page.locator("html")).toHaveAttribute("data-mobile", "false");
   await page.getByRole("button", { name: "PRESS START" }).click();
   await page.getByRole("button", { name: "ARCADE", exact: true }).click();
   const list = page.locator(".qb-arcade-list");
