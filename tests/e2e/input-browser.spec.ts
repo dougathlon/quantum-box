@@ -88,11 +88,16 @@ test("keyboard held action changes each cabinet and keyup applies cabinet releas
       .click();
     if (cabinet.gameId === "fluxball") {
       await page.getByRole("button", { name: "1 PLAYER" }).click();
-    } else if (cabinet.gameId === "quantman") {
-      await page.keyboard.press("Space");
     }
     const region = page.getByRole("region", { name: cabinet.region });
     await expect(region).toBeVisible();
+    if (cabinet.gameId === "quantman") {
+      await expect(page.locator("[data-ui='game']")).toHaveAttribute(
+        "data-phase",
+        "ready",
+      );
+      await page.keyboard.press("Space");
+    }
     await expect(page.locator("[data-ui='game']")).toHaveAttribute(
       "data-phase",
       "active",

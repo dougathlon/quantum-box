@@ -340,6 +340,13 @@ async function run() {
       initialsEditable: true,
     });
     await settle();
+    if (
+      new URLSearchParams(location.search).get("review") ===
+      `${gameId}-initials`
+    ) {
+      summary.textContent = `Reviewing ${gameId} initials`;
+      return;
+    }
     const initial = () => get('[data-mobile-initial-slot="0"]').textContent;
     const original = initial();
     get('[aria-label="Increase initial 1"]').click();

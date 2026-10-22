@@ -789,8 +789,8 @@ html[data-mobile="true"] .qb-scoreboard-table li:not(:last-child) {
 }
 html[data-mobile="true"] .qb-scoreboard-initials {
   display: grid;
-  grid-template-columns: 1fr 180px;
-  gap: 12px 24px;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 12px;
 }
 html[data-mobile="true"] .qb-scoreboard-initials-label,
 html[data-mobile="true"] .qb-score-entry .qb-initials-help,
@@ -1468,10 +1468,6 @@ html[data-mobile="true"] .qb-terminal-footer button:first-child {
     :is(.qb-scoreboard-columns, .qb-scoreboard-table li) {
     grid-template-columns: 44px minmax(0, 1fr) minmax(0, 1fr);
     gap: 8px;
-  }
-  html[data-mobile="true"] .qb-scoreboard-initials {
-    grid-template-columns: minmax(0, 1fr);
-    gap: 12px;
   }
   html[data-mobile="true"] .qb-fluxball-lobby-slots {
     flex-wrap: wrap;

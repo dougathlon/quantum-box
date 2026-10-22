@@ -167,6 +167,7 @@ test("mobile Story can finish typing by tapping text and return to the session m
 }) => {
   await page.getByRole("button", { name: "STORY", exact: true }).click();
   await page.locator("[data-action='new-story']").click();
+  await expect(page.locator(".qb-terminal-page")).toBeVisible();
   const panel = (await page.locator(".qb-terminal-page").boundingBox())!;
   await page.mouse.click(panel.x + 20, panel.y + 20);
   await expect(page.locator(".qb-terminal-page")).toHaveAttribute(
@@ -289,13 +290,20 @@ for (const size of [
       await page.goto(
         `/tests/fixtures/mobile/mobile-device.html?mobile=1&game=${game.id}&audit=1`,
       );
+      // This fixture starts the app and traverses its menus before loading the
+      // cabinet; cold WebKit runs include the recorded asset fetch and parse.
       await expect(page.locator("#device-review")).toHaveAttribute(
         "data-layout-result",
         "pass",
+        { timeout: 15_000 },
       );
       await page.getByRole("button", { name: "PAUSE", exact: true }).click();
       await expect(page.locator(".qb-game-ui")).toHaveAttribute(
         "data-phase",
+        "paused",
+      );
+      await expect(page.locator("#device-review")).toHaveAttribute(
+        "data-layout-phase",
         "paused",
       );
       await expect(page.locator("#device-review")).toHaveAttribute(

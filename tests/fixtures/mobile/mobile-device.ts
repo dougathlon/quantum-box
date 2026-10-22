@@ -79,9 +79,13 @@ async function show(): Promise<void> {
 window.addEventListener("resize", () => {
   review.textContent = `QA ${innerWidth} × ${innerHeight}`;
 });
-void show().catch((error) => {
-  review.textContent = String(error);
-});
+void show()
+  .then(() => {
+    if (query.has("audit")) requestAnimationFrame(inspectLayout);
+  })
+  .catch((error) => {
+    review.textContent = String(error);
+  });
 
 // Geometry checks run on the real, unmodified game through its rendered DOM.
 // Unlike the synthetic input fixture, this never injects game state or inputs.
@@ -151,6 +155,7 @@ function inspectLayout() {
       errors.push("game geometry stretched");
   }
   review.dataset["layoutResult"] = errors.length ? "fail" : "pass";
+  review.dataset["layoutPhase"] = gameUi.dataset["phase"] ?? "";
   review.dataset["layoutErrors"] = JSON.stringify(errors);
   review.textContent = `QA ${innerWidth} × ${innerHeight} · ${errors.length ? errors.join("; ") : "LAYOUT PASS"}`;
 }
@@ -164,6 +169,13 @@ if (query.has("audit")) {
     requestAnimationFrame(inspectLayout),
   );
   changes.observe(hud, { childList: true, subtree: true, characterData: true });
+  // A READY game may never mutate the HUD again after its async launch.
+  // Audit entry and pause transitions even when neither size nor score changes.
+  changes.observe(document.querySelector("#app")!, {
+    subtree: true,
+    attributes: true,
+    attributeFilter: ["data-view", "data-phase", "data-navigation"],
+  });
   window.addEventListener("beforeunload", () => {
     observer.disconnect();
     changes.disconnect();
