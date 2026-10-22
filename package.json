@@ -23,7 +23,7 @@
     "test:watch": "vitest",
     "test:e2e": "PLAYWRIGHT_BROWSERS_PATH=.playwright-browsers playwright test",
     "test:e2e:collect": "PLAYWRIGHT_BROWSERS_PATH=.playwright-browsers playwright test --list",
-    "test:e2e:install": "PLAYWRIGHT_BROWSERS_PATH=.playwright-browsers playwright install chromium",
+    "test:e2e:install": "PLAYWRIGHT_BROWSERS_PATH=.playwright-browsers playwright install chromium webkit",
     "audit:visual": "python3 scripts/audit_brown_box_frames.py",
     "audit:assets": "python3 scripts/audit_canonical_runtime_assets.py",
     "audit:qgraph-assets": "python3 scripts/audit_qgraph_cabinet_assets.py",

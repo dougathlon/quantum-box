@@ -51,8 +51,8 @@ jobs:
       - name: Scan the public source snapshot
         run: pnpm scan:source
 
-      - name: Install the Chromium test runtime
-        run: pnpm exec playwright install --with-deps chromium
+      - name: Install Chromium and WebKit test runtimes
+        run: pnpm exec playwright install --with-deps chromium webkit
 
       - name: Run the release gate
         run: pnpm check

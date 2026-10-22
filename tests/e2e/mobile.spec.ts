@@ -20,8 +20,8 @@ async function launch(page: Page, game: (typeof games)[number]) {
 
 test.beforeEach(async ({ page }, info) => {
   test.skip(
-    info.project.name !== "desktop-1280x720",
-    "Mobile cases set their own viewport.",
+    !["desktop-1280x720", "mobile-webkit"].includes(info.project.name),
+    "Run the mobile matrix once per browser engine; cases set their own viewport.",
   );
   await page.setViewportSize({ width: 390, height: 664 });
   await page.goto("/?mobile=1");

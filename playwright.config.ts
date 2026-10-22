@@ -24,6 +24,16 @@ export default defineConfig({
   },
   projects: [
     {
+      name: "mobile-webkit",
+      testMatch: ["mobile.spec.ts", "loading.spec.ts"],
+      use: {
+        browserName: "webkit",
+        viewport: { width: 390, height: 664 },
+        isMobile: true,
+        hasTouch: true,
+      },
+    },
+    {
       name: "desktop-1280x720",
       use: {
         ...devices["Desktop Chrome"],
