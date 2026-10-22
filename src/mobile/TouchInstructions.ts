@@ -1,4 +1,4 @@
-/** Only control wording changes; the shared tutorial remains the rule authority. */
+/** Only control and layout references change; the shared tutorial remains the rule authority. */
 export const TOUCH_INSTRUCTION_REPLACEMENTS: Readonly<Record<string, string>> =
   {
     "EACH ROUND USES ONE OF TWO RULES.":
@@ -12,6 +12,8 @@ export const TOUCH_INSTRUCTION_REPLACEMENTS: Readonly<Record<string, string>> =
       "DRAG THE THUMB CONTROL TO MOVE.\n\nTHREE RULES CAN CHANGE.",
     "ONCE PER ROUND, ANY PLAYER CAN PRESS ACTION TO CHANGE THE RULES.":
       "ONCE PER ROUND, TAP CHANGE TO CHANGE THE RULES.",
+    "CHECK THE HUNTS AT THE TOP: WHO CAN YOU CATCH? WHO CAN CATCH YOU?":
+      "CHECK THE HUNTS: WHO CAN YOU CATCH? WHO CAN CATCH YOU?",
     "LEFT / RIGHT: MOVE. ACTION: FLAP.":
       "DRAG LEFT / RIGHT TO MOVE. TAP FLAP TO FLY.",
   };
