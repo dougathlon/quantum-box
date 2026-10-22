@@ -76,7 +76,7 @@ test("Space enters the archive and Enter opens the Story session menu", async ({
   ).toBeFocused();
   await expect(
     page.getByRole("button", { name: "CONTINUE", exact: true }),
-  ).toBeDisabled();
+  ).toHaveCount(0);
   await page.keyboard.press("Enter");
   await expect(page.locator('[data-terminal-page="intro-1"]')).toBeVisible();
   await expect(page.locator(".qb-story-select")).toHaveCount(0);

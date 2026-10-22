@@ -37,8 +37,7 @@ export class QuantmanQpuBankUnavailableError extends Error {
 
 export async function loadInstalledQuantmanQpuBank(): Promise<QuantmanQpuBank> {
   const { default: installedBankArtifact } = await import(
-    "../data/quantman-labyrinth-ibm-fez-bank-v3.json",
-    { with: { type: "json" } }
+    "../data/quantman-labyrinth-ibm-fez-bank-v3.json"
   ).catch((cause: unknown) => {
     throw new Error(
       "Quantman's maze bank could not be loaded. Check your connection and reload the page.",

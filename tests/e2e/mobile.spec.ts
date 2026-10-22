@@ -252,7 +252,11 @@ for (const size of [
     await page.setViewportSize(size);
     await page.goto("/tests/fixtures/mobile/mobile-presentation.html?mobile=1");
     await page.getByRole("button", { name: "Run presentation checks" }).click();
-    await expect(page.locator("#summary")).toContainText("checks passed at");
+    // This fixture visits every Story panel and waits for three layout frames
+    // at each stop; the complete audit is longer than a single UI assertion.
+    await expect(page.locator("#summary")).toContainText("checks passed at", {
+      timeout: 20_000,
+    });
     await expect(page.locator("[data-result='fail']")).toHaveCount(0);
   });
 }
@@ -265,7 +269,9 @@ test("short landscape keeps readable content and navigation clear of safe areas"
     "/tests/fixtures/mobile/mobile-presentation.html?mobile=1&safearea=1",
   );
   await page.getByRole("button", { name: "Run presentation checks" }).click();
-  await expect(page.locator("#summary")).toContainText("checks passed at");
+  await expect(page.locator("#summary")).toContainText("checks passed at", {
+    timeout: 20_000,
+  });
   await expect(page.locator("[data-result='fail']")).toHaveCount(0);
 });
 
@@ -308,6 +314,8 @@ test("portrait reading and actions stay clear of phone safe areas", async ({
     "/tests/fixtures/mobile/mobile-presentation.html?mobile=1&safearea=1",
   );
   await page.getByRole("button", { name: "Run presentation checks" }).click();
-  await expect(page.locator("#summary")).toContainText("checks passed at");
+  await expect(page.locator("#summary")).toContainText("checks passed at", {
+    timeout: 20_000,
+  });
   await expect(page.locator("[data-result='fail']")).toHaveCount(0);
 });
