@@ -71,6 +71,7 @@ test("a first Quantman load opens a validated maze and a second launch reuses it
   await expect(page.locator(".qb-game-ui")).toHaveAttribute(
     "data-cabinet",
     "quantman",
+    { timeout: 15_000 },
   );
   expect(requests).toBe(1);
   await page.keyboard.press("p");

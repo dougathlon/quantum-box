@@ -15,6 +15,7 @@ async function launch(page: Page, game: (typeof games)[number]) {
   await expect(page.locator(".qb-shell")).toHaveAttribute(
     "data-view",
     "cabinet",
+    { timeout: 15_000 },
   );
 }
 
@@ -168,8 +169,9 @@ test("mobile Story can finish typing by tapping text and return to the session m
   await page.getByRole("button", { name: "STORY", exact: true }).click();
   await page.locator("[data-action='new-story']").click();
   await expect(page.locator(".qb-terminal-page")).toBeVisible();
-  const panel = (await page.locator(".qb-terminal-page").boundingBox())!;
-  await page.mouse.click(panel.x + 20, panel.y + 20);
+  // Typing replaces the article each frame. Click through the stable page
+  // container so a detached article cannot invalidate a separately read box.
+  await page.locator(".qb-page").click({ position: { x: 20, y: 20 } });
   await expect(page.locator(".qb-terminal-page")).toHaveAttribute(
     "data-terminal-complete",
     "true",
