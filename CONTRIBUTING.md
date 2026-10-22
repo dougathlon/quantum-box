@@ -89,9 +89,10 @@ comprehension or game feel by themselves.
 - Use only the Brown Box palette and binary alpha. Do not add blur, smoothing,
   gradients, bloom, extra accents, or fractional sprite placement.
 - Semantic DOM controls own focus, forms, keyboard, pointer, and accessibility;
-  the raster layer owns visible geometry.
-- Terminal copy comes from the pinned corpus in `src/story/terminal/`. Do not
-  improvise late-Story prose where `PLACEHOLDER` is required.
+  the raster layer owns visible game geometry. Mobile reflows the semantic
+  interface with a font generated from the same approved glyphs.
+- Terminal copy comes from the pinned corpus in `src/story/terminal/`. Preserve the
+  approved wording and action semantics; do not improvise replacement prose.
 
 ### Audio
 
@@ -133,7 +134,10 @@ pnpm test:e2e
 ```
 
 For visible work, inspect the `640×360` raster and served `1280×720`; run a larger
-desktop viewport before release. Exercise keyboard focus, gamepad navigation,
+desktop viewport and compact portrait viewport before release. Run the mobile
+fixtures in `tests/fixtures/mobile/` through `tests/e2e/mobile.spec.ts`; those
+fixtures are part of the source export, not the production bundle. Exercise
+keyboard focus, gamepad navigation,
 pause, mute, blur/release, reduced motion, retry, save/reload, and return paths.
 
 ## Pull requests and releases

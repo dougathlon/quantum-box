@@ -15,18 +15,20 @@ explicit local decoders.
 
 > **Release status:** public demo candidate. The five cabinets, terminal-led
 > Story, Terminal transcript archive, deterministic run evidence, save
-> migration, and Arcade scoreboards are implemented. Fluxball and Quarry Story
-> prose is deliberately labelled `PLACEHOLDER` until approved copy exists.
+> migration, Arcade scoreboards and the agreed Story through the Postscript are
+> implemented. The same URL selects portrait touch controls on phones and the
+> existing keyboard/controller presentation on desktop. Physical-phone comfort,
+> audio and performance still require device acceptance.
 
 ## The five cabinets
 
-| Cabinet  | Player action                                            | Stored hardware result used in play                                                                                        |
-| -------- | -------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------- |
-| Qong     | Play Pong under an unresolved own/opposite goal rule.    | One-shot Coin Toss results resolve the constitutive goal rule.                                                             |
-| SkiPixl  | Ski a timed slalom through trees, moguls, and gates.     | Twenty recorded QPixl fields become terrain through a disclosed residual decoder.                                          |
-| Quantman | Clear a maze whose passages respond to gaze.             | Eight Labyrinth captures are grouped beneath seven authored maze topologies; intact admissible states are sampled locally. |
-| Fluxball | Play a two- or four-player ball game with mutable rules. | Forty recorded QGraph distributions supply Global or player-specific rule states.                                          |
-| Quarry   | Hunt and evade other ducks in a changing ecology.        | Twenty-four QGraph captures supply directed predator-to-quarry relations.                                                  |
+| Cabinet  | Player action                                                | Stored hardware result used in play                                                                                        |
+| -------- | ------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------- |
+| Qong     | Play Pong under an unresolved own/opposite goal rule.        | One-shot Coin Toss results resolve the constitutive goal rule.                                                             |
+| SkiPixl  | Ski a timed slalom through trees, moguls, and gates.         | Twenty recorded QPixl fields become terrain through a disclosed residual decoder.                                          |
+| Quantman | Clear a maze whose passages respond to gaze.                 | Eight Labyrinth captures are grouped beneath seven authored maze topologies; intact admissible states are sampled locally. |
+| Fluxball | Play a two- or four-competitor ball game with mutable rules. | Forty recorded QGraph distributions supply Global or player-specific rule states.                                          |
+| Quarry   | Hunt and evade other ducks in a changing ecology.            | Twenty-four QGraph captures supply directed predator-to-quarry relations.                                                  |
 
 The browser never contacts MOTH or IBM during play. It selects validated
 recorded evidence before a run, preserves its identity, and executes gameplay
@@ -40,7 +42,7 @@ The title opens on the animated Brown Box field with `QUANTUM BOX` and
 `PRESS START`. The first valid Start gesture unlocks audio and enters a home
 screen with four routes:
 
-- **Story** opens a terminal menu with Continue (when progress exists) and New Story. Its seven
+- **Story** opens a terminal menu with Continue (while a run is in progress) and New Story. Completed stories link to Terminal. Its seven
   gameplay stages are Qong; two SkiPixl courses; Quantman Hold; Fluxball 2P
   Global and 2P Individual; and Quarry.
 - **Arcade** lists all five cabinets. Each opens a terminal-style trial sheet
@@ -78,14 +80,27 @@ Default keyboard controls:
 | ------ | ---------- | ------ |
 | A      | W A S D    | Space  |
 | B      | Arrow keys | Enter  |
-| C      | T F G H    | R      |
-| D      | I J K L    | O      |
 
-Escape returns, P pauses, and M mutes. Controls can be rebound in Settings.
+Backspace returns or pauses active play, P pauses/resumes, and M mutes.
+Escape remains available to the browser for leaving fullscreen. Gameplay keys
+can be rebound in Settings. Desktop offers one or two humans; remaining
+competitors are CPUs.
 Menus select with Enter / controller A; live Player A actions use Space / A.
 Initials can be entered with directional controls and A, or typed on a keyboard.
 SkiPixl uses Down to accelerate. Each Arcade trial sheet states the applicable
 controls and victory condition before launch.
+
+On a phone, play in portrait directly in the browser; installation or hiding the
+browser bars is not required. Touch play supports one human. Qong uses a
+vertical thumb control; SkiPixl and Quarry use horizontal steering; Fluxball
+uses two-axis steering; Quantman uses swipes to choose and retain a direction.
+Each game shows its applicable action button and pause control. Menus, Story,
+results and initials are touch-selectable. A visible scroll cue marks content
+that extends below the reading area. Keyboard and controller bindings remain
+available for an attached device.
+
+See [NPC behavior](docs/npc-behavior.md) for what each opponent observes,
+guesses and learns.
 
 ## Repository map
 
@@ -106,6 +121,7 @@ native 320×180 raster + local audio
   provenance
 - `src/games/` — cabinet sessions, deterministic policies, banks, and decoders
 - `src/ui/` and `src/display/` — semantic controls and Brown Box raster output
+- `src/mobile/` — touch adapters, portrait HUD, reading cues and responsive layout
 - `src/save/` — `quantum-box-save-v6`, legacy migration, settings, and records
 - `src/assets/` and `src/audio/` — audited shipping assets and cue transport
 - `tests/` — unit, provenance, save, deterministic, browser, and visual checks

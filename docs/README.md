@@ -12,6 +12,7 @@ three links; consult source lineage before changing quantum-derived data.
   next work
 - [Contributing](../CONTRIBUTING.md) — setup, invariants, checks, and review
 
+- [NPC behavior](npc-behavior.md) — public observations, beliefs and policy limits
 - [Editing visuals and AI](editing-visuals-and-ai.md) — exact renderer, layout,
   policy and test entry points
 
