@@ -58,7 +58,7 @@ jobs:
         run: pnpm check
 
       - name: Execute browser journeys
-        run: pnpm test:e2e
+        run: pnpm test:e2e --reporter=line --max-failures=5
 
       - name: Retain browser failure evidence
         if: failure()
