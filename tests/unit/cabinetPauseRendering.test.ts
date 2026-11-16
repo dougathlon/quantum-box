@@ -166,11 +166,10 @@ describe("shared cabinet pause rendering", () => {
       const frame = raster();
       renderQuag(frame.graphics, { ...snapshot, phase }, false);
       const header = text.mock.calls.filter(([, , options]) => options.y < 24);
-      expect(header).toHaveLength(3);
-      expect(header[2]![1]).toBe(
-        phase === "round-break"
-          ? "NEXT ROUND 1"
-          : "SPACE / A EXIT · X / X RETRY",
+      expect(header).toHaveLength(phase === "round-break" ? 3 : 2);
+      if (phase === "round-break") expect(header[2]![1]).toBe("NEXT ROUND 1");
+      expect(header.some(([, value]) => /SPACE|EXIT|RETRY/.test(value))).toBe(
+        false,
       );
       expect(
         header.every(
@@ -183,6 +182,115 @@ describe("shared cabinet pause rendering", () => {
         false,
       );
       expect(frame.rects.filter(([, y]) => y! >= 24)).not.toHaveLength(0);
+    },
+  );
+
+  it.each([
+    { winners: ["A"], title: "YOU WIN" },
+    { winners: ["B"], title: "MATCH LOST" },
+    { winners: ["A", "B"], title: "YOU WIN" },
+    { winners: ["B", "C"], title: "MATCH LOST" },
+    { winners: ["A", "B", "C", "D"], title: "MATCH DRAW" },
+  ] as const)(
+    "gives Quarry $title a prominent final heading while retaining scores",
+    ({ winners, title }) => {
+      const snapshot = new QuagSession(
+        context("quarry", QUAG_RULES_VERSION),
+        QUAG_SYNTHETIC_QGRAPH_PACK,
+      ).snapshot();
+      const text = vi.spyOn(PixelText, "drawPixelText");
+      renderQuag(
+        raster().graphics,
+        { ...snapshot, phase: "complete", winnerIds: winners },
+        false,
+      );
+      expect(
+        text.mock.calls.some(
+          ([, value, options]) =>
+            value === title && options.pixel === 2 && options.y + 10 <= 17,
+        ),
+      ).toBe(true);
+      expect(
+        text.mock.calls.some(
+          ([, value, options]) =>
+            value.startsWith("POINTS A") &&
+            value.includes("WINS A") &&
+            options.y === 17,
+        ),
+      ).toBe(true);
+    },
+  );
+
+  it.each([
+    { winners: ["A"], title: "A WINS" },
+    { winners: ["A", "B"], title: "A/B WIN" },
+    { winners: ["C", "D"], title: "MATCH LOST" },
+  ] as const)(
+    "identifies Quarry local two-player result $title",
+    ({ winners, title }) => {
+      const snapshot = new QuagSession(
+        context("quarry", QUAG_RULES_VERSION),
+        QUAG_SYNTHETIC_QGRAPH_PACK,
+        { humanPlayerIds: ["A", "B"] },
+      ).snapshot();
+      const text = vi.spyOn(PixelText, "drawPixelText");
+      renderQuag(
+        raster().graphics,
+        { ...snapshot, phase: "complete", winnerIds: winners },
+        false,
+      );
+      expect(
+        text.mock.calls.some(
+          ([, value, options]) => value === title && options.pixel === 2,
+        ),
+      ).toBe(true);
+    },
+  );
+
+  it.each([
+    { opponent: "cpu", winner: "left", title: "YOU WIN" },
+    { opponent: "cpu", winner: "right", title: "MATCH LOST" },
+    { opponent: "local", winner: "left", title: "PLAYER 1 WINS" },
+    { opponent: "local", winner: "right", title: "PLAYER 2 WINS" },
+  ] as const)(
+    "shows Qong's $title result without dropping the scores or revealed rule",
+    ({ opponent, winner, title }) => {
+      const snapshot = new QongSession(
+        context("qong", QONG_RULES_VERSION),
+        { directProbability: 1 },
+        opponent,
+      ).snapshot();
+      const text = vi.spyOn(PixelText, "drawPixelText");
+      renderQong(
+        raster().graphics,
+        {
+          ...snapshot,
+          phase: "complete",
+          winner,
+          measurementState: "resolved",
+          goalRule: "opposite",
+        },
+        opponent,
+        false,
+      );
+      expect(
+        text.mock.calls.some(
+          ([, value, options]) => value === title && options.pixel === 2,
+        ),
+      ).toBe(true);
+      expect(
+        text.mock.calls.some(
+          ([, value]) => value === (opponent === "cpu" ? "YOU 0" : "P1 0"),
+        ),
+      ).toBe(true);
+      expect(
+        text.mock.calls.some(
+          ([, value, options]) =>
+            value.includes("RULE STATE: RESOLVED") &&
+            value.includes("GOAL: OPPOSITE") &&
+            PixelText.pixelTextWidth(value, options.pixel) <= 302,
+        ),
+      ).toBe(true);
     },
   );
 

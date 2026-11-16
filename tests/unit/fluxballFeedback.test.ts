@@ -95,23 +95,26 @@ describe("Fluxball public audio feedback routing", () => {
     ]);
   });
 
-  it("reports a round draw and never repeats it on a retained frame", () => {
-    const ended = frame({ phase: "reveal", roundWinnerIds: [] });
-    let cursor = createFluxballFeedbackCursor();
-    const first = routeFluxballFeedback(cursor, ended);
-    cursor = first.cursor;
-    const repeated = routeFluxballFeedback(cursor, ended);
+  it.each(["reveal", "complete"] as const)(
+    "reports a round draw once when transitioning to %s",
+    (phase) => {
+      const ended = frame({ phase, roundWinnerIds: [] });
+      let cursor = createFluxballFeedbackCursor();
+      const first = routeFluxballFeedback(cursor, ended);
+      cursor = first.cursor;
+      const repeated = routeFluxballFeedback(cursor, ended);
 
-    expect(first.events).toEqual([
-      {
-        type: "round-end",
-        roundNumber: 1,
-        outcome: "draw",
-        winnerId: null,
-      },
-    ]);
-    expect(repeated.events).toEqual([]);
-  });
+      expect(first.events).toEqual([
+        {
+          type: "round-end",
+          roundNumber: 1,
+          outcome: "draw",
+          winnerId: null,
+        },
+      ]);
+      expect(repeated.events).toEqual([]);
+    },
+  );
 
   it("replays the same public frames into the same feedback sequence", () => {
     const frames = [
@@ -184,7 +187,7 @@ function frame({
     sport: Object.freeze({ latestContact, latestGoal }),
     publicRuleChangeEvents: Object.freeze([...ruleChanges]),
     reveal:
-      phase === "reveal"
+      phase !== "active"
         ? Object.freeze({ roundWinnerIds: Object.freeze([...roundWinnerIds]) })
         : null,
   });

@@ -201,6 +201,13 @@ const PAGES = [
     PLAY,
   ),
   page(
+    "skipixl-feasible-success",
+    "skipixl",
+    ["QUANTUM BOX", "PROGRAM 02 / SKIPIXL"],
+    ["WELL DONE."],
+    CONTINUE,
+  ),
+  page(
     "skipixl-feasible-response",
     "skipixl",
     ["QUANTUM BOX", "PROGRAM 02 / SKIPIXL"],
@@ -218,7 +225,7 @@ const PAGES = [
     "skipixl-feasible-failure",
     "skipixl",
     ["QUANTUM BOX", "PROGRAM 02 / SKIPIXL"],
-    ["TRY THAT AGAIN."],
+    ["WHOOPS. WOULD YOU LIKE TO TRY AGAIN?"],
     RETRY_OR_CONTINUE,
   ),
   page(
@@ -335,14 +342,14 @@ const PAGES = [
     "quantman-loss-later",
     "quantman",
     ["QUANTUM BOX", "PROGRAM 03 / QUANTMAN"],
-    ["ALRIGHT.", "I THINK YOU GET THE IDEA."],
+    ["WE CAN TRY AGAIN.", "OR I CAN SHOW YOU HOW THE MAZE WORKS."],
     RETRY_OR_CONTINUE,
   ),
   page(
     "quantman-success",
     "quantman",
     ["QUANTUM BOX", "PROGRAM 03 / QUANTMAN"],
-    ["WELL DONE."],
+    ["AMAZING"],
     CONTINUE,
   ),
   page(
@@ -483,8 +490,6 @@ const PAGES = [
     ["QUANTUM BOX", "PROGRAM 04 / TUTORIAL"],
     [
       "NOW EACH PLAYER HAS THEIR OWN\nMOVEMENT, BALL AND SCORING RULES.",
-      "WHAT WORKS FOR THE OTHER PLAYER\nMAY NOT WORK FOR YOU.",
-      "FIND OUT BY PLAYING.",
       "WATCH YOUR SCORE:\nA GOAL CAN BENEFIT BOTH OF YOU.",
       "ACTION CHANGES BOTH PLAYERS' RULES.",
       "ONE SHARED CHANGE PER ROUND.",
@@ -697,7 +702,7 @@ const PAGES = [
     "quarry",
     ["QUANTUM BOX", "POSTSCRIPT"],
     [
-      "IF YOU'RE READING THIS,\nYOU BEAT THE DEMO.",
+      "IF YOU'RE READING THIS,\nYOU REACHED THE END OF THE DEMO.",
       "WELL DONE.",
       "UNFORTUNATELY,\nTHAT'S ALL THIS EVER WAS.",
       "PERHAPS IT WAS UNTIMELY.\nPERHAPS IT WAS RUBBISH.",
@@ -770,12 +775,16 @@ const NODES: readonly StoryNode[] = Object.freeze([
     lost: "qong-loss-later",
     firstLoss: "qong-loss-first",
   }),
-  terminal("qong-loss-first", "qong-loss-first", { retry: "game-qong" }),
+  terminal("qong-loss-first", "qong-loss-first", {
+    retry: "game-qong",
+  }),
   terminal("qong-loss-later", "qong-loss-later", {
     retry: "game-qong",
     continue: "qong-debrief-1",
   }),
-  terminal("qong-success", "qong-success", { continue: "qong-debrief-1" }),
+  terminal("qong-success", "qong-success", {
+    continue: "qong-debrief-1",
+  }),
   terminal("qong-debrief-1", "qong-debrief-1", { continue: "qong-debrief-2" }),
   terminal("qong-debrief-2", "qong-debrief-2", { continue: "load-skipixl" }),
   terminal(
@@ -792,8 +801,11 @@ const NODES: readonly StoryNode[] = Object.freeze([
   }),
   game("skipixl-feasible", "outcome-skipixl-feasible"),
   outcome("skipixl-feasible", {
-    won: "skipixl-feasible-response",
+    won: "skipixl-feasible-success",
     lost: "skipixl-feasible-failure",
+  }),
+  terminal("skipixl-feasible-success", "skipixl-feasible-success", {
+    continue: "skipixl-feasible-response",
   }),
   terminal("skipixl-feasible-failure", "skipixl-feasible-failure", {
     retry: "game-skipixl-feasible",
@@ -973,6 +985,7 @@ export const TERMINAL_TRANSCRIPT_PAGE_IDS: Readonly<
   skipixl: Object.freeze([
     "skipixl-intro",
     "skipixl-feasible-tutorial",
+    "skipixl-feasible-success",
     "skipixl-feasible-response",
     "skipixl-overloaded-intro",
     "skipixl-overloaded-tutorial",
@@ -1012,18 +1025,22 @@ export const TERMINAL_TRANSCRIPT_PAGE_IDS: Readonly<
     "ending-2",
     "ending-3",
     "ending-4",
+    "postscript-1",
+    "postscript-2",
   ]),
 });
 
 export function storyNode(nodeId: string): StoryNode {
   const node = STORY_NODES[nodeId];
-  if (!node) throw new Error(`Unknown Story node: ${nodeId}.`);
+  if (!Object.hasOwn(STORY_NODES, nodeId) || !node)
+    throw new Error(`Unknown Story node: ${nodeId}.`);
   return node;
 }
 
 export function storyTerminalPage(pageId: string): StoryTerminalPage {
   const candidate = STORY_TERMINAL_PAGES[pageId];
-  if (!candidate) throw new Error(`Unknown Story terminal page: ${pageId}.`);
+  if (!Object.hasOwn(STORY_TERMINAL_PAGES, pageId) || !candidate)
+    throw new Error(`Unknown Story terminal page: ${pageId}.`);
   return candidate;
 }
 
@@ -1064,4 +1081,24 @@ export function earliestUnclearedStage(
     chapterStages(chapterId).find((stage) => !clearedStages.includes(stage)) ??
     null
   );
+}
+
+/** The authored lead-in for an independent retry of this stage. */
+export function storyStageIntroNodeId(stage: StoryStageId): string {
+  switch (stage) {
+    case "qong":
+      return "qong-intro";
+    case "skipixl-feasible":
+      return "skipixl-intro";
+    case "skipixl-overloaded":
+      return "skipixl-overloaded-intro";
+    case "quantman-hold":
+      return "quantman-intro";
+    case "fluxball-global":
+      return "fluxball-intro";
+    case "fluxball-individual":
+      return "fluxball-split-intro";
+    case "quarry":
+      return "quarry-intro";
+  }
 }

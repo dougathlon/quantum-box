@@ -73,6 +73,7 @@ async function savedRecovery() {
     story: {
       ...base.story,
       attempts: { "skipixl-feasible": 7 },
+      readPageIds: ["intro-1", "qong-loss-first", "skipixl-intro"],
       tutorialRecoveries: { qong: recovery },
       qongSelector: {
         cursor: receipt.selectorCursorAfter,
@@ -109,6 +110,7 @@ describe("save authority failure classification", () => {
     const loaded = JSON.parse(repo.exportJson());
     expect(loaded.settings.soundVolume).toBe(0.37);
     expect(loaded.story.attempts["skipixl-feasible"]).toBe(7);
+    expect(loaded.story.readPageIds).toEqual(save.story.readPageIds);
     expect(loaded.story.tutorialRecoveries.qong).toBeUndefined();
     expect(loaded.story.currentNodeId).toBe("qong-intro");
     expect(removed).not.toContain(SAVE_STORAGE_KEY);

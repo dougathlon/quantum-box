@@ -154,6 +154,7 @@ export class BrownBoxViewportField
     this.resizeObserver = new ResizeObserver(() => this.invalidate());
     this.resizeObserver.observe(this.host);
     this.resizeObserver.observe(this.foreground);
+    this.invalidate();
     void Promise.all(endpoints.map(waitForImage))
       .then(() => {
         if (this.destroyed || loadGeneration !== this.loadGeneration) return;
@@ -243,11 +244,37 @@ export class BrownBoxViewportField
 
   private invalidate(): void {
     this.previousTick = -1;
-    if (this.ready) this.render(this.reducedMotion ? 0 : performance.now());
+    this.render(this.reducedMotion ? 0 : performance.now());
   }
 
   private render(time: number): void {
-    if (!this.ready || this.destroyed) return;
+    if (this.destroyed) return;
+    const hostRect = this.host.getBoundingClientRect();
+    const foregroundRect = this.foreground.getBoundingClientRect();
+    const width = Math.max(1, Math.round(hostRect.width));
+    const height = Math.max(1, Math.round(hostRect.height));
+    const foregroundWidth =
+      this.scaleMode === "viewport-integer"
+        ? BROWN_BOX_LOGICAL_SCREEN.width *
+          resolveBrownBoxDisplayPixelScale(width, height)
+        : Math.max(1, Math.round(foregroundRect.width));
+    const layout = resolveBrownBoxViewportFieldLayout(
+      width,
+      height,
+      foregroundWidth,
+    );
+    if (
+      this.scaleMode === "foreground-width" &&
+      (width !== this.previousWidth ||
+        height !== this.previousHeight ||
+        foregroundWidth !== this.previousForegroundWidth)
+    ) {
+      // CSS centring otherwise gives the foreground a half-pixel origin in odd
+      // viewports, while the field uses whole pixels. Share the field origin.
+      this.host.style.setProperty("--qb-field-origin-x", `${layout.originX}px`);
+      this.host.style.setProperty("--qb-field-origin-y", `${layout.originY}px`);
+    }
+    if (!this.ready) return;
     const frame = resolveBrownBoxFieldFrameAtEpoch(
       time,
       this.programmeStartedAtMs,
@@ -260,15 +287,6 @@ export class BrownBoxViewportField
       frame,
       this.programmeStartedAtMs,
     );
-    const hostRect = this.host.getBoundingClientRect();
-    const foregroundRect = this.foreground.getBoundingClientRect();
-    const width = Math.max(1, Math.round(hostRect.width));
-    const height = Math.max(1, Math.round(hostRect.height));
-    const foregroundWidth =
-      this.scaleMode === "viewport-integer"
-        ? BROWN_BOX_LOGICAL_SCREEN.width *
-          resolveBrownBoxDisplayPixelScale(width, height)
-        : Math.max(1, Math.round(foregroundRect.width));
     if (
       frame.loopTick === this.previousTick &&
       width === this.previousWidth &&
@@ -284,11 +302,6 @@ export class BrownBoxViewportField
     if (this.canvas.width !== width) this.canvas.width = width;
     if (this.canvas.height !== height) this.canvas.height = height;
     this.context.imageSmoothingEnabled = false;
-    const layout = resolveBrownBoxViewportFieldLayout(
-      width,
-      height,
-      foregroundWidth,
-    );
     this.drawEndpoint(this.endpoints[frame.currentStateIndex]!, layout);
     const boundary = resolveBrownBoxViewportReplacementBoundary(
       width,

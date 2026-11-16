@@ -6,6 +6,7 @@ import {
   BITMAP_DOM_TEXT_CONTRACT,
   bitmapFocusCursorPlacement,
   bitmapFlowTextHeight,
+  scaledReadingGlyphRects,
   bitmapTextLineLeft,
   bitmapTextLayout,
   integerLogicalRect,
@@ -220,4 +221,94 @@ it("orders diagnostic alpha values numerically", () => {
   expect(
     auditBitmapCanvasPixels({ data } as ImageData).unexpectedAlphaValues,
   ).toEqual([2, 10, 100]);
+});
+
+describe("explicit Arcade reading roles", () => {
+  it.each([0.625, 0.75, 1])(
+    "keeps scale %s on the binary native pixel grid",
+    (scale) => {
+      const glyphs = scaledReadingGlyphRects(
+        "QONG · SCORE 0123456789 / ⌫",
+        16.5,
+        42,
+        scale,
+      );
+      expect(glyphs.length).toBeGreaterThan(100);
+      for (const rect of glyphs) {
+        for (const value of Object.values(rect))
+          expect(Number.isInteger(value * 2)).toBe(true);
+        expect(rect.width).toBeGreaterThan(0);
+        expect(rect.height).toBeGreaterThan(0);
+      }
+    },
+  );
+  it("measures scaled flow with the same wrap and line advance as rendering", () => {
+    const text =
+      "OTHERWISE, YOU'LL HAVE TO WAIT FOR A GOAL TO FIND OUT WHO SCORED.";
+    expect(bitmapFlowTextHeight(text, 135, 0.75)).toBe(
+      wrapBitmapText(text, 135, 0.75, 0.75, Infinity, true).length * 7.5,
+    );
+    expect(bitmapFlowTextHeight(text, 135)).toBe(
+      wrapBitmapText(text, 135, 1, 1, Infinity, true).length * 10,
+    );
+  });
+});
+
+describe("bottom-aligned Arcade lettering", () => {
+  it.each([0.625, 0.75, 1])(
+    "aligns scale %s without changing the glyph raster",
+    (scale) => {
+      for (const y of [0, 6.25, 7.5, 15, 42, 67.5]) {
+        const original = scaledReadingGlyphRects(
+          "HOLD: SCORE 0123 / ⌫",
+          17,
+          y,
+          scale,
+        );
+        const aligned = scaledReadingGlyphRects(
+          "HOLD: SCORE 0123 / ⌫",
+          17,
+          y,
+          scale,
+          "bottom",
+        );
+        const oldBottom = Math.max(...original.map((r) => r.y + r.height));
+        const shift = Math.ceil(oldBottom) - oldBottom;
+        expect(Math.max(...aligned.map((r) => r.y + r.height))).toBe(
+          Math.ceil(oldBottom),
+        );
+        expect([0, 0.5]).toContain(shift);
+        expect(aligned).toEqual(
+          original.map((r) => ({ ...r, y: r.y + shift })),
+        );
+        expect(
+          scaledReadingGlyphRects("HOLD: SCORE 0123 / ⌫", 17, y, scale, "top"),
+        ).toEqual(original);
+      }
+    },
+  );
+
+  it("aligns every wrapped body line, including half-row origins", () => {
+    const lines = wrapBitmapText(
+      "OTHERWISE, YOU'LL HAVE TO WAIT FOR A GOAL TO FIND OUT WHO SCORED.",
+      134,
+      0.75,
+      0.75,
+      Infinity,
+      true,
+    );
+    expect(lines.length).toBe(3);
+    for (const [index, line] of lines.entries()) {
+      const rects = scaledReadingGlyphRects(
+        line,
+        167,
+        111 + index * 7.5,
+        0.75,
+        "bottom",
+      );
+      expect(
+        Number.isInteger(Math.max(...rects.map((r) => r.y + r.height))),
+      ).toBe(true);
+    }
+  });
 });

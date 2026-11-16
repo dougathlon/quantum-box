@@ -162,7 +162,7 @@ describe("Brown Box internal visual contract", () => {
   it("separates the five-cabinet Arcade index from each game's trial sheet", () => {
     expect(shellSource).toContain('data-action="open-arcade-cabinet"');
     expect(shellSource).toContain('class="qb-page-panel qb-arcade-detail');
-    expect(shellSource).toContain("ARCADE_INSTRUCTIONS[gameId]");
+    expect(shellSource).toContain("arcadeInstructionLayout(gameId)");
     expect(shellSource).not.toContain("qb-tutorial-pagination");
     expect(brownBoxCss).toContain(
       "grid-template-rows: repeat(5, minmax(0, 1fr))",
@@ -191,8 +191,10 @@ describe("Brown Box internal visual contract", () => {
     expect(brownBoxCss).toContain(
       "grid-template-columns: 6cqw minmax(0, 1fr) 29cqw",
     );
-    expect(shellSource).toContain("TRANSCRIPT READY");
-    expect(shellSource).toContain("RETRY REQUIRED");
+    expect(shellSource).toContain("<small>READ</small>");
+    expect(shellSource).toContain("<small>RETRY</small>");
+    expect(shellSource).not.toContain("READ / RETRY");
+    expect(shellSource).not.toContain("RETRY REQUIRED");
     expect(shellSource).toContain("UNOPENED");
     expect(shellSource).not.toContain('data-action="open-story-stage"');
     expect(brownBoxCss).toContain("text-align: right");

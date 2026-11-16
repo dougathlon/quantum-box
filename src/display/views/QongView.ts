@@ -3,7 +3,7 @@ import { qongHudModel } from "../../games/qong/presentation";
 import type { QongOpponent, QongSnapshot } from "../../games/qong/types";
 import { BROWN_BOX_PALETTE } from "../BrownBoxTheme";
 import { drawCanonicalSprite } from "../CanonicalSpriteRaster";
-import { drawCabinetPauseHeader } from "../PixelHud";
+import { drawCabinetPauseHeader, drawCabinetStatusHeader } from "../PixelHud";
 import { drawPixelText, drawRefinedHudText } from "../PixelText";
 import {
   drawNativePixelLine,
@@ -19,7 +19,6 @@ export function renderQong(
   paused: boolean,
   options: Readonly<{
     hidePaddles?: boolean;
-    hideHud?: boolean;
     refinedHudPreview?: boolean;
   }> = {},
 ): void {
@@ -63,13 +62,51 @@ export function renderQong(
     5,
     BROWN_BOX_PALETTE.cream,
   );
-
-  if (options.hideHud) return;
   if (view.paused) {
     drawCabinetPauseHeader(g);
     return;
   }
+  if (snapshot.phase === "complete") {
+    drawResultHud(g, snapshot, opponent);
+    return;
+  }
   drawHud(g, snapshot, opponent, options.refinedHudPreview ?? false);
+}
+
+function drawResultHud(
+  g: Phaser.GameObjects.Graphics,
+  snapshot: QongSnapshot,
+  opponent: QongOpponent,
+): void {
+  const hud = qongHudModel(snapshot, opponent, false);
+  const title =
+    snapshot.winner === null
+      ? "MATCH DRAW"
+      : opponent === "cpu"
+        ? snapshot.winner === "left"
+          ? "YOU WIN"
+          : "MATCH LOST"
+        : `PLAYER ${snapshot.winner === "left" ? "1" : "2"} WINS`;
+  drawCabinetStatusHeader(g, title, 16);
+  for (const [label, score, x, align] of [
+    [hud.leftLabel, hud.leftScore, 12, "left"],
+    [hud.rightLabel, hud.rightScore, 308, "right"],
+  ] as const) {
+    drawPixelText(g, `${label} ${score}`, {
+      x,
+      y: 6,
+      pixel: 1,
+      colour: BROWN_BOX_PALETTE.cream,
+      align,
+    });
+  }
+  drawPixelText(g, `${hud.round} · ${hud.ruleState} · ${hud.goal}`, {
+    x: 160,
+    y: 17,
+    pixel: 1,
+    colour: BROWN_BOX_PALETTE.cream,
+    align: "center",
+  });
 }
 
 function drawHud(

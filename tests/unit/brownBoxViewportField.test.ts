@@ -49,6 +49,31 @@ describe("Brown Box continuous viewport field", () => {
     });
   });
 
+  it.each([1, 2, 3, 4, 5, 6])(
+    "keeps odd viewport origins on whole pixels at display scale %i",
+    (pixelScale) => {
+      const tileWidth = 320 * pixelScale;
+      const tileHeight = 180 * pixelScale;
+      for (const [extraWidth, extraHeight] of [
+        [71, 448],
+        [72, 449],
+        [71, 449],
+        [72, 448],
+      ] as const) {
+        const layout = resolveBrownBoxViewportFieldLayout(
+          tileWidth + extraWidth,
+          tileHeight + extraHeight,
+          tileWidth,
+        );
+        expect(layout.originX).toBe(Math.floor(extraWidth / 2));
+        expect(layout.originY).toBe(Math.floor(extraHeight / 2));
+        expect(layout.pixelScale).toBe(pixelScale);
+        expect(layout.tileWidth).toBe(tileWidth);
+        expect(layout.tileHeight).toBe(tileHeight);
+      }
+    },
+  );
+
   it("moves the hard replacement boundary across the complete viewport", () => {
     expect(resolveBrownBoxViewportReplacementBoundary(713, 0)).toBe(0);
     expect(resolveBrownBoxViewportReplacementBoundary(713, 160)).toBe(357);

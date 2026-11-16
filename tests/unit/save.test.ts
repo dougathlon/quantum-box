@@ -40,7 +40,7 @@ describe("save v6 Story graph", () => {
     repository.setStoryNode("game-skipixl-feasible");
     repository.recordStoryAttempt(run);
     const finished = repository.recordStoryOutcome(run, "finished");
-    expect(finished.story.currentNodeId).toBe("skipixl-feasible-response");
+    expect(finished.story.currentNodeId).toBe("skipixl-feasible-success");
     expect(finished.story.clearedStages).toContain("skipixl-feasible");
 
     const retryRun = skiRun("skipixl-overloaded", 43);
@@ -50,23 +50,29 @@ describe("save v6 Story graph", () => {
       "failed",
       "terminal-retry",
     );
-    expect(retried.story.currentNodeId).toBe("skipixl-feasible-response");
+    expect(retried.story.currentNodeId).toBe("skipixl-feasible-success");
     expect(retried.story.lastOutcomes["skipixl-overloaded"]).toBe("failed");
   });
 
-  it("unlocks a transcript only after every required chapter stage clears", () => {
+  it("unlocks a transcript only after every chapter stage is genuinely cleared", () => {
     const repository = new SaveRepository(new MemoryStorage(), () => undefined);
     expect(() => repository.markTranscriptSeen("skipixl")).toThrow(
-      "required clears",
+      "All chapter stages must be cleared",
     );
-    for (const [stage, seed] of [
-      ["skipixl-feasible", 47],
-      ["skipixl-overloaded", 53],
-    ] as const) {
-      const run = skiRun(stage, seed);
-      repository.recordStoryAttempt(run, "terminal-retry");
-      repository.recordStoryOutcome(run, "finished", "terminal-retry");
-    }
+    repository.setStoryNode("skipixl-intro");
+    repository.markStoryPageRead("skipixl-intro");
+    expect(() => repository.markTranscriptSeen("skipixl")).toThrow(
+      "All chapter stages must be cleared",
+    );
+    const feasible = skiRun("skipixl-feasible", 45);
+    repository.recordStoryAttempt(feasible, "terminal-retry");
+    repository.recordStoryOutcome(feasible, "finished", "terminal-retry");
+    expect(() => repository.markTranscriptSeen("skipixl")).toThrow(
+      "All chapter stages must be cleared",
+    );
+    const overloaded = skiRun("skipixl-overloaded", 47);
+    repository.recordStoryAttempt(overloaded, "terminal-retry");
+    repository.recordStoryOutcome(overloaded, "finished", "terminal-retry");
     expect(
       repository.markTranscriptSeen("skipixl").story.transcriptSeen,
     ).toEqual(["skipixl"]);
@@ -122,7 +128,9 @@ describe("save v6 Story graph", () => {
       "quarry",
     ]);
     expect(migrated.story.clearedStages).not.toContain("fluxball-individual");
-    expect(migrated.story.currentNodeId).toBe("fluxball-individual-pre");
+    expect(migrated.story.currentNodeId).toBe("postscript-1");
+    expect(migrated.story.readPageIds).toEqual([]);
+    expect(migrated.story.storyCompleted).toBe(false);
     expect(migrated.story.legacyV5).toEqual(oldStory);
   });
 
@@ -156,6 +164,61 @@ describe("save v6 Story graph", () => {
       repository.recordStoryOutcome(quantmanRun(139), "lost").story
         .currentNodeId,
     ).toBe("quantman-loss-later");
+  });
+
+  it("keeps Terminal failures independent of the main Story first-loss state", () => {
+    const repository = new SaveRepository(new MemoryStorage(), () => undefined);
+    repository.setStoryNode("quantman-intro");
+    const before = repository.snapshot().story;
+    const retry = quantmanRun(141);
+    repository.recordStoryAttempt(retry, "terminal-retry");
+    repository.recordStoryOutcome(retry, "lost", "terminal-retry");
+    expect(repository.snapshot().story.currentNodeId).toBe(
+      before.currentNodeId,
+    );
+    expect(repository.snapshot().story.firstLossExplanations).toEqual(
+      before.firstLossExplanations,
+    );
+    repository.setStoryNode("game-quantman-hold");
+    const main = quantmanRun(143);
+    repository.recordStoryAttempt(main);
+    expect(
+      repository.recordStoryOutcome(main, "lost").story.currentNodeId,
+    ).toBe("quantman-loss-first");
+  });
+
+  it("resets first-loss routing for New Story without erasing earned results", () => {
+    const storage = new MemoryStorage();
+    const repository = new SaveRepository(storage, () => undefined);
+    repository.setStoryNode("game-quantman-hold");
+    const failed = quantmanRun(151);
+    repository.recordStoryAttempt(failed);
+    repository.recordStoryOutcome(failed, "lost");
+    repository.advanceStoryTerminal("retry");
+    const won = quantmanRun(153);
+    repository.recordStoryAttempt(won);
+    repository.recordStoryOutcome(won, "won");
+    const before = repository.snapshot();
+    expect(before.story.firstLossExplanations.quantman).toBe(true);
+    const fresh = repository.replayStoryFromStart();
+    expect(fresh.story.currentNodeId).toBe("intro-1");
+    expect(fresh.story.firstLossExplanations).toEqual({
+      qong: false,
+      quantman: false,
+      fluxball: false,
+    });
+    expect(fresh.story.clearedStages).toEqual(before.story.clearedStages);
+    expect(fresh.story.qualifiedRuns).toEqual(before.story.qualifiedRuns);
+    expect(fresh.story.attempts).toEqual(before.story.attempts);
+    expect(fresh.story.readPageIds).toEqual(before.story.readPageIds);
+    expect(fresh.arcadeRecords).toEqual(before.arcadeRecords);
+    const resumed = new SaveRepository(storage, () => undefined);
+    resumed.setStoryNode("game-quantman-hold");
+    const newLoss = quantmanRun(155);
+    resumed.recordStoryAttempt(newLoss);
+    expect(
+      resumed.recordStoryOutcome(newLoss, "lost").story.currentNodeId,
+    ).toBe("quantman-loss-first");
   });
 });
 

@@ -36,8 +36,16 @@ export function storyTextLayout(page: StoryTerminalPage) {
     (sum, block) => sum + block.split("\n").length * 10,
     0,
   );
-  const available =
-    147 - storyBodyTop(page.header) - Math.max(0, page.actions.length - 1) * 14;
+  const singleActionAvailable = 147 - storyBodyTop(page.header);
+  const stackedActionsAvailable =
+    singleActionAvailable - Math.max(0, page.actions.length - 1) * 14;
+  // The added Retry choice must not push an existing full page below the frame.
+  const inlineActions =
+    page.actions.length === 2 &&
+    lineHeight + Math.max(0, body.length - 1) * 4 > stackedActionsAvailable;
+  const available = inlineActions
+    ? singleActionAvailable
+    : stackedActionsAvailable;
   const gap =
     [8, 6, 4].find(
       (gap) => lineHeight + Math.max(0, body.length - 1) * gap <= available,
@@ -47,5 +55,6 @@ export function storyTextLayout(page: StoryTerminalPage) {
     gap,
     height: lineHeight + Math.max(0, body.length - 1) * gap,
     available,
+    inlineActions,
   };
 }

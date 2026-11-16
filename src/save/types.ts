@@ -1,4 +1,3 @@
-import { gatedStoryNode } from "../story/terminal/postscript";
 import {
   STORY_SEQUENCE,
   isBoundedLegacyCabinetSlug,
@@ -42,7 +41,12 @@ import {
   type FrozenPackSelectionReceipt,
   type RunContext,
 } from "../core/run";
-import { STORY_NODES, STORY_OPENING_NODE_ID } from "../story/terminal";
+import {
+  STORY_NODES,
+  STORY_OPENING_NODE_ID,
+  STORY_TERMINAL_PAGES,
+  inferLegacyReadPageIds,
+} from "../story/terminal";
 import type { StoryOutcome } from "../story/terminal";
 
 export const SAVE_SCHEMA_VERSION = "quantum-box-save-v6";
@@ -51,7 +55,7 @@ export const PREVIOUS_SAVE_SCHEMA_VERSION = "quantum-box-save-v4";
 export const LEGACY_SAVE_SCHEMA_VERSION = "quantum-box-save-v3";
 export const EARLIEST_SAVE_SCHEMA_VERSION = "quantum-box-save-v2";
 export const INITIAL_SAVE_SCHEMA_VERSION = "quantum-box-save-v1";
-export const DEFAULT_SOUND_VOLUME = 0.35;
+export const DEFAULT_SOUND_VOLUME = 1;
 export type StoryProgress = StoryStageId | "complete";
 
 export interface QuantumBoxSettings {
@@ -76,6 +80,8 @@ export interface QuantumBoxSave {
     readonly experiencedStages: readonly StoryStageId[];
     readonly clearedStages: readonly StoryStageId[];
     readonly transcriptSeen: readonly StoryChapterId[];
+    /** Pages fully displayed in Story, independent of game clears. */
+    readonly readPageIds: readonly string[];
     readonly lastOutcomes: Readonly<
       Partial<Record<StoryStageId, StoryOutcome>>
     >;
@@ -165,6 +171,7 @@ export function createDefaultSave(): QuantumBoxSave {
       experiencedStages: [],
       clearedStages: [],
       transcriptSeen: [],
+      readPageIds: [],
       lastOutcomes: {},
       currentStage: "qong",
       completedStages: [],
@@ -212,10 +219,11 @@ export function validateSave(input: unknown): QuantumBoxSave {
     throw new Error("Quantum Box save is incomplete.");
   }
   const rawCurrentNodeId = story["currentNodeId"];
-  const storyCompleted = story["storyCompleted"];
-  if (typeof storyCompleted !== "boolean") {
+  const rawStoryCompleted = story["storyCompleted"];
+  if (typeof rawStoryCompleted !== "boolean") {
     throw new Error("Quantum Box save completion state is invalid.");
   }
+  let storyCompleted: boolean = rawStoryCompleted;
   const experiencedStages = requireUniqueArray(
     story["experiencedStages"],
     isStoryStage,
@@ -230,10 +238,31 @@ export function validateSave(input: unknown): QuantumBoxSave {
     throw new Error("A cleared Story stage must also be experienced.");
   }
   const currentStage = earliestUnclearedStoryStage(clearedStages);
-  const currentNodeId = gatedStoryNode(
-    validateStoryNodeId(rawCurrentNodeId, nodeForStage(currentStage)),
-    clearedStages,
+  let currentNodeId = validateStoryNodeId(
+    rawCurrentNodeId,
+    nodeForStage(currentStage),
   );
+  const legacyReadHistory = story["readPageIds"] === undefined;
+  const readPageIds = legacyReadHistory
+    ? inferLegacyReadPageIds(
+        typeof rawCurrentNodeId === "string" ? rawCurrentNodeId : "",
+      )
+    : requireUniqueArray(
+        story["readPageIds"],
+        (id): id is string =>
+          typeof id === "string" && Object.hasOwn(STORY_TERMINAL_PAGES, id),
+        "read Story pages",
+      );
+  // Older completion could bypass the Postscript. Offer it once without
+  // inventing a read record or requiring another game attempt.
+  if (
+    legacyReadHistory &&
+    storyCompleted &&
+    currentNodeId === "story-complete"
+  ) {
+    currentNodeId = "postscript-1";
+    storyCompleted = false;
+  }
   const transcriptSeen = requireUniqueArray(
     story["transcriptSeen"],
     isStoryChapter,
@@ -332,6 +361,7 @@ export function validateSave(input: unknown): QuantumBoxSave {
       experiencedStages,
       clearedStages,
       transcriptSeen,
+      readPageIds,
       lastOutcomes,
       currentStage,
       completedStages,
@@ -492,11 +522,16 @@ function migrateV5Save(
   return {
     schemaVersion: SAVE_SCHEMA_VERSION,
     story: {
-      currentNodeId: nodeForStage(earliestStage),
+      currentNodeId:
+        oldCurrent === "complete"
+          ? "postscript-1"
+          : nodeForStage(earliestStage),
       storyCompleted: false,
       experiencedStages,
       clearedStages,
       transcriptSeen: [],
+      // V5 predates the current Story text, so its exact pages are unknown.
+      readPageIds: [],
       lastOutcomes: {},
       currentStage: earliestStage,
       completedStages: clearedStages,
@@ -1185,7 +1220,9 @@ function validateStoryNodeId(
   value: unknown,
   fallback = STORY_OPENING_NODE_ID,
 ): string {
-  return typeof value === "string" && STORY_NODES[value] ? value : fallback;
+  return typeof value === "string" && Object.hasOwn(STORY_NODES, value)
+    ? value
+    : fallback;
 }
 
 function validateLastOutcomes(

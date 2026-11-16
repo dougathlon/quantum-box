@@ -229,10 +229,6 @@ export class FluxballSession {
 
   public continueAfterReveal(): FluxballSnapshot {
     if (this.phase !== "reveal") return this.snapshot();
-    if (this.roundNumber >= this.totalRounds) {
-      this.phase = "complete";
-      return this.snapshot();
-    }
     this.roundNumber += 1;
     this.startRound();
     return this.snapshot();
@@ -346,7 +342,7 @@ export class FluxballSession {
   }
 
   private endRound(snapshot: SportSnapshot): void {
-    this.phase = "reveal";
+    this.phase = this.roundNumber === this.totalRounds ? "complete" : "reveal";
     const roundWinsBefore = createScoreBoard(
       this.activePlayerIds,
       this.roundWins,

@@ -1,6 +1,17 @@
 # Quantum Box critical-play trace
 
-**Status:** deterministic implementation evidence for `CRIT-01`; no human-playtest gate applies to this release pass
+**Status:** historical deterministic implementation evidence for `CRIT-01`.
+The table and dated checks below are retained as historical records, not the
+current release specification.
+
+**Superseded facts, 2026-11-10:** the complete Story is approved; reaching its
+ending does not require wins. Current Fluxball uses three 40-second rounds,
+retains CPU beliefs across a rule change until public evidence contradicts
+them, and awards shared round wins to leaders tied above the remaining players.
+Its CPUs act independently. Use [the current rule model](design/fluxball-rule-model.md),
+[NPC behavior](npc-behavior.md), and [Story contract](story-terminal.md) for
+current behavior. Historical test statements below are not claims that those
+checks were rerun on the current candidate.
 
 The trace follows the project application of Flanagan's critical-play method:
 identify the question, translate it into rules and actions, and verify that

@@ -222,12 +222,21 @@ export function isInstalledQuarryStoryRun(
   savedRun: RunContext | null,
   pack: QGraphCabinetPack,
 ): boolean {
-  if (!savedRun) return false;
+  if (
+    !savedRun ||
+    ![
+      "quarry-rules-v4",
+      "quarry-rules-v5",
+      "quarry-rules-v6",
+      QUAG_RULES_VERSION,
+    ].includes(savedRun.rulesVersion)
+  )
+    return false;
   const expected = createRunContext({
     gameId: "quarry",
     storyStage: "quarry",
     playMode: "story",
-    rulesVersion: QUAG_RULES_VERSION,
+    rulesVersion: savedRun.rulesVersion,
     runSeed: savedRun.runSeed,
     pack: {
       packId: pack.packId,

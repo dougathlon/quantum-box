@@ -74,11 +74,13 @@ comprehension or game feel by themselves.
 - Fixed-step simulation is authoritative. Rendering, audio, and terminal
   transitions do not mutate a run.
 - A run freezes its bank entry, seed, rule version, and mode before it starts.
-- Only a proven Story result advances Story. Arcade, QA, replay, and abandoned
-  runs do not.
+- Completed Story attempts may advance the narrative after either outcome.
+  Only qualified wins write clear evidence. Arcade, QA, replay, and abandoned
+  runs do not advance Story.
 - Current saves use `quantum-box-save-v6`. Preserve the
   `quantum-box/save-v5` legacy union and its historical hashes. Migration must
-  not invent a score, provider record, qualified run, transcript, or clear.
+  not invent a score, provider record, qualified run, or clear. Recover old
+  reading history conservatively; do not expose unread outcome branches.
 - Player-facing Retry creates a fresh run. Deterministic replay remains internal
   QA and evidence infrastructure.
 
@@ -89,8 +91,8 @@ comprehension or game feel by themselves.
 - Use only the Brown Box palette and binary alpha. Do not add blur, smoothing,
   gradients, bloom, extra accents, or fractional sprite placement.
 - Semantic DOM controls own focus, forms, keyboard, pointer, and accessibility;
-  the raster layer owns visible game geometry. Mobile reflows the semantic
-  interface with a font generated from the same approved glyphs.
+  the raster layer owns visible game geometry. The active game is desktop-only;
+  do not restore retired touch controls, mobile detection, or portrait layouts.
 - Terminal copy comes from the pinned corpus in `src/story/terminal/`. Preserve the
   approved wording and action semantics; do not improvise replacement prose.
 
@@ -133,11 +135,10 @@ Browser journeys execute separately:
 pnpm test:e2e
 ```
 
-For visible work, inspect the `640×360` raster and served `1280×720`; run a larger
-desktop viewport and compact portrait viewport before release. Run the mobile
-fixtures in `tests/fixtures/mobile/` through `tests/e2e/mobile.spec.ts`; those
-fixtures are part of the source export, not the production bundle. Exercise
-keyboard focus, gamepad navigation,
+For visible work, inspect the `640×360` raster and served `1280×720`; also check
+laptop and larger desktop windows, zoom, and fullscreen. Execute the desktop
+Chromium, WebKit, and Firefox projects where available; report blocked engines
+separately from passed tests. Exercise keyboard focus, gamepad navigation,
 pause, mute, blur/release, reduced motion, retry, save/reload, and return paths.
 
 ## Pull requests and releases

@@ -34,6 +34,78 @@ function harness() {
   return { controller, signals, fire };
 }
 describe("live keyboard rebinding", () => {
+  it("retains legacy C/D bindings without dispatching their keyboard inputs", () => {
+    const { controller, signals, fire } = harness();
+    for (const player of ["C", "D"] as const) {
+      for (const code of Object.values(DEFAULT_KEYBOARD_BINDINGS[player])) {
+        fire("keydown", code);
+        fire("keyup", code);
+      }
+    }
+    expect(signals).toEqual([]);
+    for (const [player, number] of [
+      ["A", 1],
+      ["B", 2],
+    ] as const) {
+      fire("keydown", DEFAULT_KEYBOARD_BINDINGS[player].action);
+      fire("keyup", DEFAULT_KEYBOARD_BINDINGS[player].action);
+      expect(
+        signals.slice(-2).map(({ action, pressed }) => [action, pressed]),
+      ).toEqual([
+        [`p${number}-action`, true],
+        [`p${number}-action`, false],
+      ]);
+    }
+    controller.dispose();
+  });
+  for (const [player, number] of [
+    ["A", 1],
+    ["B", 2],
+  ] as const) {
+    it.each(["KeyI", "KeyJ", "KeyK", "KeyL"])(
+      `${player} can reuse inactive profile key %s without dispatching C/D`,
+      (code) => {
+        const bindings = validateKeyboardBindings({
+          ...DEFAULT_KEYBOARD_BINDINGS,
+          [player]: { ...DEFAULT_KEYBOARD_BINDINGS[player], up: code },
+        });
+        expect(bindings.C).toEqual(DEFAULT_KEYBOARD_BINDINGS.C);
+        expect(bindings.D).toEqual(DEFAULT_KEYBOARD_BINDINGS.D);
+        const { controller, signals, fire } = harness();
+        controller.setKeyboardBindings(bindings);
+        signals.length = 0;
+        fire("keydown", code);
+        fire("keyup", code);
+        expect(signals.map(({ action, pressed }) => [action, pressed])).toEqual(
+          [
+            [`p${number}-up`, true],
+            [`p${number}-up`, false],
+          ],
+        );
+        controller.dispose();
+      },
+    );
+  }
+  it("still rejects conflicting active A/B keys when legacy profiles share them", () => {
+    expect(() =>
+      validateKeyboardBindings({
+        ...DEFAULT_KEYBOARD_BINDINGS,
+        A: { ...DEFAULT_KEYBOARD_BINDINGS.A, up: "KeyI" },
+        B: { ...DEFAULT_KEYBOARD_BINDINGS.B, left: "KeyI" },
+      }),
+    ).toThrow("I is already assigned.");
+  });
+  it("keeps legacy profiles structurally complete with internally unambiguous keys", () => {
+    expect(() =>
+      validateKeyboardBindings({ ...DEFAULT_KEYBOARD_BINDINGS, D: undefined }),
+    ).toThrow("Player D keyboard bindings are incomplete.");
+    expect(() =>
+      validateKeyboardBindings({
+        ...DEFAULT_KEYBOARD_BINDINGS,
+        C: { ...DEFAULT_KEYBOARD_BINDINGS.C, action: "KeyT" },
+      }),
+    ).toThrow("T is already assigned.");
+  });
   for (const [player, number] of [
     ["A", 1],
     ["B", 2],
@@ -71,7 +143,7 @@ describe("live keyboard rebinding", () => {
       });
     }
   }
-  it("persists both profiles through a repository reload", () => {
+  it("persists active remaps over inactive keys without changing legacy profiles", () => {
     const values = new Map<string, string>();
     const storage = {
       getItem: (key: string) => values.get(key) ?? null,
@@ -81,11 +153,17 @@ describe("live keyboard rebinding", () => {
     const repo = new SaveRepository(storage, () => {});
     const bindings = validateKeyboardBindings({
       ...DEFAULT_KEYBOARD_BINDINGS,
-      A: { ...DEFAULT_KEYBOARD_BINDINGS.A, up: "KeyZ" },
-      B: { ...DEFAULT_KEYBOARD_BINDINGS.B, action: "KeyV" },
+      A: { ...DEFAULT_KEYBOARD_BINDINGS.A, up: "KeyI" },
+      B: { ...DEFAULT_KEYBOARD_BINDINGS.B, action: "KeyR" },
     });
     repo.updateSettings({ keyboardBindings: bindings });
     const loaded = new SaveRepository(storage, () => {}).snapshot();
     expect(loaded.settings.keyboardBindings).toEqual(bindings);
+    expect(loaded.settings.keyboardBindings.C).toEqual(
+      DEFAULT_KEYBOARD_BINDINGS.C,
+    );
+    expect(loaded.settings.keyboardBindings.D).toEqual(
+      DEFAULT_KEYBOARD_BINDINGS.D,
+    );
   });
 });

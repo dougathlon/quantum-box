@@ -1,6 +1,6 @@
 # Quantum Box public demo contract
 
-**Status:** binding public product contract, revised 2026-09-09
+**Status:** binding public product contract, revised 2026-11-15
 
 ## Product and fiction
 
@@ -10,10 +10,12 @@
   terminal.
 - Physical Designer/player figures, morphs, doors, offices, dens, walking
   sequences, and Workshop rooms are not production surfaces or assets.
-- Story opens Continue/New Story; Continue is disabled without progress.
+- Story opens Continue/New Story; Continue is offered only with active progress.
   New Story resets the narrative cursor while retaining historical records.
   There is no chapter-selection menu.
-- Terminal is a five-program transcript archive and independent retry surface.
+- Terminal offers Read for cleared programs and independent Retry for encountered, unfinished programs.
+- This is a desktop browser game. At most two humans may play; four-competitor
+  formats fill remaining places with CPUs. Mobile controls and layouts are retired.
 - Enclose is not a shipped cabinet, route, asset, or source-record entry.
 
 ## Story
@@ -21,14 +23,26 @@
 The deterministic gameplay order is Qong; SkiPixl feasible; SkiPixl overloaded;
 Quantman Hold; Fluxball 2P Global; Fluxball 2P Individual; and Quarry.
 
-The exact approved document is player-copy authority through Quantman. Its hash,
-normalization rules, and exact runtime corpus hash are pinned in
-`src/story/terminal/text-notes-provenance.json`. Fluxball and Quarry terminal
-pages remain literal `PLACEHOLDER` pages until approved prose exists.
+The approved complete Story corpus, separately supplied Postscript, and authorized
+corrections are pinned in `src/story/terminal/text-notes-provenance.json`.
 
-Only proven wins unlock transcript evidence: Qong once; both SkiPixl courses;
-Quantman Hold; both Fluxball Story modes; and Quarry. Story may continue along
-an explicit loss branch without converting that attempt into a clear.
+Successful outcomes offer Continue only. Qong and Quantman require Retry after
+the first completed loss in a main Story playthrough; subsequent losses offer
+Retry and Continue. Both SkiPixl courses, both Fluxball stages, and Quarry offer
+Retry and Continue from their first loss. Starting or abandoning a game is not
+a completed loss. New Story resets this first-loss routing while retaining earned
+results. Feasible SkiPixl's shared explanation offers Continue only, after the
+outcome choice.
+
+The narrative ending includes the closing sequence and both Postscript pages;
+the first Postscript says `YOU REACHED THE END OF THE DEMO.` No win gate applies.
+Terminal Read requires every stage in its chapter to be cleared and presents the
+complete authored success transcript. Encountered, uncleared chapters offer
+Retry through the introduction and tutorial for their earliest uncleared stage.
+Terminal retries preserve the main Story cursor; genuine wins count toward the
+same clear evidence. Transcript reading does not rewrite the factual read-page
+history or create wins. Older completed saves can reach a previously missed
+Postscript without replaying games.
 
 ## Game contracts
 
@@ -40,12 +54,20 @@ an explicit loss branch without converting that attempt into a clear.
 - **Quantman:** Hold and Invert remain Arcade modes; Story currently uses Hold.
   Seven authored hardware-backed maze topologies rotate internally. The
   original topology's two independent captures do not create two menu levels.
-- **Fluxball:** every format uses four 40-second rounds. Global has one shared
+- **Fluxball:** new matches use three 40-second rounds; historical v5 replays
+  retain four. Global has one shared
   mutable rule state; Individual has coupled hidden player rules. One shared
   `CHANGE RULES` opportunity exists per round. CPU policy sees no hidden rules.
-- **Quarry:** Arcade supports one to four humans. A caught duck is knocked out,
+  Intermediate rounds reveal their rules before Next Round. The final round
+  reaches results automatically, retaining its final rule history.
+- **Quarry:** Arcade supports one or two humans among four competitors. A caught duck is knocked out,
   respawns elsewhere with grace, and retains its directed relation until the
   fixed scheduled remeasurement. One of 24 recorded QGraph jobs is selected.
+  Current `quarry-rules-v7` awards a round win to each leader tied above the
+  remaining players. Partial match ties are shared wins; all-player ties remain
+  draws. v4/v5 replay contexts preserve their original unique-round-win scoring;
+  v4 also retains its total-points match tiebreak. Their exact installed qualified
+  run identities remain valid.
 
 Story has no high score. Successful terminal Arcade runs write only to the
 existing SkiPixl or Quantman top-five systems, with initials, course/mode, run
@@ -95,3 +117,5 @@ source maps, and internal history. The project has no open-source licence.
 
 Automated checks, executed browser tests, fresh-save Story traversal, deployed
 site verification, and human visual/listening acceptance remain separate.
+
+Quarry round breaks last three seconds in new v7 runs. Older v4/v5/v6 runs retain their two-second timing; v6 shared-win scoring is preserved. Qualifying SkiPixl/Quantman Arcade results offer Continue into initials entry; cleared Arcade Quantman mazes offer Next Maze only.

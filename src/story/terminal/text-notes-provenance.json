@@ -3,7 +3,7 @@
   "sourceFilename": "Quantum Box agreed story text 2026-09-11 v2.docx",
   "sourceSha256": "40b81f5188c8ea0a8213bc2450090432b61294d34e56465613e67635b45bfd29",
   "authorityThrough": "end-of-demonstration",
-  "runtimePageCorpusSha256": "685e23b122783eba71b14fdb808829a02927b3622d80ca1a1533e2567f9ce335",
+  "runtimePageCorpusSha256": "e5b56a26a04542f36a0310fca5488bfcdbed0cabbb15ce154e9d1db200890444",
   "normalization": {
     "actionMarkers": ["CONTINUE", "PLAY", "RETRY"],
     "excludedMaterial": [
@@ -15,9 +15,14 @@
     "displayOnlyTransformation": "Authored paragraphs reflow at the existing reading size; the final invitation is grouped into one paragraph. Bitmap rendering retains its existing uppercase presentation.",
     "authorizedRuntimeCorrections": [
       "User requested removal of daily from PART OF DAILY LIFE.",
-      "Single line breaks after I KNOW WHAT YOU\u2019RE THINKING:, before QRNG, and before DIFFERENT NEIGHBOURS = WALL.",
+      "Single line breaks after I KNOW WHAT YOU’RE THINKING:, before QRNG, and before DIFFERENT NEIGHBOURS = WALL.",
       "User requested Retry for every failed game: SkiPixl feasible gains a retry/continue page before its explanation; overloaded failure gains Retry.",
-      "Two postscript panels supplied directly by Doug on 2026-09-11, gated on all required Story clears; MOTH is an inline selectable external link, FINISH completes the story."
+      "Two postscript panels supplied directly by Doug on 2026-09-11, gated on all required Story clears; MOTH is an inline selectable external link, FINISH completes the story.",
+      "Desktop release objective approved 2026-11-10: every completed Story outcome offers Retry and Continue; the narrative ending includes both Postscript panels without a win gate. The only body-copy replacement is YOU BEAT THE DEMO. with YOU REACHED THE END OF THE DEMO. This supersedes the earlier Postscript clear requirement.",
+      "User correction 2026-11-15 supersedes the broad 2026-11-10 outcome policy: all wins offer Continue only; first completed Qong and Quantman failures require Retry; later failures and the first failures of SkiPixl, Fluxball and Quarry offer Retry/Continue. New Story resets first-loss routing without erasing wins.",
+      "User-approved 2026-11-15 copy: feasible SkiPixl success gains WELL DONE.; feasible failure becomes WHOOPS. WOULD YOU LIKE TO TRY AGAIN?; its common QTG explanation remains Continue only. Quantman later failure becomes WE CAN TRY AGAIN. OR I CAN SHOW YOU HOW THE MAZE WORKS.; Quantman success becomes AMAZING.",
+      "User-approved 2026-11-15 deletion: remove WHAT WORKS FOR THE OTHER PLAYER MAY NOT WORK FOR YOU. and FIND OUT BY PLAYING. from the Split Fluxball tutorial.",
+      "User correction 2026-11-15: Terminal offers Retry for an uncleared chapter or Read for a cleared chapter, never both. Read follows the coherent complete chapter text; Quarry includes the ending and Postscript. Retry starts with the earliest uncleared stage introduction and genuine clears count toward Story completion."
     ]
   },
   "lateStoryCopy": {}

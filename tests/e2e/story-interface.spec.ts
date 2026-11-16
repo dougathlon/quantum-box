@@ -6,7 +6,7 @@ test("Story types an exact terminal page, completes it on action, and resumes th
   page,
 }, testInfo) => {
   test.skip(
-    testInfo.project.name !== "desktop-1280x720",
+    !testInfo.project.name.endsWith("1280x720"),
     "One release desktop proves the terminal interaction contract.",
   );
   const externalRequests = captureExternalRequests(page, testInfo);
@@ -77,7 +77,7 @@ test("Settings retain the Brown Box hierarchy without stacked utility clutter", 
   page,
 }, testInfo) => {
   test.skip(
-    testInfo.project.name !== "desktop-1280x720",
+    !testInfo.project.name.endsWith("1280x720"),
     "One release desktop proves the utility menu hierarchy.",
   );
   await page.goto("/");

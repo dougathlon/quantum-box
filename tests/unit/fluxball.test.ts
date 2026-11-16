@@ -315,7 +315,7 @@ describe("Quantum Box Fluxball round contract", () => {
     for (let round = 1; round <= 3; round += 1) {
       const reveal = advanceToReveal(session);
       expect(reveal.roundNumber).toBe(round);
-      expect(reveal.phase).toBe("reveal");
+      expect(reveal.phase).toBe(round === 3 ? "complete" : "reveal");
       const next = session.continueAfterReveal();
       expect(next.phase).toBe(round === 3 ? "complete" : "active");
     }
@@ -339,7 +339,7 @@ describe("Quantum Box Fluxball round contract", () => {
     for (let round = 1; round <= 3; round += 1) {
       const reveal = advanceToReveal(session);
       expect(reveal.roundNumber).toBe(round);
-      expect(reveal.phase).toBe("reveal");
+      expect(reveal.phase).toBe(round === 3 ? "complete" : "reveal");
       const next = session.continueAfterReveal();
       expect(next.phase).toBe(round === 3 ? "complete" : "active");
     }
@@ -381,7 +381,7 @@ describe("Quantum Box Fluxball round contract", () => {
     for (const [index, score] of roundScores.entries()) {
       forceSessionScore(session, score);
       const result = finishCurrentRound(session);
-      expect(result.phase).toBe("reveal");
+      expect(result.phase).toBe(index === 2 ? "complete" : "reveal");
       const continued = session.continueAfterReveal();
       expect(continued.phase).toBe(index === 2 ? "complete" : "active");
     }
@@ -1118,7 +1118,7 @@ describe("Fluxball CPU information boundary", () => {
             }
             before = after;
           }
-          expect(before.phase).toBe("reveal");
+          expect(before.phase).toBe(round === 3 ? "complete" : "reveal");
           session.continueAfterReveal();
         }
       }
@@ -1154,7 +1154,7 @@ describe("Fluxball CPU information boundary", () => {
         }
         before = after;
       }
-      expect(before.phase).toBe("reveal");
+      expect(before.phase).toBe(targetRound === 3 ? "complete" : "reveal");
       // A stationary human makes this a repeatable shot-execution regression,
       // not a demand that a CPU can never be outplayed or score an own goal.
       expect(learnedHarmfulGoals).toBe(0);

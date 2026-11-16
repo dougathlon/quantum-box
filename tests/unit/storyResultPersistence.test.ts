@@ -125,28 +125,64 @@ describe("Story result identity boundaries", () => {
     ).toBe(false);
   });
 
-  it("binds Quarry to its exact installed 24-job pack selection", async () => {
-    const bank = await loadInstalledQuarryQpuBank();
-    const selection = selectQuarryQpuPack(bank, 103);
-    const pack = selection.pack;
-    const run = createRunContext({
-      gameId: "quarry",
-      storyStage: "quarry",
-      playMode: "story",
-      rulesVersion: QUAG_RULES_VERSION,
-      runSeed: 103,
-      pack: {
-        packId: pack.packId,
-        contentSha256: pack.contentSha256,
-        schemaVersion: pack.schemaVersion,
-        source: pack.sourceClassification,
-      },
-    });
-    expect(isInstalledQuarryStoryRun(run, pack)).toBe(true);
-    expect(
-      isInstalledQuarryStoryRun({ ...run, runId: "run-00000000" }, pack),
-    ).toBe(false);
-  });
+  it.each([
+    "quarry-rules-v4",
+    "quarry-rules-v5",
+    "quarry-rules-v6",
+    QUAG_RULES_VERSION,
+  ])(
+    "binds Quarry %s to its exact installed pack selection",
+    async (rulesVersion) => {
+      const bank = await loadInstalledQuarryQpuBank();
+      const selection = selectQuarryQpuPack(bank, 103);
+      const pack = selection.pack;
+      const run = createRunContext({
+        gameId: "quarry",
+        storyStage: "quarry",
+        playMode: "story",
+        rulesVersion,
+        runSeed: 103,
+        pack: {
+          packId: pack.packId,
+          contentSha256: pack.contentSha256,
+          schemaVersion: pack.schemaVersion,
+          source: pack.sourceClassification,
+        },
+      });
+      expect(isInstalledQuarryStoryRun(run, pack)).toBe(true);
+      expect(
+        isInstalledQuarryStoryRun({ ...run, runId: "run-00000000" }, pack),
+      ).toBe(false);
+      expect(
+        isInstalledQuarryStoryRun(
+          {
+            ...run,
+            pack: { ...run.pack, contentSha256: "0".repeat(64) },
+          },
+          pack,
+        ),
+      ).toBe(false);
+      expect(
+        isInstalledQuarryStoryRun(
+          createRunContext({
+            ...run,
+            playMode: "arcade",
+            storyStage: null,
+          }),
+          pack,
+        ),
+      ).toBe(false);
+      expect(
+        isInstalledQuarryStoryRun(
+          createRunContext({
+            ...run,
+            rulesVersion: "quarry-rules-unrecognized",
+          }),
+          pack,
+        ),
+      ).toBe(false);
+    },
+  );
 
   it("keeps RETRY interactive and rejects Arcade contexts", () => {
     const pack = selectStorySkiPixlPack(1, "P84");

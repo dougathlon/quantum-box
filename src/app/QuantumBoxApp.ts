@@ -1,7 +1,4 @@
-import { isMobilePresentation, permitsArcadeMode } from "../mobile/MobileMode";
-import { TouchControls } from "../mobile/TouchControls";
 import { LOCAL_HUMAN_PLAYERS } from "../input/LocalPlayers";
-import { postscriptUnlocked } from "../story/terminal/postscript";
 import { observeFullscreenExit } from "../ui/Fullscreen";
 import Phaser from "phaser";
 import { cabinetBackIntent } from "./CabinetBackIntent";
@@ -93,6 +90,7 @@ import {
 import type { QuantmanQpuFixtureSelection } from "../games/quantmanSynthetic/labyrinth/types";
 import { QuagRuntime } from "../games/quag/QuagRuntime";
 import { quagCompletionCue } from "../games/quag/QuagFeedback";
+import { quagMatchIsDraw, quagPlayerWon } from "../games/quag/outcome";
 import {
   QUAG_RULES_VERSION,
   type QuagInput,
@@ -122,6 +120,8 @@ import {
 import type { CommittedPack } from "../packs/types";
 import type { QongPackPayload } from "../games/qong/types";
 import {
+  chapterStages,
+  readTranscriptPageIds,
   TERMINAL_TRANSCRIPT_PAGE_IDS,
   earliestUnclearedStage,
   storyNode,
@@ -130,6 +130,7 @@ import {
   type StoryTerminalActionId,
   type StoryTerminalView,
 } from "../story/terminal";
+import { TerminalRetrySession } from "../story/terminal/TerminalRetrySession";
 import type { StoryChapterId } from "../games/registry";
 
 export interface QuantumBoxTestApi {
@@ -151,7 +152,6 @@ export class QuantumBoxApp {
   private readonly saveRepository: SaveRepository;
   private readonly shell: QuantumBoxShell;
   private readonly input: InputController;
-  private readonly touchControls: TouchControls;
   private readonly game: Phaser.Game;
   private readonly audio: SynthAudio;
   private readonly frameMonitor = new FrameMonitor();
@@ -176,6 +176,7 @@ export class QuantumBoxApp {
   private activeTerminalView: StoryTerminalView | null = null;
   private storyTerminalTransitionInFlight = false;
   private storyPresentationGeneration = 0;
+  private terminalRetry: TerminalRetrySession | null = null;
   private terminalTranscript: Readonly<{
     chapterId: StoryChapterId;
     pageIds: readonly string[];
@@ -242,6 +243,8 @@ export class QuantumBoxApp {
             this.storyPresentationGeneration += 1;
             this.storyTerminalTransitionInFlight = false;
             this.activeTerminalView = null;
+            this.terminalRetry = null;
+            this.terminalTranscript = null;
           }
           this.audio.requestBackgroundCue(
             page === "story-terminal" ? "spare-key" : "key-is-opaque",
@@ -251,6 +254,17 @@ export class QuantumBoxApp {
         onNewStory: () => this.newStory(),
         onStoryTerminalAction: (action, nodeId) =>
           void this.handleStoryTerminalAction(action, nodeId),
+        onStoryPageRead: (nodeId) => {
+          if (
+            this.activeTerminalView?.nodeId !== nodeId ||
+            this.activeTerminalView.transcript ||
+            this.terminalRetry !== null
+          )
+            return;
+          const previous = this.saveRepository.snapshot();
+          const save = this.saveRepository.markStoryPageRead(nodeId);
+          if (save !== previous) this.shell.updateSave(save);
+        },
         onOpenTerminalTranscript: (chapterId) =>
           this.openTerminalTranscript(chapterId),
         onRetryTerminalChapter: (chapterId) =>
@@ -302,7 +316,6 @@ export class QuantumBoxApp {
       this.saveRepository.snapshot().settings.keyboardBindings,
     );
     this.unsubscribeInput = this.input.subscribe(this.onInput);
-    this.touchControls = new TouchControls(root, this.input);
     this.unsubscribeDevices = this.input.subscribeDevices((event) => {
       this.shell.announce(
         event.connected
@@ -389,7 +402,6 @@ export class QuantumBoxApp {
     this.unsubscribeDevices = null;
     this.stopCanvasPaletteAudit?.();
     this.stopCanvasPaletteAudit = null;
-    this.touchControls.destroy();
     this.input.dispose();
     this.root.removeEventListener("pointerdown", this.onAudioGesture, true);
     this.root.removeEventListener("keydown", this.onAudioGesture, true);
@@ -419,6 +431,7 @@ export class QuantumBoxApp {
       this.toggleMute();
       return;
     }
+    if (signal.pressed && this.shell.isCabinetResultSettling()) return;
     if (this.fluxballLobby) {
       if (!signal.pressed) return;
       if (signal.action === "primary" || signal.action === "start")
@@ -551,7 +564,6 @@ export class QuantumBoxApp {
     mode: string,
     options: ArcadeLaunchOptions,
   ): Promise<void> {
-    if (!permitsArcadeMode(mode, isMobilePresentation())) return;
     const generation = ++this.arcadeLaunchGeneration;
     if (gameId === "qong") {
       const opponent: QongOpponent =
@@ -589,14 +601,6 @@ export class QuantumBoxApp {
     if (gameId === "fluxball") {
       const format = fluxballFormatForArcadeMode(mode, options.localPlayers);
       if (format) {
-        if (isMobilePresentation()) {
-          this.startFluxball(
-            "arcade",
-            { ...format, humanPlayerIds: ["A"] },
-            options.runSeed,
-          );
-          return;
-        }
         this.fluxballLobby = {
           mode,
           runSeed: options.runSeed,
@@ -691,10 +695,7 @@ export class QuantumBoxApp {
     else if (action.kind === "start") {
       if (this.fluxballLobby) {
         this.fluxballLobby.humanPlayerIds.clear();
-        for (const id of LOCAL_HUMAN_PLAYERS.slice(
-          0,
-          isMobilePresentation() ? 1 : (action.humanCount ?? 1),
-        ))
+        for (const id of LOCAL_HUMAN_PLAYERS.slice(0, action.humanCount ?? 1))
           this.fluxballLobby.humanPlayerIds.add(id);
       }
       this.startFluxballFromLobby();
@@ -705,11 +706,7 @@ export class QuantumBoxApp {
     const lobby = this.fluxballLobby;
     if (!lobby) return;
     const active: readonly PlayerId[] = LOCAL_HUMAN_PLAYERS;
-    if (
-      !active.includes(playerId) ||
-      (isMobilePresentation() && playerId !== "A")
-    )
-      return;
+    if (!active.includes(playerId)) return;
     if (lobby.humanPlayerIds.has(playerId))
       lobby.humanPlayerIds.delete(playerId);
     else lobby.humanPlayerIds.add(playerId);
@@ -742,9 +739,7 @@ export class QuantumBoxApp {
       competitorCount: lobby.competitorCount,
       ruleMode: lobby.ruleMode,
       roundSeconds: 40,
-      humanPlayerIds: isMobilePresentation()
-        ? ["A"]
-        : [...lobby.humanPlayerIds].sort(),
+      humanPlayerIds: [...lobby.humanPlayerIds].sort(),
     };
     const runSeed = lobby.runSeed;
     this.fluxballLobby = null;
@@ -761,6 +756,7 @@ export class QuantumBoxApp {
     this.storyPresentationGeneration += 1;
     this.storyTerminalTransitionInFlight = false;
     this.terminalTranscript = null;
+    this.terminalRetry = null;
     void this.presentCurrentStoryNode();
   }
 
@@ -769,6 +765,7 @@ export class QuantumBoxApp {
     this.storyTerminalTransitionInFlight = false;
     this.shell.updateSave(this.saveRepository.replayStoryFromStart());
     this.terminalTranscript = null;
+    this.terminalRetry = null;
     void this.presentCurrentStoryNode();
   }
 
@@ -795,7 +792,7 @@ export class QuantumBoxApp {
       this.audio.requestBackgroundCue("key-is-opaque");
       this.shell.showPage("terminal");
       this.shell.announce(
-        "Story complete. All cleared program transcripts are available in Terminal.",
+        "Story complete. Terminal offers unfinished games to retry and completed chapters to read.",
       );
       return;
     }
@@ -823,16 +820,21 @@ export class QuantumBoxApp {
       return;
     }
     if (view.transcript) {
-      this.advanceTerminalTranscript();
+      if (action === "continue") this.advanceTerminalTranscript();
       return;
     }
     this.storyTerminalTransitionInFlight = true;
     const generation = this.storyPresentationGeneration;
     this.activeTerminalView = null;
     try {
-      const save = this.saveRepository.advanceStoryTerminal(action);
-      this.shell.updateSave(save);
-      await this.presentCurrentStoryNode();
+      if (this.terminalRetry) {
+        this.terminalRetry.advance(action);
+        await this.presentTerminalRetryNode();
+      } else {
+        const save = this.saveRepository.advanceStoryTerminal(action);
+        this.shell.updateSave(save);
+        await this.presentCurrentStoryNode();
+      }
     } finally {
       if (generation === this.storyPresentationGeneration) {
         this.storyTerminalTransitionInFlight = false;
@@ -841,15 +843,10 @@ export class QuantumBoxApp {
   }
 
   private openTerminalTranscript(chapterId: StoryChapterId): void {
-    const pageIds =
-      chapterId === "quarry" &&
-      postscriptUnlocked(this.saveRepository.snapshot().story.clearedStages)
-        ? [
-            ...TERMINAL_TRANSCRIPT_PAGE_IDS[chapterId],
-            "postscript-1",
-            "postscript-2",
-          ]
-        : TERMINAL_TRANSCRIPT_PAGE_IDS[chapterId];
+    const story = this.saveRepository.snapshot().story;
+    if (earliestUnclearedStage(chapterId, story.clearedStages) !== null) return;
+    const pageIds = TERMINAL_TRANSCRIPT_PAGE_IDS[chapterId];
+    this.terminalRetry = null;
     this.shell.updateSave(this.saveRepository.markTranscriptSeen(chapterId));
     this.terminalTranscript = Object.freeze({ chapterId, pageIds, index: 0 });
     this.presentTranscriptPage();
@@ -899,12 +896,43 @@ export class QuantumBoxApp {
   }
 
   private async retryTerminalChapter(chapterId: StoryChapterId): Promise<void> {
-    const stage = earliestUnclearedStage(
+    const story = this.saveRepository.snapshot().story;
+    if (
+      !chapterStages(chapterId).some(
+        (stage) =>
+          story.experiencedStages.includes(stage) ||
+          story.clearedStages.includes(stage),
+      ) &&
+      readTranscriptPageIds(chapterId, story.readPageIds).length === 0
+    )
+      return;
+    const stage = earliestUnclearedStage(chapterId, story.clearedStages);
+    if (!stage) return;
+    this.terminalTranscript = null;
+    this.terminalRetry = new TerminalRetrySession(
       chapterId,
+      story.clearedStages,
+    );
+    await this.presentTerminalRetryNode();
+  }
+
+  private async presentTerminalRetryNode(): Promise<void> {
+    const node = this.terminalRetry?.currentNode(
       this.saveRepository.snapshot().story.clearedStages,
     );
-    if (!stage) return;
-    await this.launchStoryStage(stage, "terminal-retry");
+    if (!node) {
+      this.terminalRetry = null;
+      this.activeTerminalView = null;
+      this.shell.showPage("terminal");
+    } else if ("pageId" in node) {
+      this.presentTerminal({
+        nodeId: node.id,
+        page: storyTerminalPage(node.pageId),
+        transcript: false,
+      });
+    } else if (node.kind === "game-launch") {
+      await this.launchStoryStage(node.stageId, "terminal-retry");
+    }
   }
 
   private async launchStoryStage(
@@ -1363,6 +1391,7 @@ export class QuantumBoxApp {
               : "RUN COMPLETE · TOP FIVE UNCHANGED",
           initialsEditable: recordedSequence !== null,
         });
+        this.shell.setArcadeScoreEntryPending(recordedSequence !== null);
       }
       this.shell.announce(
         `Arcade descent completed on ${this.activeSkiPixlPack?.payload.courseLabel ?? "unknown course"} in ${snapshot.elapsedSeconds.toFixed(2)} seconds.`,
@@ -1393,6 +1422,10 @@ export class QuantumBoxApp {
   }
 
   private retrySkiPixl(): void {
+    if (this.pendingArcadeScoreboard?.initialsEditable) {
+      this.continueSkiPixl();
+      return;
+    }
     if (!this.activeRun || !this.activeSkiPixlPack) return;
     const storyStage = this.activeRun.storyStage;
     const storySource = this.activeStoryAttemptSource;
@@ -1822,6 +1855,7 @@ export class QuantumBoxApp {
           : "RUN COMPLETE · TOP FIVE UNCHANGED",
         initialsEditable: recordedSequence !== null,
       });
+      this.shell.setArcadeScoreEntryPending(recordedSequence !== null);
       this.shell.announce(
         `${terminal.cleared ? "Screen cleared" : "Game over"}. Quantman ${terminal.mechanic} score recorded locally.`,
       );
@@ -1851,6 +1885,10 @@ export class QuantumBoxApp {
     carry?: Readonly<{ score: number; lives: number }>,
   ): Promise<void> {
     if (!this.activeRun || !this.activeQuantmanMechanic) return;
+    if (!carry && this.pendingArcadeScoreboard?.initialsEditable) {
+      this.continueQuantman();
+      return;
+    }
     const playMode = this.activeRun.playMode;
     const stage = this.activeRun.storyStage;
     const source = this.activeStoryAttemptSource;
@@ -2013,19 +2051,19 @@ export class QuantumBoxApp {
     snapshot: QuagSnapshot,
     recording: readonly QuagInput[],
   ): void {
+    const isDraw = quagMatchIsDraw(snapshot);
     if (!this.quagIsReplay) {
       this.quagRecording = recording;
       this.captureReplay(
         recording,
         snapshot,
-        snapshot.winnerIds.length === 1 && snapshot.winnerIds[0] === "A",
-        `winner ${snapshot.winnerIds.join("/") || "tie"}`,
+        quagPlayerWon(snapshot, "A"),
+        isDraw ? "draw" : `winner ${snapshot.winnerIds.join("/")}`,
       );
     }
     this.audio.setPaused(false);
     this.audio.play(quagCompletionCue(snapshot));
-    const storyQualified =
-      snapshot.winnerIds.length === 1 && snapshot.winnerIds[0] === "A";
+    const storyQualified = quagPlayerWon(snapshot, "A");
     if (this.quagIsReplay) {
       this.shell.announce(
         `Deterministic Quarry replay complete · ${this.activeRun?.runId ?? "unknown run"}.`,
@@ -2035,9 +2073,11 @@ export class QuantumBoxApp {
     if (this.activeRun?.playMode === "story") {
       this.recordActiveStoryOutcome(storyQualified ? "won" : "lost");
       this.shell.announce(
-        storyQualified
-          ? "Quarry won. Continue to the terminal."
-          : "Quarry lost. Continue to the terminal.",
+        isDraw
+          ? "Quarry draw. Continue to the terminal."
+          : storyQualified
+            ? "Quarry won. Continue to the terminal."
+            : "Quarry lost. Continue to the terminal.",
       );
       return;
     }
@@ -2136,6 +2176,7 @@ export class QuantumBoxApp {
       | "pause"
       | "back",
   ): void {
+    if (this.shell.isCabinetResultSettling()) return;
     if (action === "back" && this.handleCabinetBack()) return;
     if (action === "export") {
       this.exportReplay();
@@ -2247,6 +2288,13 @@ export class QuantumBoxApp {
         this.activeStoryAttemptSource,
       ),
     );
+    if (
+      this.activeStoryAttemptSource === "terminal-retry" &&
+      run.storyStage &&
+      isCurrentStoryStage(run.storyStage)
+    ) {
+      this.terminalRetry?.recordOutcome(run.storyStage, outcome);
+    }
   }
 
   private returnFromStoryCabinet(): void {
@@ -2257,9 +2305,7 @@ export class QuantumBoxApp {
       void this.presentCurrentStoryNode();
       return;
     }
-    this.activeTerminalView = null;
-    this.audio.requestBackgroundCue("key-is-opaque");
-    this.shell.showPage("terminal");
+    void this.presentTerminalRetryNode();
   }
 
   private exitCabinet(nextCue: BackgroundCueId | null = "key-is-opaque"): void {
@@ -2368,6 +2414,7 @@ export class QuantumBoxApp {
     this.audio.play("select");
     this.activeTerminalView = null;
     this.terminalTranscript = null;
+    this.terminalRetry = null;
     this.completedReplay = null;
     this.fluxballLobby = null;
     this.pendingStorySkiPixlPack = null;
@@ -2400,6 +2447,15 @@ export class QuantumBoxApp {
       this.quantmanRuntime ??
       this.quagRuntime;
     if (!runtime) return false;
+    if (
+      this.activeRun?.playMode === "arcade" &&
+      this.quantmanRuntime?.snapshot().terminal?.cleared
+    )
+      return true;
+    if (runtime.isComplete() && this.activeRun?.playMode === "story") {
+      this.returnFromStoryCabinet();
+      return true;
+    }
     const intent = cabinetBackIntent(
       runtime.isComplete(),
       runtime.isPaused(),
@@ -2410,8 +2466,12 @@ export class QuantumBoxApp {
       return true;
     }
     if (intent === "story-session") {
+      const destination =
+        this.activeStoryAttemptSource === "terminal-retry"
+          ? "terminal"
+          : "story-start";
       this.exitCabinet();
-      this.shell.showPage("story-start");
+      this.shell.showPage(destination);
       return true;
     }
     return false;
@@ -2541,13 +2601,16 @@ function quagHumanResult(snapshot: QuagSnapshot): string {
   const cpuWinners = snapshot.winnerIds.filter(
     (playerId) => !snapshot.humanPlayerIds.includes(playerId),
   );
-  if (snapshot.winnerIds.length > 1) {
+  if (quagMatchIsDraw(snapshot)) {
     if (humanWinners.length > 0 && cpuWinners.length > 0) {
       return `human/CPU draw between ${snapshot.winnerIds.join("/")}`;
     }
     return humanWinners.length > 0
       ? `human draw between ${humanWinners.join("/")}`
       : `CPU draw between ${cpuWinners.join("/")}`;
+  }
+  if (snapshot.winnerIds.length > 1) {
+    return `shared win for ${snapshot.winnerIds.join("/")}`;
   }
   return humanWinners.length === 1
     ? `human ${humanWinners[0]} win`

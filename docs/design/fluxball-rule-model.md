@@ -42,8 +42,9 @@ the opening state and the possible successor. Active play is provider-free.
 ## Scoring
 
 Goals are local to a timed round and reset when the next round starts. A unique
-highest goal total earns exactly one round win; a tied highest total is a drawn
-round and earns no round win. The match result is determined by round wins,
+highest goal total earns exactly one round win. In four-competitor formats,
+every player tied highest above the remaining players earns one round win.
+An all-player tie remains a draw and awards no round wins. The match result is determined by round wins,
 not cumulative goals. Every format uses three 40-second rounds. In four-player
 formats the north/south apertures are scaled to the court width, rather than
 reusing the narrower side-goal measurement.

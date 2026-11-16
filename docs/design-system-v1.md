@@ -29,7 +29,8 @@ placement.
 - **Arcade:** one five-cabinet overview. A cabinet opens a dedicated trial sheet
   rather than crowding every mode into the overview.
 - **Terminal:** five transcript rows with a single right-aligned state:
-  unopened, retry required, transcript ready, or transcript read.
+  unopened, retry required, read / retry, transcript ready, or transcript read.
+  Reading access depends on encountered pages, independently of gameplay clears.
 - **Settings:** stable Display, Sound, Controls, and Data sections; one group at
   a time. Initials are entered on the score-entry screen, using keyboard or gamepad.
 - **Games:** keep permanent text outside the central playfield where possible.

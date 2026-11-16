@@ -4,7 +4,6 @@ import { validateSave } from "../../src/save/types";
 import { persistSkiPixlStoryResult } from "../../src/app/StoryResultPersistence";
 import { selectStorySkiPixlPack } from "../../src/games/skipixl/SkiPixlCourseAdapter";
 import { createRunContext } from "../../src/core/run";
-import { postscriptUnlocked } from "../../src/story/terminal/postscript";
 
 function setup() {
   const data = new Map<string, string>();
@@ -73,7 +72,6 @@ describe("SkiPixl Story progression independent of clears", () => {
       );
       const result = finish(repository, "skipixl-overloaded", qualified);
       expect(result.story.clearedStages).not.toContain("skipixl-feasible");
-      expect(postscriptUnlocked(result.story.clearedStages)).toBe(false);
       expect(reload().snapshot()).toEqual(result);
       repository.advanceStoryTerminal("continue");
       expect(repository.snapshot().story.currentNodeId).not.toBe(

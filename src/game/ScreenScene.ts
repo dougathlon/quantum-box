@@ -61,9 +61,7 @@ export class ScreenScene extends Phaser.Scene {
     paused: boolean,
   ): void {
     this.leaveQuag();
-    renderQong(this.background, snapshot, opponent, paused, {
-      hideHud: this.mobileHud,
-    });
+    renderQong(this.background, snapshot, opponent, paused);
   }
 
   public showQongStoryCourt(
@@ -82,9 +80,7 @@ export class ScreenScene extends Phaser.Scene {
     paused: boolean,
   ): void {
     this.leaveQuag();
-    renderSkiPixl(this.background, snapshot, payload, paused, {
-      hideHud: this.mobileHud,
-    });
+    renderSkiPixl(this.background, snapshot, payload, paused);
   }
 
   public showSkiPixlStorySlope(
@@ -99,7 +95,7 @@ export class ScreenScene extends Phaser.Scene {
 
   public showFluxball(snapshot: FluxballSnapshot, paused: boolean): void {
     this.leaveQuag();
-    renderFluxball(this.background, snapshot, paused, false, this.mobileHud);
+    renderFluxball(this.background, snapshot, paused);
   }
 
   public showQuantmanSynthetic(
@@ -107,7 +103,7 @@ export class ScreenScene extends Phaser.Scene {
     paused: boolean,
   ): void {
     this.leaveQuag();
-    renderQuantmanSynthetic(this.background, snapshot, paused, this.mobileHud);
+    renderQuantmanSynthetic(this.background, snapshot, paused);
   }
 
   public showQuag(
@@ -119,17 +115,7 @@ export class ScreenScene extends Phaser.Scene {
       drawQuagArena(this.quagArena, snapshot.arenaId);
     }
     this.activeSurface = "quag";
-    renderQuag(
-      this.background,
-      snapshot,
-      paused,
-      interpolationAlpha,
-      this.mobileHud,
-    );
-  }
-
-  private get mobileHud(): boolean {
-    return document.documentElement.dataset["mobile"] === "true";
+    renderQuag(this.background, snapshot, paused, interpolationAlpha);
   }
 
   private leaveQuag(): void {

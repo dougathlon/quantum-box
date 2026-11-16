@@ -11,6 +11,22 @@ import {
 } from "../../src/story/terminal";
 import terminalCopyProvenance from "../../src/story/terminal/text-notes-provenance.json" with { type: "json" };
 
+// Explicit user-approved corrections; the source-document fixture stays intact.
+const approvedBodyOverrides: Readonly<Record<string, readonly string[]>> = {
+  "quantman-loss-later": [
+    "WE CAN TRY AGAIN.",
+    "OR I CAN SHOW YOU HOW THE MAZE WORKS.",
+  ],
+  "quantman-success": ["AMAZING"],
+  "fluxball-individual-pre": [
+    "NOW EACH PLAYER HAS THEIR OWN\nMOVEMENT, BALL AND SCORING RULES.",
+    "WATCH YOUR SCORE:\nA GOAL CAN BENEFIT BOTH OF YOU.",
+    "ACTION CHANGES BOTH PLAYERS' RULES.",
+    "ONE SHARED CHANGE PER ROUND.",
+    "SAME MATCH:\nTHREE 40-SECOND ROUNDS.",
+  ],
+};
+
 describe("canonical terminal Story content", () => {
   it("starts at the demonstration prompt and excludes editorial routing labels", () => {
     expect(STORY_OPENING_NODE_ID).toBe("intro-1");
@@ -44,7 +60,9 @@ describe("canonical terminal Story content", () => {
     for (const expected of agreed) {
       const actual = STORY_TERMINAL_PAGES[expected.id]!;
       expect(actual.header, expected.id).toEqual(expected.header);
-      expect(actual.body, expected.id).toEqual(expected.body);
+      expect(actual.body, expected.id).toEqual(
+        approvedBodyOverrides[expected.id] ?? expected.body,
+      );
       expect(
         actual.actions.map((a) => a.label),
         expected.id,
@@ -54,7 +72,7 @@ describe("canonical terminal Story content", () => {
           : expected.actions,
       );
     }
-    expect(Object.values(STORY_TERMINAL_PAGES)).toHaveLength(agreed.length + 3);
+    expect(Object.values(STORY_TERMINAL_PAGES)).toHaveLength(agreed.length + 4);
   });
   it("routes both Fluxball outcomes through the agreed explanations", () => {
     for (const suffix of ["win", "loss"]) {
@@ -104,18 +122,44 @@ describe("canonical terminal Story content", () => {
   });
 });
 
-it("every Story loss offers a retry to that exact stage", () => {
+it("successful outcomes continue while first Qong and Quantman failures require retry", () => {
   for (const node of Object.values(STORY_NODES)) {
     if (node.kind !== "outcome-branch") continue;
-    for (const id of [node.branches.lost, node.branches.firstLoss].filter(
-      Boolean,
-    )) {
-      const failure = storyNode(id!);
-      if (!("pageId" in failure)) throw new Error("Expected failure page");
+    for (const [outcome, id] of Object.entries(node.branches)) {
+      const response = storyNode(id!);
+      if (!("pageId" in response)) throw new Error("Expected outcome page");
+      const expectedActions =
+        outcome === "won"
+          ? ["continue"]
+          : outcome === "firstLoss"
+            ? ["retry"]
+            : ["retry", "continue"];
       expect(
-        STORY_TERMINAL_PAGES[failure.pageId]!.actions.map((a) => a.id),
-      ).toContain("retry");
-      expect(failure.transitions.retry).toBe(`game-${node.stageId}`);
+        STORY_TERMINAL_PAGES[response.pageId]!.actions.map((a) => a.id),
+      ).toEqual(expectedActions);
+      expect(Object.keys(response.transitions)).toEqual(expectedActions);
+      if (outcome !== "won")
+        expect(response.transitions.retry).toBe(`game-${node.stageId}`);
     }
   }
+});
+
+it("gives feasible SkiPixl one result choice before its common explanation", () => {
+  expect(STORY_TERMINAL_PAGES["skipixl-feasible-success"]!.body).toEqual([
+    "WELL DONE.",
+  ]);
+  expect(STORY_TERMINAL_PAGES["skipixl-feasible-failure"]!.body).toEqual([
+    "WHOOPS. WOULD YOU LIKE TO TRY AGAIN?",
+  ]);
+  for (const result of ["success", "failure"]) {
+    expect(storyNode(`skipixl-feasible-${result}`)).toMatchObject({
+      transitions: { continue: "skipixl-feasible-response" },
+    });
+  }
+  expect(storyNode("skipixl-feasible-response")).toMatchObject({
+    transitions: { continue: "skipixl-overloaded-intro" },
+  });
+  expect(
+    STORY_TERMINAL_PAGES["skipixl-feasible-response"]!.actions.map((a) => a.id),
+  ).toEqual(["continue"]);
 });

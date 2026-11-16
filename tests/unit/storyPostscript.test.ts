@@ -1,28 +1,12 @@
 import { expect, it } from "vitest";
-import { STORY_SEQUENCE } from "../../src/games/registry";
-import {
-  gatedStoryNode,
-  postscriptUnlocked,
-  POSTSCRIPT_MOTH_URL,
-} from "../../src/story/terminal/postscript";
+import { POSTSCRIPT_MOTH_URL } from "../../src/story/terminal/postscript";
 import { SaveRepository } from "../../src/save/SaveRepository";
 import {
   STORY_NODES,
   STORY_TERMINAL_PAGES,
 } from "../../src/story/terminal/content";
 
-it("requires every recorded clear, even when all other games were beaten", () => {
-  expect(postscriptUnlocked(STORY_SEQUENCE)).toBe(true);
-  for (const stage of STORY_SEQUENCE) {
-    const partial = STORY_SEQUENCE.filter((s) => s !== stage);
-    expect(postscriptUnlocked(partial), stage).toBe(false);
-    expect(gatedStoryNode("postscript-1", partial)).toBe("story-complete");
-    expect(gatedStoryNode("postscript-2", partial)).toBe("story-complete");
-  }
-  expect(gatedStoryNode("postscript-1", STORY_SEQUENCE)).toBe("postscript-1");
-  expect(gatedStoryNode("postscript-2", STORY_SEQUENCE)).toBe("postscript-2");
-});
-it("END DEMO reached by continuing cannot unlock the postscript", () => {
+it("END DEMO always leads through both Postscript pages without inventing a clear", () => {
   const repo = new SaveRepository(
     {
       length: 0,
@@ -36,15 +20,26 @@ it("END DEMO reached by continuing cannot unlock the postscript", () => {
   );
   repo.setStoryNode("ending-4");
   expect(repo.advanceStoryTerminal("continue").story.currentNodeId).toBe(
+    "postscript-1",
+  );
+  expect(repo.advanceStoryTerminal("continue").story.currentNodeId).toBe(
+    "postscript-2",
+  );
+  expect(repo.advanceStoryTerminal("continue").story.currentNodeId).toBe(
     "story-complete",
   );
-  expect(repo.setStoryNode("postscript-2").story.currentNodeId).toBe(
-    "story-complete",
-  );
+  expect(repo.snapshot().story.storyCompleted).toBe(true);
+  expect(repo.snapshot().story.readPageIds).toEqual([
+    "ending-4",
+    "postscript-1",
+    "postscript-2",
+  ]);
+  expect(repo.snapshot().story.clearedStages).toEqual([]);
+  expect(repo.snapshot().story.qualifiedRuns).toEqual({});
 });
 it("preserves the requested text and closes on FINISH", () => {
   expect(STORY_TERMINAL_PAGES["postscript-1"]!.body).toEqual([
-    "IF YOU'RE READING THIS,\nYOU BEAT THE DEMO.",
+    "IF YOU'RE READING THIS,\nYOU REACHED THE END OF THE DEMO.",
     "WELL DONE.",
     "UNFORTUNATELY,\nTHAT'S ALL THIS EVER WAS.",
     "PERHAPS IT WAS UNTIMELY.\nPERHAPS IT WAS RUBBISH.",

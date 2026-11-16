@@ -1,4 +1,5 @@
 import type { PlayerId } from "../games/fluxball/standalone/modes";
+import { LOCAL_HUMAN_PLAYERS } from "./LocalPlayers";
 
 export const KEYBOARD_PLAYERS = ["A", "B", "C", "D"] as const;
 export const KEYBOARD_CONTROLS = [
@@ -71,9 +72,14 @@ function validateBindings(
   reservedKeys: readonly string[],
 ): KeyboardBindings {
   if (!isRecord(value)) throw new Error("Keyboard bindings are incomplete.");
-  const seen = new Set<string>();
+  const activeKeys = new Set<string>();
+  const legacyKeys = new Set<string>();
   const result = {} as Record<PlayerId, PlayerKeyboardBindings>;
   for (const playerId of KEYBOARD_PLAYERS) {
+    // Stored C/D profiles remain valid, but cannot reserve active-player keys.
+    const seen = LOCAL_HUMAN_PLAYERS.some((id) => id === playerId)
+      ? activeKeys
+      : legacyKeys;
     const player = value[playerId];
     if (!isRecord(player)) {
       throw new Error(`Player ${playerId} keyboard bindings are incomplete.`);

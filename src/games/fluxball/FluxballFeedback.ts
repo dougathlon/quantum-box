@@ -135,7 +135,7 @@ export function routeFluxballFeedback(
     );
   }
 
-  if (frame.phase === "reveal" && previous.previousPhase === "active") {
+  if (frame.phase !== "active" && previous.previousPhase === "active") {
     const winnerId = frame.reveal?.roundWinnerIds[0] ?? null;
     events.push(
       Object.freeze({

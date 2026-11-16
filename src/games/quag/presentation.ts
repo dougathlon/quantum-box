@@ -1,3 +1,4 @@
+import { quagMatchIsDraw } from "./outcome";
 import { QUAG_PLAYER_IDS, type QuagPlayerId, type QuagSnapshot } from "./types";
 
 export interface QuagRelationPresentation {
@@ -33,7 +34,7 @@ export function quagHudModel(
       : snapshot.phase === "ready"
         ? `READY ${Math.max(1, Math.ceil(snapshot.readyTicksRemaining / 20))} · ${humanLabel(snapshot)}`
         : snapshot.phase === "round-break"
-          ? roundOutcome(snapshot)
+          ? quagRoundOutcome(snapshot)
           : snapshot.phase === "complete"
             ? outcome(snapshot)
             : (recentEvent(snapshot) ?? "CATCH FROM ABOVE"),
@@ -128,18 +129,41 @@ function scoreLine(snapshot: QuagSnapshot): string {
   return `POINTS ${points} · WINS ${wins}`;
 }
 
-function roundOutcome(snapshot: QuagSnapshot): string {
+export function quagRoundOutcome(snapshot: QuagSnapshot): string {
+  if (
+    snapshot.sharedWins &&
+    snapshot.roundWinnerIds.length > 1 &&
+    snapshot.roundWinnerIds.length < QUAG_PLAYER_IDS.length
+  ) {
+    return `ROUND ${snapshot.roundNumber} · ${snapshot.roundWinnerIds.join("/")} SHARE WIN`;
+  }
   if (snapshot.roundWinnerIds.length !== 1) {
     return `ROUND ${snapshot.roundNumber} DRAW`;
   }
   return `ROUND ${snapshot.roundNumber} · ${snapshot.roundWinnerIds[0]} WINS`;
 }
 
+export function quagResultHeading(snapshot: QuagSnapshot): string {
+  if (quagMatchIsDraw(snapshot)) return "MATCH DRAW";
+  const humanWinners = snapshot.winnerIds.filter((id) =>
+    snapshot.humanPlayerIds.includes(id),
+  );
+  if (humanWinners.length === 0) return "MATCH LOST";
+  if (snapshot.humanPlayerIds.length === 1) return "YOU WIN";
+  return `${snapshot.winnerIds.join("/")} ${snapshot.winnerIds.length === 1 ? "WINS" : "WIN"}`;
+}
+
 function outcome(snapshot: QuagSnapshot): string {
-  if (snapshot.winnerIds.length > 1) {
+  if (quagMatchIsDraw(snapshot)) {
     return snapshot.winnerIds.some((id) => snapshot.humanPlayerIds.includes(id))
       ? `DRAW · ${snapshot.winnerIds.join("/")}`
       : `CPU DRAW · ${snapshot.winnerIds.join("/")}`;
+  }
+  if (snapshot.winnerIds.length > 1) {
+    const result = `${snapshot.winnerIds.join("/")} SHARE WIN`;
+    return snapshot.winnerIds.some((id) => snapshot.humanPlayerIds.includes(id))
+      ? result
+      : `${result} · YOU LOSE`;
   }
   const winner = snapshot.winnerIds[0];
   if (winner && snapshot.humanPlayerIds.includes(winner)) {

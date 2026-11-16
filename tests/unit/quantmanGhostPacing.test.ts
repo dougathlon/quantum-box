@@ -38,4 +38,51 @@ describe("Quantman ghost pacing", () => {
         TUNING.ghostTunnelSpeedMultiplier,
     );
   });
+
+  it.each(["stabilize-gaze", "inverse-gaze"] as const)(
+    "keeps player speed unchanged entering and leaving both tunnel mouths in %s",
+    (mechanic) => {
+      const reference = new QuantmanSyntheticSession(
+        QUANTMAN_SYNTHETIC_FIXTURE,
+        29,
+      );
+      const crossings = [
+        [90, 91, "right"],
+        [50, 51, "right"],
+        [51, 50, "left"],
+        [59, 58, "left"],
+        [58, 59, "right"],
+      ] as const;
+      const crossingTicks = crossings.map(([from, to, direction]) => {
+        const edge = reference.graph.edgeBetween(from, to)!;
+        const initialTopologyIndex = reference.bank.topologies.findIndex(
+          (topology) => topology.wallMask[edge.index] === "0",
+        );
+        expect(initialTopologyIndex).toBeGreaterThanOrEqual(0);
+        const session = new QuantmanSyntheticSession(
+          QUANTMAN_SYNTHETIC_FIXTURE,
+          29,
+          {
+            mechanic,
+            ghostsEnabled: false,
+            playerStartRoom: from,
+            initialTopologyIndex,
+          },
+        );
+        let player = session.step({ direction, start: true }).player;
+        expect(player.nextRoom).toBe(to);
+        expect(player.progress).toBeCloseTo(
+          TUNING.playerRoomsPerSecond / TUNING.simulationHz,
+        );
+        let ticks = 1;
+        while (player.room !== to && ticks < 60) {
+          player = session.step({ direction, start: false }).player;
+          ticks += 1;
+        }
+        expect(player.room).toBe(to);
+        return ticks;
+      });
+      expect(crossingTicks).toEqual([19, 19, 19, 19, 19]);
+    },
+  );
 });

@@ -32,3 +32,23 @@ it("keeps the three requested single line breaks", () => {
     ).toContain(before + "\n" + after);
   }
 });
+
+it("fits reading-only transcripts without changing the original page text", () => {
+  for (const page of Object.values(STORY_TERMINAL_PAGES)) {
+    const layout = storyTextLayout({
+      ...page,
+      actions: [{ id: "continue", label: "CONTINUE" }],
+    });
+    expect(layout.height, page.id).toBeLessThanOrEqual(layout.available);
+    expect(layout.body.join(" ").replace(/\s+/g, " ")).toBe(
+      page.body.join(" ").replace(/\s+/g, " "),
+    );
+  }
+  expect(
+    storyTextLayout(STORY_TERMINAL_PAGES["skipixl-feasible-response"]!)
+      .inlineActions,
+  ).toBe(false);
+  expect(
+    storyTextLayout(STORY_TERMINAL_PAGES["qong-loss-first"]!).inlineActions,
+  ).toBe(false);
+});

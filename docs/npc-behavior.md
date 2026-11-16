@@ -1,6 +1,6 @@
 # Quantum Box NPC behavior
 
-Code inspection: 2026-10-22. This describes the unified desktop/mobile release candidate. The policies are deterministic game code, not language models or remote AI. Recorded quantum data determines game conditions; it does not make the NPC's decisions.
+Policy record: 2026-10-22; boundary-recovery verification and product-scope update: 2026-11-10. This describes the desktop release candidate. The policies are deterministic game code, not language models or remote AI. Recorded quantum data determines game conditions; it does not make the NPC's decisions.
 
 ## Current correction
 
@@ -8,7 +8,7 @@ Fluxball learns each scoring goal from its public recipients, processes goals ev
 
 A separate physical defect let a CPU kick the ball the wrong way while walking straight through it toward a shooting position. Once it has learned STRIKE, it now checks that route, steps clear on one consistent side when necessary, gets behind the ball, and follows through to contact. Staging points respect the court edges. Pursuit of another carrier remains direct; movement speed, acceleration, input precision, collision physics and movement-inversion learning are unchanged. This does not make every kick perfect or eliminate ordinary own goals caused by opposition or uncertain rules.
 
-The other three NPC policies described here are unchanged.
+A later desktop QA sweep reproduced a separate deadlock after movement inversion: CPUs could reach a wall before collecting unobstructed movement evidence, then keep pushing into it. Boundary recovery now briefly reverses the blocked input to regain room for observation. It does not infer inversion from the blockage or a rule-change notification. The other three NPC policies described here are unchanged.
 
 ## Fluxball: try a rule, then revise it from consequences
 
@@ -40,15 +40,17 @@ A mid-round rule change retains the previous understanding until motion, contact
 - If another player carries the ball, it pursues that player's position projected 0.36 seconds ahead. There is no CPU teammate exception.
 - While carrying, it heads beyond its believed scoring goal. The pre-existing carrying code can choose a small sideways waypoint around a nearby player directly ahead; this is separate from the removed ball/carrier circling change.
 - After learning STRIKE, it stages 60 court units behind the ball relative to its believed scoring goal. If the path would cross the ball, it uses a consistent side and a clearance waypoint, then proceeds behind it. Once aligned or close to a court-clipped staging point, it commits through the ball instead of braking back toward staging. Public contact or a goal resets this short shot preparation.
-- It reverses its issued controls only after learning that its own movement is inverted.
+- It compensates for inverted movement only after learning that mapping. The separate boundary-recovery probe below briefly reverses a blocked input without changing that belief.
 
 Normal decisions update every 3 simulation ticks with two competitors (150 ms) or 4 ticks with four competitors (200 ms). A changed scoring belief now invalidates the old decision immediately. Story and Arcade currently use the same decision/evidence settings. The faster `CAPABLE_PUBLIC_POLICY_TUNING` is used by evaluation/tests, not the ordinary game.
+
+At a court boundary, 8 consecutive live ticks (400 ms) of nonzero input with less than 0.15 court units of displacement trigger a deterministic reversal at the next normal decision. The escape probe lasts at most 24 ticks (1.2 seconds), ends earlier when the ordinary unobstructed movement test obtains evidence, and is cancelled by a goal/clock discontinuity. It issues movement throughout; it is not a stationary delay. `blockedMovementTicks` and `boundaryProbeTicks` expose those bounds. A blocked sample never changes a belief, and the existing wall/player collision exclusions remain in force. Normal pursuit and shot preparation resume after the probe.
 
 Movement learning waits for a command to settle for 4 ticks (200 ms), then requires 3 consecutive clear displacement samples. Those thresholds are exposed in `FluxballPolicyTuning`. Walls, nearby players, goal freezes and body resets are excluded as evidence of inversion. This is purposeful movement followed by correction; there is no random wandering or stationary confusion timer. Congestion can delay learning because the code declines to treat a collision as evidence. Confidence values are fixed diagnostic labels, not calibrated probabilities.
 
 ### Limits and invariants
 
-The CPU can still guess wrong before it has evidence, be obstructed or outplayed, or mis-kick a moving ball. The regression tests reproduce the original four repeated harmful-goal rounds and require useful goals without those repeated mistakes. Separate physical tests cover approaches toward all four goals and near sidelines, requiring an actual useful kick within twelve simulation seconds. They test purposeful progress as well as correct beliefs.
+The CPU can still guess wrong before it has evidence, be obstructed or outplayed, or mis-kick a moving ball. The regression tests reproduce the original four repeated harmful-goal rounds and require useful goals without those repeated mistakes. Separate physical tests cover approaches toward all four goals and near sidelines, requiring an actual useful kick within twelve simulation seconds. They test purposeful progress as well as correct beliefs. Boundary regressions also replay the recorded four-competitor Split deadlocks at seed 7/round 2 and seed 14/round 3, require actual resumed movement and scoring, and check that blocked observations cannot teach inversion or bypass the normal decision cadence.
 
 The one shared human-triggered change per round, simultaneous-input handling, shared round winners, game physics and recorded-data provenance are unchanged by this pass.
 

@@ -12,7 +12,7 @@ animated Brown Box field + QUANTUM BOX / PRESS START
 home: Story · Arcade · Terminal · Settings
        ├─ Story → Continue/New Story → persisted terminal node → fixed-step game → outcome branch
        ├─ Arcade → five-cabinet index → trial sheet → game / scores
-       └─ Terminal → transcript or independent retry of earliest uncleared stage
+       └─ Terminal → Read cleared chapter / Retry introduction for earliest uncleared stage
        ↓
 320×180 logical layout / 640×360 raster + transparent semantic controls + one local audio cue
 ```
@@ -73,14 +73,15 @@ the shipping application.
 ## Persistence
 
 `src/save/SaveRepository.ts` owns `quantum-box-save-v6`. The Story portion
-separates current node, experienced stages, cleared stages, transcript state,
+separates current node, experienced stages, cleared stages, read-page history, transcript state,
 attempts, last outcomes, and exact qualified-run provenance. Arcade records,
 settings, initials, key bindings, sound, and background selection are separate.
 
 Legacy v1–v5 inputs pass through explicit migration. Historical run evidence
-and hashes are retained; missing wins, transcripts, and scores are never
-inferred. Invalid current-node IDs fall back to the earliest coherent unfinished
-stage.
+and hashes are retained; missing wins and scores are never inferred. Saves
+without read-page history recover only unavoidable prior pages, excluding
+ambiguous branches. Invalid current-node IDs fall back to the earliest coherent
+unfinished stage; completed saves missing the Postscript resume there.
 
 ## Common changes
 

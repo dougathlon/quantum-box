@@ -1094,11 +1094,13 @@
 
 .qb-scoreboard-page > header .qb-kicker {
   min-width: 16cqw;
+  min-height: 3.3334cqh;
   font-size: 1.25cqw;
   letter-spacing: 0.16em;
 }
 
 .qb-scoreboard-page > header h1 {
+  white-space: nowrap;
   font-size: 2.5cqw;
   letter-spacing: 0.08em;
   text-align: right;
@@ -1525,6 +1527,9 @@
 
 .qb-internal .qb-screen-frame {
   z-index: 1;
+  position: absolute;
+  left: var(--qb-field-origin-x, 0px);
+  top: var(--qb-field-origin-y, 0px);
   border: 0 !important;
   background-color: transparent !important;
   box-shadow: none !important;
@@ -2535,6 +2540,10 @@
   text-align: left;
   min-height: 5.5556cqh;
 }
+.qb-terminal-page .qb-terminal-actions[data-inline="true"] {
+  flex-direction: row;
+  gap: 6.25cqw;
+}
 .qb-terminal-prompt-label {
   display: block;
   flex: none;
@@ -2815,4 +2824,211 @@
   min-height: 8cqh;
   padding: 1.5cqh 0;
   text-align: left;
+}
+
+/* Let the second Fluxball choice row use the gap above the fixed footer. */
+.qb-arcade-detail--fluxball .qb-arcade-detail-body {
+  margin-bottom: -2cqh;
+}
+
+/* Approved Arcade A: fixed reading roles and per-game compositions, in the existing frame. */
+.qb-shell[data-page="arcade-detail"] .qb-page {
+  inset: 0;
+  padding: 0;
+  overflow: hidden;
+}
+.qb-page .qb-arcade-sheet {
+  --qb-reading-scale: 0.75;
+  position: relative;
+  display: block;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+}
+.qb-arcade-sheet > header,
+.qb-arcade-sheet .qb-arcade-detail-header > div {
+  display: contents;
+}
+.qb-page .qb-arcade-sheet > header h1 {
+  --qb-reading-scale: 1;
+  position: absolute;
+  left: 4.84375cqw;
+  top: 5.83333cqh;
+  width: 75cqw;
+  height: 5.55556cqh;
+  margin: 0;
+  text-align: left;
+}
+.qb-page .qb-arcade-sheet > header p {
+  --qb-reading-scale: 0.625;
+  position: absolute;
+  left: 4.84375cqw;
+  top: 12.22222cqh;
+  width: 75cqw;
+  height: 3.88889cqh;
+  margin: 0;
+  text-align: left;
+}
+.qb-arcade-sheet .qb-arcade-preview {
+  position: absolute;
+  right: 5.46875cqw;
+  top: 6.11111cqh;
+  width: 10cqw;
+  height: 7.77778cqh;
+}
+.qb-arcade-sheet > .qb-arcade-detail-rule {
+  position: absolute;
+  left: 5.15625cqw;
+  right: 5.46875cqw;
+  top: 18.33333cqh;
+  height: 0;
+  margin: 0;
+  border: 0;
+  border-top: 1px solid var(--qb-cream);
+}
+.qb-arcade-sheet .qb-arcade-detail-body,
+.qb-arcade-sheet .qb-arcade-tutorial {
+  position: absolute;
+  inset: 0;
+  display: block;
+  margin: 0;
+  overflow: visible;
+}
+.qb-arcade-sheet .qb-arcade-tutorial p {
+  position: absolute;
+  margin: 0;
+  padding: 0;
+  text-align: left;
+}
+.qb-arcade-section-rule {
+  position: absolute;
+  left: 5.15625cqw;
+  right: 5.46875cqw;
+  height: 0;
+  border-top: 1px dotted var(--qb-muted-tan);
+}
+.qb-arcade-sheet .qb-arcade-trials {
+  position: absolute;
+  left: 5.15625cqw;
+  right: 5.46875cqw;
+  top: 75.83333cqh;
+  height: 14.44444cqh;
+  display: grid;
+  grid-template-columns: 14.53125cqw 1fr;
+  gap: 0;
+  padding-top: 2.22222cqh;
+  border-top: 1px solid var(--qb-cream);
+}
+.qb-arcade-sheet .qb-arcade-trials h2 {
+  --qb-reading-scale: 0.625;
+  height: 5cqh;
+  text-align: left;
+}
+.qb-arcade-sheet .qb-arcade-launches {
+  min-height: 0;
+  grid-template-rows: repeat(2, 5.55556cqh);
+  gap: 1.11111cqh 1.875cqw;
+}
+.qb-arcade-sheet .qb-arcade-mode {
+  grid-template-rows: 5.55556cqh;
+  gap: 1.11111cqh;
+}
+.qb-arcade-sheet .qb-arcade-mode--scored {
+  grid-template-rows: repeat(2, 5.55556cqh);
+}
+.qb-arcade-sheet .qb-arcade-mode > button {
+  min-height: 0;
+  height: 5.55556cqh;
+  padding-top: 0.55556cqh;
+}
+.qb-arcade-sheet .qb-arcade-mode > .qb-arcade-scores {
+  --qb-reading-scale: 0.625;
+  border: 0;
+  padding: 0;
+}
+.qb-arcade-sheet .qb-terminal-footer {
+  --qb-reading-scale: 0.625;
+  position: absolute;
+  left: 4.84375cqw;
+  right: 5.15625cqw;
+  top: 90.55556cqh;
+  bottom: auto;
+  height: 5cqh;
+  min-height: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+.qb-arcade-sheet .qb-terminal-footer :is(button, span) {
+  min-height: 0;
+  height: 5cqh;
+  padding: 0;
+}
+.qb-page .qb-fluxball-lobby .qb-fluxball-player-help {
+  position: absolute;
+  left: 4.84375cqw;
+  top: 25cqh;
+  width: 88cqw;
+  margin: 0;
+}
+.qb-fluxball-lobby.qb-arcade-sheet .qb-fluxball-lobby-slots {
+  position: absolute;
+  left: 5.15625cqw;
+  right: 5.46875cqw;
+  top: 44cqh;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 3.125cqw;
+}
+.qb-fluxball-lobby.qb-arcade-sheet .qb-fluxball-lobby-slots button {
+  min-height: 9cqh;
+  padding: 0;
+  text-align: center;
+  border: 0;
+  border-bottom: 1px solid var(--qb-cream);
+}
+
+/* Score pages use the same reading roles; large initials remain the active task. */
+.qb-scoreboard-page {
+  --qb-reading-scale: 0.75;
+}
+.qb-scoreboard-page > header h1,
+.qb-scoreboard-initial-slots button {
+  --qb-reading-scale: 1;
+}
+.qb-scoreboard-page > header .qb-kicker,
+.qb-scoreboard-page .qb-initials-help,
+.qb-shell[data-page="scores"] .qb-screen-footer {
+  --qb-reading-scale: 0.625;
+}
+.qb-score-entry .qb-score-entry-result {
+  text-align: center;
+  height: 5.55556cqh;
+}
+.qb-score-entry .qb-scoreboard-initials {
+  gap: 3.33333cqh;
+}
+.qb-score-entry .qb-scoreboard-initials-label {
+  height: 4.44444cqh;
+  text-align: center;
+}
+.qb-score-entry .qb-initials-help {
+  height: 4.44444cqh;
+}
+
+.qb-arcade-sheet > .qb-arcade-detail-rule,
+.qb-arcade-sheet .qb-arcade-section-rule {
+  width: auto;
+  height: 0.55556cqh;
+  background: transparent;
+}
+.qb-arcade-sheet .qb-terminal-footer button:only-child {
+  text-align: left;
+}
+.qb-page .qb-score-entry-result {
+  width: 100%;
+  max-width: none;
 }

@@ -56,11 +56,59 @@ export interface BitmapTextLayout {
 }
 
 /** Reflowing copy reserves rows using the same glyph measure as its raster. */
-export function bitmapFlowTextHeight(source: string, maxWidth: number): number {
+export function bitmapFlowTextHeight(
+  source: string,
+  maxWidth: number,
+  scale = 1,
+): number {
   return (
-    wrapBitmapText(normalizePixelText(source), maxWidth, 1, 1, Infinity, true)
-      .length * 10
+    wrapBitmapText(
+      normalizePixelText(source),
+      maxWidth,
+      scale,
+      scale,
+      Infinity,
+      true,
+    ).length *
+    10 *
+    scale
   );
+}
+
+/** The Arcade sheets opt into explicit roles; all other screens retain their sizing. */
+function readingScale(owner: HTMLElement): number | null {
+  const scale = Number(
+    getComputedStyle(owner).getPropertyValue("--qb-reading-scale"),
+  );
+  return [0.625, 0.75, 1].includes(scale) ? scale : null;
+}
+
+/** Keep scaled lettering on the native half-logical-pixel raster, without antialiasing. */
+export function scaledReadingGlyphRects(
+  text: string,
+  x: number,
+  y: number,
+  scale: number,
+  verticalAlign: "top" | "bottom" = "top",
+) {
+  const snap = (value: number) => Math.round(value * 2) / 2;
+  const rects = terminalGlyphRects(text, 0, 0)
+    .map((rect) => {
+      const left = snap(x + rect.x * scale),
+        top = snap(y + rect.y * scale);
+      return {
+        x: left,
+        y: top,
+        width: snap(x + (rect.x + rect.width) * scale) - left,
+        height: snap(y + (rect.y + rect.height) * scale) - top,
+      };
+    })
+    .filter((rect) => rect.width > 0 && rect.height > 0);
+  if (verticalAlign === "top") return rects;
+  // Translate after sampling to preserve every glyph cell and its horizontal measure.
+  const bottom = snap(y + 7 * scale);
+  const shift = Math.ceil(bottom) - bottom;
+  return rects.map((rect) => ({ ...rect, y: rect.y + shift }));
 }
 
 /** Prefers larger glyphs without ever collapsing adjacent letter cells together. */
@@ -218,10 +266,6 @@ export class BitmapDomTextRenderer {
 
   public renderNow(): void {
     this.animationFrame = 0;
-    if (document.documentElement.dataset["mobile"] === "true") {
-      this.context.clearRect(0, 0, LOGICAL_WIDTH, LOGICAL_HEIGHT);
-      return;
-    }
     const frameRect = this.frame.getBoundingClientRect();
     this.layoutFlowText(frameRect);
     this.context.clearRect(0, 0, LOGICAL_WIDTH, LOGICAL_HEIGHT);
@@ -266,6 +310,7 @@ export class BitmapDomTextRenderer {
         const height = bitmapFlowTextHeight(
           owner.dataset["bitmapText"] ?? owner.textContent ?? "",
           width,
+          readingScale(owner) ?? 1,
         );
         const minHeight = `${Math.ceil((height * 100_000) / LOGICAL_HEIGHT) / 1000}cqh`;
         if (owner.style.minHeight !== minHeight)
@@ -721,7 +766,15 @@ export class BitmapDomTextRenderer {
         ? { pixel: 1, spacing: 1 }
         : bitmapTextLayout(normalized, roundedWidth, rect.height);
     const flow = owner.matches("[data-bitmap-flow]");
+    const explicitScale = readingScale(owner);
+    const verticalAlign = owner.closest(
+      '.qb-arcade-sheet, .qb-shell[data-page="scores"]',
+    )
+      ? "bottom"
+      : "top";
+    const scale = explicitScale ?? 1;
     const reading =
+      explicitScale !== null ||
       flow ||
       (!compactText &&
         rect.height >= 10 &&
@@ -730,8 +783,8 @@ export class BitmapDomTextRenderer {
         !owner.closest(
           ".qb-cabinet-ui, .qb-terminal-page header, .qb-terminal-footer, .qb-screen-footer",
         ));
-    const lineHeight = reading ? 10 : pixel * 6;
-    const capHeight = reading ? 7 : pixel * 5;
+    const lineHeight = reading ? 10 * scale : pixel * 6;
+    const capHeight = reading ? 7 * scale : pixel * 5;
     const maxLines = Math.max(
       1,
       Math.floor((rect.height + lineHeight - capHeight) / lineHeight),
@@ -739,8 +792,8 @@ export class BitmapDomTextRenderer {
     const lines = wrapBitmapText(
       normalized,
       roundedWidth,
-      reading ? 1 : pixel,
-      reading ? 1 : spacing,
+      reading ? scale : pixel,
+      reading ? scale : spacing,
       maxLines,
       reading,
     );
@@ -769,7 +822,7 @@ export class BitmapDomTextRenderer {
           ? "right"
           : "left";
     const firstLineWidth = reading
-      ? terminalTextWidth(lines[0] ?? "")
+      ? terminalTextWidth(lines[0] ?? "", scale)
       : pixelTextWidth(lines[0] ?? "", pixel, spacing);
     this.drawFocusCursor(
       owner,
@@ -803,12 +856,20 @@ export class BitmapDomTextRenderer {
     this.context.clip();
     lines.forEach((line, index) => {
       const lineWidth = reading
-        ? terminalTextWidth(line)
+        ? terminalTextWidth(line, scale)
         : pixelTextWidth(line, pixel, spacing);
       const x = bitmapTextLineLeft(rect.left, rect.right, lineWidth, align);
       if (reading) {
         this.context.fillStyle = textColour(owner);
-        for (const r of terminalGlyphRects(line, x, top + index * lineHeight))
+        for (const r of explicitScale === null
+          ? terminalGlyphRects(line, x, top + index * lineHeight)
+          : scaledReadingGlyphRects(
+              line,
+              x,
+              top + index * lineHeight,
+              scale,
+              verticalAlign,
+            ))
           this.context.fillRect(r.x, r.y, r.width, r.height);
         return;
       }
@@ -829,7 +890,7 @@ export class BitmapDomTextRenderer {
     textLeft: number,
     textMiddle: number,
   ): void {
-    if (owner.closest(".qb-terminal-actions")) return;
+    if (owner.closest(".qb-terminal-actions, .qb-postscript-link")) return;
     const active = document.activeElement;
     if (!(active instanceof HTMLElement)) return;
     const activeControl =
@@ -857,7 +918,7 @@ export class BitmapDomTextRenderer {
     );
     // Adjacent boxed controls have no outside gutter for a focus marker.
     const placement = control.matches(
-      ".qb-keymap-players button, .qb-key-binding, .qb-scoreboard-initial-slots button, .qb-fluxball-lobby-slots button",
+      ".qb-keymap-players button, .qb-key-binding, .qb-scoreboard-initial-slots button",
     )
       ? { x: Math.ceil(controlRect.left) + 3 }
       : bitmapFocusCursorPlacement(
@@ -874,7 +935,7 @@ export class BitmapDomTextRenderer {
           2,
           Math.round(
             toLogicalRect(readingAnchor.getBoundingClientRect(), frameRect).top,
-          ) + 3,
+          ) + Math.floor(3.5 * (readingScale(readingAnchor) ?? 1)),
         )
       : Math.max(2, textMiddle);
     this.context.fillStyle = CREAM;

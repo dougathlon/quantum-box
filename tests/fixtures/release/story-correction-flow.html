@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Quantum Box Story correction checks</title>
+    <style>
+      html:not(.fixture-child) {
+        color: #ead7aa;
+        background: #21160f;
+        font:
+          15px/1.45 ui-monospace,
+          monospace;
+      }
+      html:not(.fixture-child) body {
+        margin: 20px;
+      }
+      html:not(.fixture-child) button {
+        font: inherit;
+        padding: 10px 16px;
+        cursor: pointer;
+      }
+      html:not(.fixture-child) [data-state="failed"] {
+        color: #ffab9c;
+      }
+      html:not(.fixture-child) [data-state="passed"] {
+        color: #adedae;
+      }
+      html:not(.fixture-child) li {
+        white-space: pre-wrap;
+      }
+      html:not(.fixture-child) iframe {
+        width: 1280px;
+        height: 720px;
+        border: 1px solid #ad9466;
+        display: block;
+      }
+    </style>
+  </head>
+  <body>
+    <section id="fixture-controls">
+      <h1>STORY CORRECTIONS · SEEDED ROUTING CHECKS</h1>
+      <p>
+        Actual QuantumBoxApp launches with installed assets. Controlled results
+        below are test injections, not earned wins or gameplay acceptance. Every
+        frame has isolated save keys; the normal game save is untouched.
+      </p>
+      <button id="run-checks" type="button">RUN CHECKS</button>
+      <button id="clear-checks" type="button">CLEAR TEST DATA</button>
+      <p id="fixture-status" role="status" data-state="idle">READY</p>
+      <ol id="fixture-results"></ol>
+    </section>
+    <iframe id="fixture-game" title="Isolated Story correction test"></iframe>
+    <div id="app" hidden></div>
+    <script type="module" src="./story-correction-flow.ts"></script>
+  </body>
+</html>

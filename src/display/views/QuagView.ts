@@ -5,7 +5,12 @@ import {
   quagArenaById,
   quagHorizontalSpan,
 } from "../../games/quag/QuagArena";
-import { quagHudModel, quagHuntRows } from "../../games/quag/presentation";
+import {
+  quagHudModel,
+  quagHuntRows,
+  quagRoundOutcome,
+  quagResultHeading,
+} from "../../games/quag/presentation";
 import {
   QUAG_PLAYER_IDS,
   QUAG_SUBPIXELS,
@@ -16,7 +21,7 @@ import {
 } from "../../games/quag/types";
 import { BROWN_BOX_PALETTE } from "../BrownBoxTheme";
 import { drawPixelText } from "../PixelText";
-import { drawCabinetPauseHeader } from "../PixelHud";
+import { drawCabinetPauseHeader, drawCabinetStatusHeader } from "../PixelHud";
 import { drawQGraphCabinetSprite } from "../QGraphCabinetSpriteRaster";
 import {
   drawNativePixelLine,
@@ -82,7 +87,6 @@ export function renderQuag(
   snapshot: QuagSnapshot,
   paused: boolean,
   interpolationAlpha = 1,
-  hideHud = false,
 ): void {
   const g = graphics.clear();
   const sinceShift =
@@ -107,7 +111,6 @@ export function renderQuag(
     }
     drawPlayer(g, player, position, snapshot.tick, snapshot, arena);
   }
-  if (hideHud) return;
   if (paused) {
     drawCabinetPauseHeader(g);
     return;
@@ -354,26 +357,24 @@ function drawResultPanel(
   g: Phaser.GameObjects.Graphics,
   snapshot: QuagSnapshot,
 ): void {
-  drawRoundNotice(
-    g,
-    snapshot,
-    quagHudModel(snapshot, false).notice,
-    "SPACE / A EXIT · X / X RETRY",
-  );
+  drawCabinetStatusHeader(g, quagResultHeading(snapshot), 16);
+  drawPixelText(g, quagHudModel(snapshot, false).score, {
+    x: 160,
+    y: 17,
+    pixel: 1,
+    colour: BROWN_BOX_PALETTE.cream,
+    align: "center",
+  });
 }
 
 function drawRoundBreakPanel(
   g: Phaser.GameObjects.Graphics,
   snapshot: QuagSnapshot,
 ): void {
-  const winner =
-    snapshot.roundWinnerIds.length === 1
-      ? `${snapshot.roundWinnerIds[0]} WINS ROUND ${snapshot.roundNumber}`
-      : `ROUND ${snapshot.roundNumber} DRAW`;
   drawRoundNotice(
     g,
     snapshot,
-    winner,
+    quagRoundOutcome(snapshot),
     `NEXT ROUND ${Math.max(1, Math.ceil(snapshot.roundBreakTicksRemaining / 20))}`,
   );
 }
@@ -382,13 +383,13 @@ function drawRoundNotice(
   g: Phaser.GameObjects.Graphics,
   snapshot: QuagSnapshot,
   title: string,
-  action: string,
+  action?: string,
 ): void {
   drawFrame(g, 5, 0, 310, 22, BROWN_BOX_PALETTE.cream);
   for (const [index, line] of [
     title,
     quagHudModel(snapshot, false).score,
-    action,
+    ...(action ? [action] : []),
   ].entries()) {
     drawPixelText(g, line, {
       x: 160,

@@ -170,7 +170,7 @@ export class FluxballRuntime {
       this.pendingInputAtMs = null;
     }
     this.reportCompletion(snapshot);
-    this.frameId = requestAnimationFrame(this.frame);
+    if (!this.stopped) this.frameId = requestAnimationFrame(this.frame);
   };
 
   private nextInput(snapshot: FluxballSnapshot): FluxballHumanInput {
@@ -237,6 +237,9 @@ export class FluxballRuntime {
   private reportCompletion(snapshot: FluxballSnapshot): void {
     if (snapshot.phase !== "complete" || this.completionReported) return;
     this.completionReported = true;
+    this.held.clear();
+    this.pendingRevealRequests = [];
+    this.clock.reset();
     this.callbacks.onCompleted(snapshot, freezeRecording(this.recording));
   }
 

@@ -16,9 +16,8 @@ explicit local decoders.
 > **Release status:** public demo candidate. The five cabinets, terminal-led
 > Story, Terminal transcript archive, deterministic run evidence, save
 > migration, Arcade scoreboards and the agreed Story through the Postscript are
-> implemented. The same URL selects portrait touch controls on phones and the
-> existing keyboard/controller presentation on desktop. Physical-phone comfort,
-> audio and performance still require device acceptance.
+> implemented. This is a desktop browser game with keyboard and controller
+> input. Mobile touch controls and portrait layouts are retired.
 
 ## The five cabinets
 
@@ -47,11 +46,18 @@ screen with four routes:
   Global and 2P Individual; and Quarry.
 - **Arcade** lists all five cabinets. Each opens a terminal-style trial sheet
   containing the tutorial, modes, player choices, and scores where applicable.
-- **Terminal** archives the five Story program transcripts. An experienced but
-  uncleared program offers a retry; a transcript unlocks only after its required
-  genuine Story wins.
+- **Terminal** offers Read when every stage in a program is cleared, presenting
+  its authored success transcript. Encountered, unfinished programs offer Retry
+  through the introduction and tutorial for the earliest uncleared stage. These
+  retries preserve the main Story cursor; genuine wins retain their evidence.
 - **Settings** contains display, background field, controls, audio,
   and save-data controls.
+
+Successful Story outcomes offer Continue only. Qong and Quantman require Retry
+after the first completed loss in a playthrough; later losses, and failures in
+the other games, offer Retry and Continue. Reaching the narrative ending opens
+the closing sequence and both Postscript pages, regardless of wins. Continuing
+after a loss never creates a clear or hardware-backed win record.
 
 Story and Arcade instantiate the same fixed-step simulations. Story owns
 progression and evidence. Arcade owns repeat play and the SkiPixl/Quantman
@@ -90,15 +96,6 @@ Initials can be entered with directional controls and A, or typed on a keyboard.
 SkiPixl uses Down to accelerate. Each Arcade trial sheet states the applicable
 controls and victory condition before launch.
 
-On a phone, play in portrait directly in the browser; installation or hiding the
-browser bars is not required. Touch play supports one human. Qong uses a
-vertical thumb control; SkiPixl and Quarry use horizontal steering; Fluxball
-uses two-axis steering; Quantman uses swipes to choose and retain a direction.
-Each game shows its applicable action button and pause control. Menus, Story,
-results and initials are touch-selectable. A visible scroll cue marks content
-that extends below the reading area. Keyboard and controller bindings remain
-available for an attached device.
-
 See [NPC behavior](docs/npc-behavior.md) for what each opponent observes,
 guesses and learns.
 
@@ -121,7 +118,6 @@ native 320×180 raster + local audio
   provenance
 - `src/games/` — cabinet sessions, deterministic policies, banks, and decoders
 - `src/ui/` and `src/display/` — semantic controls and Brown Box raster output
-- `src/mobile/` — touch adapters, portrait HUD, reading cues and responsive layout
 - `src/save/` — `quantum-box-save-v6`, legacy migration, settings, and records
 - `src/assets/` and `src/audio/` — audited shipping assets and cue transport
 - `tests/` — unit, provenance, save, deterministic, browser, and visual checks

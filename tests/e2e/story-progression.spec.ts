@@ -6,7 +6,7 @@ test("fresh Story advances through the terminal introduction and launches Qong f
   page,
 }, testInfo) => {
   test.skip(
-    testInfo.project.name !== "desktop-1280x720",
+    !testInfo.project.name.endsWith("1280x720"),
     "One release desktop proves the deterministic Story launch boundary.",
   );
   const externalRequests = captureExternalRequests(page, testInfo);

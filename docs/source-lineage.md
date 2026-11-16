@@ -322,7 +322,7 @@ circuit was remeasured at that cadence.
 
 The old synthetic pack remains test and recovery infrastructure, not current
 runtime authority. Fluxball's forty committed IBM Fez QGraph returns remain a
-separate bank. Future approved Story terminal copy may compare the relational mappings,
+separate bank. Story terminal copy may compare the relational mappings,
 but it must not transfer either game's hardware provenance to the other.
 
 ## Retired Enclose prototype

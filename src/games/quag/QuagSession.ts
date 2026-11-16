@@ -165,6 +165,8 @@ export class QuagSession {
       (context.playMode !== "arcade" && context.playMode !== "story") ||
       (context.gameId === "quag" && context.playMode !== "arcade") ||
       (context.rulesVersion !== QUAG_RULES_VERSION &&
+        context.rulesVersion !== "quarry-rules-v6" &&
+        context.rulesVersion !== "quarry-rules-v5" &&
         context.rulesVersion !== "quarry-rules-v4")
     ) {
       throw new Error(
@@ -207,7 +209,11 @@ export class QuagSession {
     this.roundTicks =
       scenario.roundTicks ?? QUAG_ROUND_SECONDS * QUAG_TICKS_PER_SECOND;
     this.totalRounds = scenario.totalRounds ?? QUAG_TOTAL_ROUNDS;
-    this.roundBreakTicks = scenario.roundBreakTicks ?? QUAG_ROUND_BREAK_TICKS;
+    this.roundBreakTicks =
+      scenario.roundBreakTicks ??
+      (context.rulesVersion === QUAG_RULES_VERSION
+        ? QUAG_ROUND_BREAK_TICKS
+        : 2 * QUAG_TICKS_PER_SECOND);
     if (
       !Number.isSafeInteger(this.roundTicks) ||
       this.roundTicks < 1 ||
@@ -287,6 +293,11 @@ export class QuagSession {
   public snapshot(): QuagSnapshot {
     const players = this.playerSnapshots();
     return deepFreeze({
+      ...([QUAG_RULES_VERSION, "quarry-rules-v6"].includes(
+        this.context.rulesVersion,
+      )
+        ? { sharedWins: true as const }
+        : {}),
       phase: this.phase,
       tick: this.tick,
       activeTick: this.activeTick,
@@ -345,11 +356,21 @@ export class QuagSession {
   private completeRound(): void {
     const leaders = roundLeaderIds(this.players);
     this.roundWinnerIds = Object.freeze([...leaders]);
-    if (leaders.length === 1) this.player(leaders[0]!).roundWins += 1;
+    const sharedWin =
+      [QUAG_RULES_VERSION, "quarry-rules-v6"].includes(
+        this.context.rulesVersion,
+      ) &&
+      leaders.length > 1 &&
+      leaders.length < this.players.length;
+    if (leaders.length === 1 || sharedWin) {
+      for (const leader of leaders) this.player(leader).roundWins += 1;
+    }
     const outcome =
       leaders.length === 1
         ? `${leaders[0]} WINS`
-        : `DRAW · ${leaders.join("/")}`;
+        : sharedWin
+          ? `${leaders.join("/")} SHARE WIN`
+          : `DRAW · ${leaders.join("/")}`;
     this.emit(
       "ROUND_COMPLETE",
       `ROUND ${this.roundNumber}/${this.totalRounds} · ${outcome}`,

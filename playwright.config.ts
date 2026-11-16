@@ -24,14 +24,34 @@ export default defineConfig({
   },
   projects: [
     {
-      name: "mobile-webkit",
-      testMatch: ["mobile.spec.ts", "loading.spec.ts"],
-      use: {
-        browserName: "webkit",
-        viewport: { width: 390, height: 664 },
-        isMobile: true,
-        hasTouch: true,
-      },
+      name: "desktop-webkit-1280x720",
+      testMatch: [
+        "shell.spec.ts",
+        "story-interface.spec.ts",
+        "story-progression.spec.ts",
+        "story-correction-flow.spec.ts",
+        "shell-corrections.spec.ts",
+        "loading.spec.ts",
+        "desktop-release.spec.ts",
+        "arcade-release.spec.ts",
+        "desktop-player-boundary.spec.ts",
+      ],
+      use: { browserName: "webkit", viewport: { width: 1280, height: 720 } },
+    },
+    {
+      name: "desktop-firefox-1280x720",
+      testMatch: [
+        "shell.spec.ts",
+        "story-interface.spec.ts",
+        "story-progression.spec.ts",
+        "story-correction-flow.spec.ts",
+        "shell-corrections.spec.ts",
+        "loading.spec.ts",
+        "desktop-release.spec.ts",
+        "arcade-release.spec.ts",
+        "desktop-player-boundary.spec.ts",
+      ],
+      use: { browserName: "firefox", viewport: { width: 1280, height: 720 } },
     },
     {
       name: "desktop-1280x720",

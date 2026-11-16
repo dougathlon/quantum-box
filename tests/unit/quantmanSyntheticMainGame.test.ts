@@ -136,7 +136,7 @@ describe("Quantman synthetic main-game runtime", () => {
     runtime.stop();
   });
 
-  it("retains a touch swipe that presses and releases between simulation ticks", () => {
+  it("retains a brief key press that presses and releases between simulation ticks", () => {
     const scheduler = new ManualFrameScheduler();
     const runtime = new QuantmanSyntheticMainGameRuntime(
       {
@@ -149,8 +149,11 @@ describe("Quantman synthetic main-game runtime", () => {
       callbacks(),
     );
     runtime.start();
-    runtime.handleInput({ ...signal("p1-right", true, 1), source: "touch" });
-    runtime.handleInput({ ...signal("p1-right", false, 2), source: "touch" });
+    runtime.handleInput({ ...signal("p1-right", true, 1), source: "keyboard" });
+    runtime.handleInput({
+      ...signal("p1-right", false, 2),
+      source: "keyboard",
+    });
     scheduler.advance(17);
     expect(runtime.replayTape().inputs).toEqual([
       { direction: "right", start: true },
@@ -163,14 +166,14 @@ describe("Quantman synthetic main-game runtime", () => {
     expect(runtime.snapshot().simulation.player.movementDirection).toBe(
       "right",
     );
-    runtime.handleInput({ ...signal("p1-up", true, 35), source: "touch" });
-    runtime.handleInput({ ...signal("p1-up", false, 36), source: "touch" });
+    runtime.handleInput({ ...signal("p1-up", true, 35), source: "keyboard" });
+    runtime.handleInput({ ...signal("p1-up", false, 36), source: "keyboard" });
     scheduler.advance(17);
     expect(runtime.replayTape().inputs.at(-1)?.direction).toBe("up");
     runtime.stop();
   });
 
-  it("clears an unconsumed touch turn when play is interrupted", () => {
+  it("clears an unconsumed key turn when play is interrupted", () => {
     const scheduler = new ManualFrameScheduler();
     const runtime = new QuantmanSyntheticMainGameRuntime(
       {
@@ -183,8 +186,11 @@ describe("Quantman synthetic main-game runtime", () => {
       callbacks(),
     );
     runtime.start();
-    runtime.handleInput({ ...signal("p1-right", true, 1), source: "touch" });
-    runtime.handleInput({ ...signal("p1-right", false, 2), source: "touch" });
+    runtime.handleInput({ ...signal("p1-right", true, 1), source: "keyboard" });
+    runtime.handleInput({
+      ...signal("p1-right", false, 2),
+      source: "keyboard",
+    });
     runtime.pause();
     scheduler.advance(17);
     runtime.togglePause();

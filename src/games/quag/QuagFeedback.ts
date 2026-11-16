@@ -1,4 +1,5 @@
 import { quagArenaById } from "./QuagArena";
+import { quagMatchIsDraw, quagPlayerWon } from "./outcome";
 import {
   QUAG_SUBPIXELS,
   type QuagInput,
@@ -47,10 +48,10 @@ export type QuagCompletionCue =
   | "quag-match-loss";
 
 export function quagCompletionCue(
-  snapshot: Pick<QuagSnapshot, "winnerIds" | "humanPlayerIds">,
+  snapshot: Pick<QuagSnapshot, "winnerIds" | "humanPlayerIds" | "sharedWins">,
 ): QuagCompletionCue {
-  if (snapshot.winnerIds.length !== 1) return "quag-match-draw";
-  return snapshot.humanPlayerIds.includes(snapshot.winnerIds[0]!)
+  if (quagMatchIsDraw(snapshot)) return "quag-match-draw";
+  return snapshot.humanPlayerIds.some((id) => quagPlayerWon(snapshot, id))
     ? "quag-match-win"
     : "quag-match-loss";
 }

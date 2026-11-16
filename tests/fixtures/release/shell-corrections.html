@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Quantum Box Shell correction checks</title>
+    <style>
+      html:not(.fixture-child) {
+        color: #ead7aa;
+        background: #21160f;
+        font:
+          15px/1.45 ui-monospace,
+          monospace;
+      }
+      html:not(.fixture-child) body {
+        margin: 20px;
+      }
+      html:not(.fixture-child) button,
+      html:not(.fixture-child) select {
+        font: inherit;
+        padding: 8px 12px;
+      }
+      html:not(.fixture-child) [data-state="failed"] {
+        color: #ffab9c;
+      }
+      html:not(.fixture-child) [data-state="passed"] {
+        color: #adedae;
+      }
+      html:not(.fixture-child) li {
+        white-space: pre-wrap;
+      }
+      html:not(.fixture-child) iframe {
+        border: 1px solid #ad9466;
+        display: block;
+        margin-top: 16px;
+      }
+    </style>
+  </head>
+  <body>
+    <section id="fixture-controls">
+      <h1>SHELL CORRECTIONS · RENDERED DESKTOP CHECKS</h1>
+      <p>
+        Actual Shell, production CSS, bitmap renderer and installed background
+        assets. Score entries are explicitly synthetic test data held in memory
+        only. This fixture never reads or writes the game save. MOTH opens are
+        intercepted and recorded; no external page opens.
+      </p>
+      <button id="run-checks" type="button" disabled>RUN CHECKS</button>
+      <select id="viewport" aria-label="Review viewport">
+        <option value="1280x720">1280 × 720</option>
+        <option value="1920x1080">1920 × 1080</option>
+        <option value="1024x768">1024 × 768</option>
+      </select>
+      <select id="example" aria-label="Review example">
+        <option value="hold-list">HOLD scores</option>
+        <option value="hold-entry">HOLD initials</option>
+        <option value="invert-list">INVERT scores</option>
+        <option value="invert-entry">INVERT initials</option>
+        <option value="ski-list">SKIPIXL MEDIUM scores</option>
+        <option value="ski-entry">SKIPIXL MEDIUM initials</option>
+        <option value="menu-qong">QONG menu</option>
+        <option value="menu-skipixl">SKIPIXL menu</option>
+        <option value="menu-quantman">QUANTMAN menu</option>
+        <option value="menu-fluxball">FLUXBALL menu</option>
+        <option value="menu-quarry">QUARRY menu</option>
+        <option value="fluxball-players">FLUXBALL players</option>
+        <option value="moth">MOTH / FINISH</option>
+        <option value="settings">DATA settings</option>
+      </select>
+      <button id="show-example" type="button" disabled>SHOW EXAMPLE</button>
+      <p id="fixture-status" role="status" data-state="idle">READY</p>
+    </section>
+    <iframe id="fixture-game" title="Isolated rendered Shell"></iframe>
+    <ol id="fixture-results"></ol>
+    <div id="app" hidden></div>
+    <script type="module" src="./shell-corrections.ts"></script>
+  </body>
+</html>

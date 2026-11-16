@@ -21,7 +21,8 @@ export interface FluxballCpuDecision {
     | "challenge-carrier"
     | "carry-to-believed-goal"
     | "stage-strike"
-    | "strike-through-ball";
+    | "strike-through-ball"
+    | "recover-blocked-motion";
   readonly target: Readonly<Axis>;
   readonly desiredWorldMotion: Readonly<Axis>;
   readonly rawInput: Readonly<PlayerInput>;
@@ -34,6 +35,10 @@ export interface FluxballPolicyTuning {
   readonly movementEvidenceTicks: number;
   /** Ignore reversal inertia until the issued direction has settled. */
   readonly movementSettleTicks: number;
+  /** Live blocked ticks at a court boundary before testing the opposite input. */
+  readonly blockedMovementTicks: number;
+  /** Maximum duration of one boundary escape probe at 20 Hz. */
+  readonly boundaryProbeTicks: number;
 }
 
 export const FORGIVING_CPU_TUNING: FluxballPolicyTuning = Object.freeze({
@@ -41,6 +46,8 @@ export const FORGIVING_CPU_TUNING: FluxballPolicyTuning = Object.freeze({
   fourPlayerDecisionInterval: 4,
   movementEvidenceTicks: 3,
   movementSettleTicks: 4,
+  blockedMovementTicks: 8,
+  boundaryProbeTicks: 24,
 });
 
 export const ARCADE_CPU_TUNING: FluxballPolicyTuning = Object.freeze({
@@ -48,6 +55,8 @@ export const ARCADE_CPU_TUNING: FluxballPolicyTuning = Object.freeze({
   fourPlayerDecisionInterval: 4,
   movementEvidenceTicks: 3,
   movementSettleTicks: 4,
+  blockedMovementTicks: 8,
+  boundaryProbeTicks: 24,
 });
 
 export const CAPABLE_PUBLIC_POLICY_TUNING: FluxballPolicyTuning = Object.freeze(
@@ -56,6 +65,8 @@ export const CAPABLE_PUBLIC_POLICY_TUNING: FluxballPolicyTuning = Object.freeze(
     fourPlayerDecisionInterval: 1,
     movementEvidenceTicks: 3,
     movementSettleTicks: 4,
+    blockedMovementTicks: 8,
+    boundaryProbeTicks: 24,
   },
 );
 
@@ -90,6 +101,11 @@ export class FluxballCpuPolicy {
   private cachedDecision: FluxballCpuDecision | null = null;
   private strikeSide: -1 | 1 | null = null;
   private strikeThrough = false;
+  private blockedTicks = 0;
+  private boundaryProbe: Readonly<{
+    input: PlayerInput;
+    startedTick: number;
+  }> | null = null;
 
   public constructor(
     private readonly playerId: PlayerId,
@@ -130,6 +146,43 @@ export class FluxballCpuPolicy {
       observation.roundTick - this.lastDecisionTick < interval
     ) {
       return this.cachedDecision;
+    }
+
+    // A wall can prevent any mapping evidence. Reverse the blocked command
+    // briefly; only the existing clear-motion test may change the belief.
+    if (
+      this.boundaryProbe &&
+      observation.roundTick - this.boundaryProbe.startedTick >=
+        this.tuning.boundaryProbeTicks
+    ) {
+      this.boundaryProbe = null;
+      this.blockedTicks = 0;
+    }
+    if (
+      !this.boundaryProbe &&
+      this.blockedTicks >= this.tuning.blockedMovementTicks
+    ) {
+      const blocked = axisForInput(this.lastIssuedInput);
+      this.boundaryProbe = {
+        input: inputFromAxis({ x: -blocked.x, y: -blocked.y }),
+        startedTick: observation.roundTick,
+      };
+      this.blockedTicks = 0;
+    }
+    if (this.boundaryProbe) {
+      const raw = axisForInput(this.boundaryProbe.input);
+      const sign = this.belief.action === "INVERTED" ? -1 : 1;
+      const desiredWorldMotion = { x: raw.x * sign, y: raw.y * sign };
+      return this.commitDecision(observation.roundTick, {
+        playerId: this.playerId,
+        reason: "recover-blocked-motion",
+        target: {
+          x: player.x + desiredWorldMotion.x * 60,
+          y: player.y + desiredWorldMotion.y * 60,
+        },
+        desiredWorldMotion,
+        rawInput: this.boundaryProbe.input,
+      });
     }
 
     const targetGoalId = this.believedTargetGoal(observation);
@@ -282,6 +335,8 @@ export class FluxballCpuPolicy {
     if (previous && observation.roundTick <= previous.roundTick) {
       this.previousObservation = observation;
       this.candidateTicks = 0;
+      this.blockedTicks = 0;
+      this.boundaryProbe = null;
       return;
     }
     const command = axisForInput(this.lastIssuedInput);
@@ -292,6 +347,23 @@ export class FluxballCpuPolicy {
       previous.goalFreezeTicksRemaining === 0 &&
       observation.goalFreezeTicksRemaining === 0 &&
       previous.latestGoal?.eventId === observation.latestGoal?.eventId;
+    const margin =
+      TUNING.courtPadding +
+      TUNING.playerRadius +
+      TUNING.playerMaximumSpeed * TUNING.fixedStepSeconds;
+    const atBoundary =
+      player.x <= margin ||
+      player.x >= observation.court.width - margin ||
+      player.y <= margin ||
+      player.y >= observation.court.height - margin;
+    const blocked =
+      uninterrupted &&
+      atBoundary &&
+      (command.x !== 0 || command.y !== 0) &&
+      Math.hypot(player.x - previousPlayer.x, player.y - previousPlayer.y) <
+        0.15;
+    this.blockedTicks = blocked ? this.blockedTicks + 1 : 0;
+    if (!uninterrupted) this.boundaryProbe = null;
     const clear =
       uninterrupted &&
       clearOfObstructions(previous, this.playerId) &&
@@ -317,6 +389,7 @@ export class FluxballCpuPolicy {
         if (this.candidateTicks >= this.tuning.movementEvidenceTicks) {
           this.belief.action = candidate;
           this.belief.actionConfidence = 0.94;
+          this.boundaryProbe = null;
           this.belief.observations += 1;
         }
       } else {

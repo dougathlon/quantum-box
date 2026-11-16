@@ -122,19 +122,18 @@ existing advances and 5-pixel cap height; this preserves cabinet layout.
 [StoryTextLayout.ts](../src/display/StoryTextLayout.ts) reflows explicitly reviewed
 soft line breaks while preserving every authored paragraph and word. Story uses
 4, 6 or 8 logical pixels between paragraphs according to available height; all
-41 source pages fit without added subpages. Actions follow the final paragraph
+approved source pages are laid out without changing their wording. Actions follow the final paragraph
 with a continuously blinking cursor (steady for reduced motion).
 [ArcadeInstructions.ts](../src/ui/ArcadeInstructions.ts) owns concise Arcade
-instructions adapted from Story, with mode-specific guidance. Fluxball and Quarry
-copy is drafted there because their Story tutorials remain placeholders. Each
+instructions adapted from the complete approved Story, with mode-specific guidance. Each
 cabinet stays on one page, using the same 7-pixel face and 6-pixel paragraph gap;
 play modes and scores remain below it. Update the instruction fit test and browser
 fixture when editing copy. The registry briefs remain historical lab/reference
 content and no longer supply the live Arcade instruction pages.
 
 All Story source text can be inspected in `src/story/terminal/content.ts`.
-Nine Fluxball/Quarry source pages remain placeholders; Arcade instructions are
-separate, reviewed adaptations.
+Arcade instructions are separate, reviewed adaptations; they are not substitutes
+for Story copy or authority to change it.
 
 The graphics planes and bitmap UI have 640×360 backing rasters; game positions,
 sprites and physics retain 320×180 logical coordinates. Presentation uses nearest

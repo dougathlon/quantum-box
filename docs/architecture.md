@@ -68,7 +68,7 @@ evidence. See [Terminal Story](story-terminal.md).
 
 - `currentNodeId` and completion;
 - experienced and cleared stages;
-- transcript-seen chapters;
+- read-page history and transcript-seen chapters;
 - attempt counts and last outcomes;
 - exact qualified `RunContext` records;
 - Qong selection, SkiPixl course receipts, and retained legacy v5 data.
@@ -130,12 +130,14 @@ walls. Arcade exposes Hold and Invert, not maze selection.
 
 Global owns one shared mutable rule state. Individual owns separate hidden
 player rules coupled through the joint recorded QGraph state. Every format uses
-four 40-second rounds and one shared `CHANGE RULES` opportunity per round.
+three 40-second rounds and one shared `CHANGE RULES` opportunity per round.
+Historical v5 recordings retain four rounds.
 
-CPU policy uses only public positions, velocities, possession, and observed goal
-outcomes. It probes movement deterministically, infers direction from public
-events, assigns chase/defence/support/interception roles, and cannot inspect
-hidden rules. Physical goal crossing is detected before rule-based attribution.
+Each CPU independently pursues its own score using public positions, velocities,
+contacts, possession and scoreboard changes. It infers movement from unobstructed
+displacement and revises scoring expectations after contradictory goals. A rule
+change retains its previous beliefs until observable consequences contradict
+them. CPUs do not share private beliefs, cooperate, or inspect hidden rules. Physical goal crossing is detected before rule-based attribution.
 Held possession uses a hand socket rather than a beam or duplicate loose ball;
 deterministic body contact can dislodge it with pair-specific cooldown.
 
@@ -146,7 +148,8 @@ six relation recipes with four independent realizations each. Complete 12-bit
 states install all directed relations together on the fixed remeasurement
 schedule. Catches score, knock out the target, and respawn it elsewhere with
 grace; they do not consume the relation or resample the graph. Arcade supports
-one to four humans. Historical `quag` names remain at source/save boundaries.
+one or two humans among four competitors. Historical `quag` names remain at
+source/save boundaries.
 
 ## Asset and provider seam
 

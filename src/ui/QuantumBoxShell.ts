@@ -1,14 +1,13 @@
-import { isMobilePresentation, permitsArcadeMode } from "../mobile/MobileMode";
-import { MobileHud } from "../mobile/MobileHud";
-import { MobileScrollAffordance } from "../mobile/MobileScrollAffordance";
+import { CabinetResultInput } from "./CabinetResultInput";
 import { ControllerSetup, controllerSetupMarkup } from "./ControllerSetup";
 import { LOCAL_HUMAN_PLAYERS } from "../input/LocalPlayers";
 import { POSTSCRIPT_MOTH_URL } from "../story/terminal/postscript";
 import { toggleFullscreen } from "./Fullscreen";
 import { storyTextLayout } from "../display/StoryTextLayout";
 import { terminalTextWidth } from "../display/TerminalTypeface";
+import { pixelTextWidth } from "../display/PixelText";
 import { ARCADE_INSTRUCTIONS } from "./ArcadeInstructions";
-import { TOUCH_INSTRUCTION_REPLACEMENTS } from "../mobile/TouchInstructions";
+import { arcadeInstructionLayout } from "./ArcadeMenuLayout";
 import type {
   ArcadeCabinetId,
   GameId,
@@ -79,6 +78,7 @@ import {
 import {
   chapterStages,
   earliestUnclearedStage,
+  readTranscriptPageIds,
   type StoryTerminalActionId,
   type StoryTerminalView,
 } from "../story/terminal";
@@ -92,8 +92,7 @@ export type ShellPage =
   | "terminal"
   | "story-terminal"
   | "settings"
-  | "developer"
-  | "credits";
+  | "developer";
 
 export interface QuantumBoxShellActions {
   readonly onStartGesture: () => void;
@@ -106,6 +105,7 @@ export interface QuantumBoxShellActions {
     action: StoryTerminalActionId,
     nodeId: string,
   ) => void;
+  readonly onStoryPageRead: (nodeId: string) => void;
   readonly onOpenTerminalTranscript: (chapterId: StoryChapterId) => void;
   readonly onRetryTerminalChapter: (chapterId: StoryChapterId) => void;
   readonly onLaunchArcade: (
@@ -148,7 +148,6 @@ const PAGE_TITLES: Readonly<Record<ShellPage, string>> = {
   "story-terminal": "STORY",
   settings: "SETTINGS",
   developer: "DEVELOPER",
-  credits: "SOURCE",
 };
 
 type SettingsSection = "display" | "sound" | "controls" | "data";
@@ -173,8 +172,6 @@ export class QuantumBoxShell {
   private readonly screenHeader: HTMLElement;
   private readonly screenFooter: HTMLElement;
   private readonly gameUi: HTMLElement;
-  private readonly mobileHud: MobileHud;
-  private readonly mobileScroll: MobileScrollAffordance;
   private readonly qongUi: HTMLElement;
   private readonly skipixlUi: HTMLElement;
   private readonly fluxballUi: HTMLElement;
@@ -191,6 +188,8 @@ export class QuantumBoxShell {
   private loading = false;
   private entryPending = false;
   private cabinetActive = false;
+  private arcadeScoreEntryPending = false;
+  private readonly resultInput = new CabinetResultInput();
   private cabinetPlayMode: "story" | "arcade" = "arcade";
   private terminalView: StoryTerminalView | null = null;
   private terminalSheets: readonly StoryTerminalView[] = [];
@@ -241,12 +240,6 @@ export class QuantumBoxShell {
     this.screenHeader = required(root, ".qb-screen-header");
     this.screenFooter = required(root, ".qb-screen-footer");
     this.gameUi = required(root, "[data-ui='game']");
-    this.mobileHud = new MobileHud(root);
-    this.mobileScroll = new MobileScrollAffordance(
-      this.shell,
-      required(root, ".qb-screen-frame"),
-      this.pageRoot,
-    );
     this.qongUi = required(this.gameUi, "[data-cabinet='qong']");
     this.skipixlUi = required(this.gameUi, "[data-cabinet='skipixl']");
     this.fluxballUi = required(this.gameUi, "[data-cabinet='fluxball']");
@@ -281,7 +274,6 @@ export class QuantumBoxShell {
     this.shell.dataset["page"] = this.page;
     document.addEventListener("fullscreenchange", this.syncFullscreenState);
     root.addEventListener("click", this.onClick);
-    root.addEventListener("pointerdown", this.onTerminalPointerDown);
     root.addEventListener("change", this.onChange);
     root.addEventListener("submit", this.onSubmit);
     root.addEventListener("scroll", this.onScroll, true);
@@ -578,7 +570,7 @@ export class QuantumBoxShell {
     else if (this.page === "story-start") this.showPage("main");
     else if (this.page === "scores") this.returnFromArcadeSubpage();
     else if (this.page === "arcade-detail") this.showPage("arcade");
-    else if (this.page === "developer" || this.page === "credits") {
+    else if (this.page === "developer") {
       this.showPage("settings");
     } else if (this.page === "story-terminal") {
       this.terminalView = null;
@@ -735,17 +727,6 @@ export class QuantumBoxShell {
     }
     this.updatePauseLabel(paused);
     const hud = quantmanSyntheticHudModel(snapshot, paused);
-    this.mobileHud.update("quantman", {
-      title: `QUANTMAN · ${hud.mode}`,
-      meta: hud.gaze,
-      scores: [
-        `SCORE ${hud.score}`,
-        `LIVES ${hud.lives}`,
-        `LEFT ${hud.remaining}`,
-      ],
-      status: hud.phase === "ACTIVE" || hud.phase === "READY" ? "" : hud.phase,
-      detail: `PASS WALLS ${hud.wallPass} · EAT GHOSTS ${hud.ghostEat}`,
-    });
     this.gameUi.dataset["phase"] = hud.phase.toLowerCase().replaceAll(" ", "-");
     required(this.quantmanUi, "[data-quantman='fragments']").textContent =
       hud.remaining;
@@ -813,15 +794,6 @@ export class QuantumBoxShell {
       return;
     this.updatePauseLabel(paused);
     const hud = quagHudModel(snapshot, paused);
-    this.mobileHud.update("quag", {
-      title: `QUARRY · ${hud.round} · ${Number(hud.time)}S`,
-      meta: `POINTS / WINS · SHIFT ${Math.ceil(snapshot.ticksUntilRemeasurement / 20)}S`,
-      scores: snapshot.players.map(
-        (player) => `${player.id} ${player.roundScore} / ${player.roundWins}`,
-      ),
-      status: hud.notice === "CATCH FROM ABOVE" ? "" : hud.notice,
-      detail: quagHuntRows(snapshot).join(" · "),
-    });
     this.gameUi.dataset["phase"] = paused ? "paused" : snapshot.phase;
     required(this.quagUi, "[data-quag='time']").textContent = hud.time;
     required(this.quagUi, "[data-quag='score']").textContent = hud.score;
@@ -861,17 +833,6 @@ export class QuantumBoxShell {
       return;
     this.updatePauseLabel(paused);
     const hud = fluxballHudModel(snapshot, paused);
-    this.mobileHud.update("fluxball", {
-      title: `FLUXBALL · ${snapshot.roundNumber}/${snapshot.totalRounds} · ${hud.time}S`,
-      meta: "GOALS / WINS",
-      scores: hud.activePlayerIds.map(
-        (id) => `${id} ${hud.goals[id]} / ${hud.roundWins[id]}`,
-      ),
-      status: hud.notice,
-    });
-    this.fluxballUi.dataset["touchRemaining"] = String(
-      snapshot.remainingRuleChanges,
-    );
     this.gameUi.dataset["phase"] = paused ? "paused" : snapshot.phase;
     required(this.fluxballUi, "[data-fluxball='round']").textContent =
       hud.round;
@@ -916,28 +877,16 @@ export class QuantumBoxShell {
       this.updateCabinetChoices(paused, false);
       return;
     }
-    if (snapshot.phase === "reveal" && snapshot.reveal) {
-      notice.textContent = hud.notice;
+    if (snapshot.reveal) {
       renderFluxballSemanticHistory(this.fluxballUi, snapshot);
-      this.updateCabinetChoices(
-        paused,
-        false,
-        snapshot.roundNumber === snapshot.totalRounds
-          ? "RESULTS"
-          : "NEXT ROUND",
-      );
-      return;
+    } else {
+      clearFluxballReveal(this.fluxballUi);
     }
-    clearFluxballReveal(this.fluxballUi);
     notice.textContent = hud.notice;
     this.updateCabinetChoices(
       paused,
       snapshot.phase === "complete",
-      snapshot.phase === "reveal"
-        ? snapshot.roundNumber === snapshot.totalRounds
-          ? "RESULTS"
-          : "NEXT ROUND"
-        : undefined,
+      snapshot.phase === "reveal" ? "NEXT ROUND" : undefined,
     );
   }
 
@@ -945,32 +894,6 @@ export class QuantumBoxShell {
     if (!this.cabinetActive || this.gameUi.dataset["cabinet"] !== "skipixl")
       return;
     this.updatePauseLabel(paused);
-    this.mobileHud.update("skipixl", {
-      title: "SKIPIXL",
-      meta: `${Math.max(0, Math.ceil(snapshot.courseLength - snapshot.distance))} M LEFT`,
-      scores: [
-        `TIME ${formatSkiPixlTime(snapshot.elapsedSeconds)}`,
-        ...("gateCount" in snapshot.receipt && snapshot.receipt.gateCount > 0
-          ? [
-              `GATES ${snapshot.gateResults.filter(({ passed }) => passed).length}/${snapshot.receipt.gateCount}`,
-            ]
-          : []),
-        `LIMIT ${formatSkiPixlTime(snapshot.targetSeconds)}`,
-      ],
-      status: paused
-        ? "PAUSED"
-        : snapshot.phase === "ready"
-          ? `READY ${Math.max(1, Math.ceil(snapshot.readyTicksRemaining / 60))}`
-          : snapshot.phase === "complete"
-            ? snapshot.storyQualified
-              ? "WELL DONE"
-              : "RUN COMPLETE"
-            : snapshot.latestGate
-              ? snapshot.latestGate.passed
-                ? "GATE CLEAR"
-                : "GATE MISSED +2.5"
-              : "",
-    });
     required(this.skipixlUi, "[data-skipixl='time']").textContent =
       formatSkiPixlTime(snapshot.elapsedSeconds);
     required(this.skipixlUi, "[data-skipixl='limit']").textContent =
@@ -1005,28 +928,6 @@ export class QuantumBoxShell {
     if (!this.cabinetActive) return;
     this.updatePauseLabel(paused);
     const hud = qongHudModel(snapshot, opponent, paused);
-    const winner = hud.winner.slice(8);
-    this.mobileHud.update("qong", {
-      title: `QONG · ${snapshot.rallyNumber}/${snapshot.totalRallies}`,
-      meta:
-        snapshot.measurementState === "unresolved"
-          ? "RULE UNRESOLVED"
-          : hud.goal,
-      scores: [
-        `${hud.leftLabel} ${hud.leftScore}`,
-        `${hud.rightLabel} ${hud.rightScore}`,
-      ],
-      status: paused
-        ? "PAUSED"
-        : snapshot.phase === "complete"
-          ? `${winner} ${winner === "YOU" ? "WIN" : "WINS"}`
-          : snapshot.phase === "between-rallies"
-            ? `${winner} ${winner === "YOU" ? "SCORE" : "SCORES"}`
-            : "",
-    });
-    this.qongUi.dataset["touchRemaining"] = String(
-      snapshot.observationsRemaining,
-    );
     required(this.gameUi, "[data-qong='left-score']").textContent =
       hud.leftScore;
     required(this.gameUi, "[data-qong='right-score']").textContent =
@@ -1075,10 +976,21 @@ export class QuantumBoxShell {
     this.updateCabinetChoices(paused, snapshot.phase === "complete", undefined);
   }
 
+  public setArcadeScoreEntryPending(pending: boolean): void {
+    this.arcadeScoreEntryPending = pending;
+  }
+
+  public isCabinetResultSettling(): boolean {
+    return this.cabinetActive && this.resultInput.isSettling(performance.now());
+  }
+
   public handleCabinetNavigation(action: string, pressed: boolean): boolean {
     if (!this.cabinetActive || this.gameUi.dataset["navigation"] !== "true")
       return false;
     if (!pressed) return false; // Let held gameplay inputs release normally.
+    if (this.isCabinetResultSettling()) return true;
+    // Menu choices own retry; X must not fall through to legacy runtime shortcuts.
+    if (action === "secondary") return true;
     const controls = [
       ...this.gameUi.querySelectorAll<HTMLButtonElement>("footer button"),
     ].filter(isFocusableControl);
@@ -1112,6 +1024,7 @@ export class QuantumBoxShell {
     complete: boolean,
     next?: string,
   ): void {
+    this.resultInput.update(complete, performance.now());
     const navigating = paused || complete || next !== undefined;
     const wasNavigating = this.gameUi.dataset["navigation"] === "true";
     this.gameUi.dataset["navigation"] = String(navigating);
@@ -1160,6 +1073,10 @@ export class QuantumBoxShell {
     const primary = panel.querySelector<HTMLButtonElement>(
       `[data-action='${cabinet === "qong" ? "qong-observe" : cabinet + "-continue"}']`,
     )!;
+    const continueOnly =
+      complete &&
+      this.cabinetPlayMode === "arcade" &&
+      (next === "NEXT MAZE" || this.arcadeScoreEntryPending);
     if (paused) primary.hidden = true;
     else if (navigating) {
       const primaryLabel =
@@ -1172,7 +1089,12 @@ export class QuantumBoxShell {
       if (primary.textContent !== primaryLabel)
         primary.textContent = primaryLabel;
       // Back already performs the same exit; keep a single choice for it.
-      if (complete && this.cabinetPlayMode === "arcade" && !next) {
+      if (
+        complete &&
+        this.cabinetPlayMode === "arcade" &&
+        !next &&
+        !continueOnly
+      ) {
         if (cabinet === "qong") retry.hidden = true;
         else primary.hidden = true;
       }
@@ -1181,13 +1103,30 @@ export class QuantumBoxShell {
       "[data-action='quag-restart']",
     );
     if (duplicateRestart) duplicateRestart.hidden = true;
+    back.hidden = continueOnly;
+    if (continueOnly) {
+      retry.hidden = true;
+      primary.hidden = false;
+      primary.textContent = next ?? "CONTINUE";
+      if (document.activeElement !== primary)
+        primary.focus({ preventScroll: true });
+    }
     for (const button of panel.querySelectorAll<HTMLButtonElement>(
       "footer button",
     )) {
       const label = button.textContent ?? "";
-      const touchLabel = label.split(" · ")[0] ?? "";
-      if (button.dataset["touchLabel"] !== touchLabel)
-        button.dataset["touchLabel"] = touchLabel;
+      if (navigating) {
+        // Bitmap glyphs need their measured width, not the hidden DOM font's width.
+        const minWidth = `${Math.max(60, pixelTextWidth(label, 1) + 8) / 3.2}cqw`;
+        if (button.style.minWidth !== minWidth)
+          button.style.minWidth = minWidth;
+        if (button.dataset["bitmapText"] !== label)
+          button.dataset["bitmapText"] = label;
+      } else {
+        if (button.style.minWidth) button.style.removeProperty("min-width");
+        if (button.dataset["bitmapText"] !== undefined)
+          delete button.dataset["bitmapText"];
+      }
       if (button.getAttribute("aria-label") !== label)
         button.setAttribute("aria-label", label);
     }
@@ -1216,6 +1155,8 @@ export class QuantumBoxShell {
   public exitCabinet(): void {
     if (!this.cabinetActive) return;
     this.cabinetActive = false;
+    this.arcadeScoreEntryPending = false;
+    this.resultInput.update(false, performance.now());
     this.gameUi.dataset["navigation"] = "false";
     this.cabinetPlayMode = "arcade";
     this.shell.dataset["view"] = "menu";
@@ -1270,11 +1211,9 @@ export class QuantumBoxShell {
     this.titleField.destroy();
     this.viewportField.destroy();
     this.bitmapText.destroy();
-    this.mobileScroll.destroy();
     this.scrollPositionObserver.disconnect();
     document.removeEventListener("fullscreenchange", this.syncFullscreenState);
     this.root.removeEventListener("click", this.onClick);
-    this.root.removeEventListener("pointerdown", this.onTerminalPointerDown);
     this.root.removeEventListener("change", this.onChange);
     this.root.removeEventListener("submit", this.onSubmit);
     this.root.removeEventListener("scroll", this.onScroll, true);
@@ -1309,12 +1248,7 @@ export class QuantumBoxShell {
         "CONTROLLER SETUP";
       const panel = required<HTMLElement>(this.pageRoot, ".qb-settings-scroll");
       panel.innerHTML = controllerSetupMarkup;
-      if (isMobilePresentation())
-        panel.querySelector("[data-controller-player-b]")?.remove();
-      this.controllerSetup = new ControllerSetup(
-        panel,
-        isMobilePresentation() ? 1 : LOCAL_HUMAN_PLAYERS.length,
-      );
+      this.controllerSetup = new ControllerSetup(panel);
     }
     // Primary choices share the terminal reading face; metadata stays compact.
     for (const element of this.pageRoot.querySelectorAll(
@@ -1381,9 +1315,8 @@ export class QuantumBoxShell {
                           ? "button[data-page='arcade']"
                           : "h1";
       const target = this.pageRoot.querySelector<HTMLElement>(selector);
-      const mobile = document.documentElement.dataset["mobile"] === "true";
-      target?.focus({ preventScroll: mobile });
-      if (!mobile) target?.scrollIntoView({ block: "nearest" });
+      target?.focus();
+      target?.scrollIntoView({ block: "nearest" });
       this.updateScrollPosition();
     });
   }
@@ -1454,18 +1387,6 @@ export class QuantumBoxShell {
     }
   };
 
-  private readonly onTerminalPointerDown = (event: PointerEvent): void => {
-    if (
-      document.documentElement.dataset["mobile"] === "true" &&
-      !this.terminalTypingComplete() &&
-      event.target instanceof Element &&
-      event.target.closest(".qb-terminal-page")
-    ) {
-      event.preventDefault();
-      this.completeTerminalTyping();
-    }
-  };
-
   private readonly onClick = (event: MouseEvent): void => {
     const button =
       event.target instanceof Element
@@ -1476,17 +1397,12 @@ export class QuantumBoxShell {
     if (action !== "rebind-key") this.pendingBinding = null;
     if (action === "press-start") this.enterInternal();
     else if (action === "postscript-moth") {
-      window.location.assign(POSTSCRIPT_MOTH_URL);
+      window.open(POSTSCRIPT_MOTH_URL, "_blank", "noopener,noreferrer");
     } else if (action === "continue-story") this.actions.onContinueStory();
     else if (action === "new-story") this.actions.onNewStory();
     else if (action === "back") this.handleBack();
     else if (action === "activate-page-control") {
       this.activateLastContentControl();
-    } else if (action === "mobile-initial") {
-      const slot = Number(button.dataset["slot"]);
-      const delta = Number(button.dataset["delta"]);
-      if (Number.isInteger(slot) && (delta === -1 || delta === 1))
-        this.adjustInitialsSlot(slot, delta);
     } else if (action === "initials-slot") {
       const slot = Number(button.dataset["initialSlot"]);
       if (Number.isInteger(slot)) this.advanceInitialsSlot(slot);
@@ -1523,24 +1439,11 @@ export class QuantumBoxShell {
       this.pendingBinding = null;
       this.controllerSetupOpen = true;
       this.renderPage();
-      if (document.documentElement.dataset["mobile"] === "true") {
-        const heading = required<HTMLElement>(
-          this.pageRoot,
-          ".qb-settings-panel h2",
-        );
-        heading.tabIndex = -1;
-        heading.focus({ preventScroll: true });
-      } else {
-        this.pageRoot
-          .querySelector<HTMLButtonElement>('[data-action="controller-map"]')
-          ?.focus();
-      }
+      this.pageRoot
+        .querySelector<HTMLButtonElement>('[data-action="controller-map"]')
+        ?.focus();
     } else if (action === "controller-map") {
       this.controllerSetup?.start();
-      if (document.documentElement.dataset["mobile"] === "true")
-        this.pageRoot
-          .querySelector("[data-controller-status]")
-          ?.scrollIntoView({ block: "nearest" });
     } else if (action === "controller-done") {
       this.controllerSetupOpen = false;
       this.renderPage();
@@ -1562,8 +1465,7 @@ export class QuantumBoxShell {
       const playerId = button.dataset["playerId"];
       if (
         isPlayerId(playerId) &&
-        LOCAL_HUMAN_PLAYERS.some((id) => id === playerId) &&
-        (!isMobilePresentation() || playerId === "A")
+        LOCAL_HUMAN_PLAYERS.some((id) => id === playerId)
       ) {
         this.settingsPlayerId = playerId;
         this.renderPage();
@@ -1587,11 +1489,7 @@ export class QuantumBoxShell {
         !isShippedArcadeCabinetId(gameId)
       ) {
         this.announce("That legacy cabinet is not shipped in this build.");
-      } else if (
-        isShippedArcadeCabinetId(gameId) &&
-        mode &&
-        permitsArcadeMode(mode, isMobilePresentation())
-      ) {
+      } else if (isShippedArcadeCabinetId(gameId) && mode) {
         try {
           this.actions.onLaunchArcade(gameId, mode, {
             runSeed: this.arcadeRunSeed,
@@ -1936,10 +1834,6 @@ export class QuantumBoxShell {
   private setInitialsSlotCharacter(slot: number, character: string): void {
     if (slot < 0 || slot >= this.arcadeInitialsDraft.length) return;
     this.arcadeInitialsDraft[slot] = character;
-    const mobileInitial = this.pageRoot.querySelector<HTMLElement>(
-      `[data-mobile-initial-slot="${slot}"]`,
-    );
-    if (mobileInitial) mobileInitial.textContent = character;
     const button = this.pageRoot.querySelector<HTMLButtonElement>(
       `[data-initial-slot="${slot}"]`,
     );
@@ -1986,7 +1880,11 @@ export class QuantumBoxShell {
     this.renderPage();
     this.pageRoot.scrollTop = 0;
     this.focusPageTarget();
-    if (this.terminalTypingComplete()) return;
+    if (this.terminalTypingComplete()) {
+      this.notifyTerminalPageRead();
+      this.focusPageTarget();
+      return;
+    }
     this.terminalTypingTimer = window.setInterval(() => {
       const total = this.terminalView
         ? terminalCharacterCount(this.terminalView)
@@ -1998,6 +1896,7 @@ export class QuantumBoxShell {
       this.renderPage();
       if (this.terminalVisibleCharacters >= total) {
         this.stopTerminalTyping();
+        this.notifyTerminalPageRead();
         this.focusPageTarget();
       }
     }, 34);
@@ -2008,7 +1907,14 @@ export class QuantumBoxShell {
     this.terminalVisibleCharacters = terminalCharacterCount(this.terminalView);
     this.stopTerminalTyping();
     this.renderPage();
+    this.notifyTerminalPageRead();
     this.focusPageTarget();
+  }
+
+  private notifyTerminalPageRead(): void {
+    const view = this.terminalView;
+    if (view && !view.transcript && this.terminalTypingComplete())
+      this.actions.onStoryPageRead(view.nodeId);
   }
 
   private terminalTypingComplete(): boolean {
@@ -2042,7 +1948,6 @@ function shellMarkup(): string {
         <canvas class="qb-bitmap-ui" data-ui="bitmap-text" width="320" height="180" aria-hidden="true"></canvas>
         <header class="qb-screen-header"><span>QUANTUM BOX</span><span data-ui="breadcrumb">ARCHIVE INDEX</span></header>
         <section class="qb-page" data-ui="page"></section>
-        <button type="button" class="qb-mobile-story-back" data-action="back">BACK</button>
         <footer class="qb-screen-footer"><button type="button" data-action="back" aria-label="BACK · ⌫ / B">BACK · ⌫ / B</button><span data-ui="selection-hint">SELECT · ENTER / A</span></footer>
         <section class="qb-game-ui" data-ui="game" hidden>
           <section class="qb-cabinet-ui" data-cabinet="qong" role="region" aria-label="Qong game" hidden>
@@ -2136,8 +2041,6 @@ function pageMarkup(
       return settingsMarkup(save, settingsSection, settingsPlayerId);
     case "developer":
       return `<div class="qb-page-panel qb-scroll qb-developer-page"><p class="qb-kicker">EXPLICIT TEST CONTROLS</p><h1 tabindex="-1">DEVELOPER SURFACE</h1><p>These controls never grant Story authority or write completion evidence.</p><fieldset class="qb-settings"><legend>Arcade setup</legend><label><span>RUN SEED</span><input type="number" min="0" max="4294967295" step="1" value="${arcadeRunSeed}" data-developer-run-seed/></label></fieldset><p>Story terminals use the same persisted graph as release play.</p></div>`;
-    case "credits":
-      return `<div class="qb-page-panel qb-scroll"><p class="qb-kicker">PROVISIONAL RECORD</p><h1 tabindex="-1">SOURCE RECORD</h1><dl class="qb-record"><div><dt>DEVICE</dt><dd>QUANTUM BOX · QB-00</dd></div><div><dt>FORM</dt><dd>EARLY-1970S COLOUR RASTER ANTHOLOGY</dd></div><div><dt>ENGINES</dt><dd>COIN TOSS · QPIXL · LABYRINTH · QUANTUM GRAPH</dd></div><div><dt>BOUNDARY</dt><dd>TIMED PLAY IS CLASSICAL AND LOCAL. COMMITTED ENGINE PACKS FREEZE BEFORE PLAY.</dd></div><div><dt>DESIGNER</dt><dd>A FICTIONAL EXPERIMENTER GIVEN ACCESS TO MOTH; NOT ITS INVENTOR AND NOT MOTH COMPANY HISTORY.</dd></div><div><dt>AUDIO</dt><dd>MENU AND TERMINAL MUSIC ARE APPROVED LOCAL COMPOSITIONS. THE TITLE IS SILENT. GAMES ARE EFFECTS-ONLY. AUDIO IS NOT QPU OUTPUT.</dd></div></dl></div>`;
   }
 }
 
@@ -2170,26 +2073,26 @@ function terminalIndexMarkup(save: QuantumBoxSave): string {
   const rows = STORY_CHAPTER_IDS.map((chapterId, index) => {
     const chapter = STORY_CHAPTER_DEFINITIONS[chapterId];
     const stages = chapterStages(chapterId);
-    const experienced = stages.some((stage) =>
-      save.story.experiencedStages.includes(stage),
+    const experienced = stages.some(
+      (stage) =>
+        save.story.experiencedStages.includes(stage) ||
+        save.story.clearedStages.includes(stage),
     );
-    const cleared = stages.every((stage) =>
-      save.story.clearedStages.includes(stage),
-    );
-    const transcriptSeen = save.story.transcriptSeen.includes(chapterId);
+    const cleared =
+      earliestUnclearedStage(chapterId, save.story.clearedStages) === null;
+    const encountered =
+      experienced ||
+      readTranscriptPageIds(chapterId, save.story.readPageIds).length > 0;
     const number = String(index + 1).padStart(2, "0");
     if (cleared) {
-      return `<li><button type="button" data-action="open-terminal-transcript" data-chapter-id="${chapterId}" aria-label="${escapeHtml(chapter.title)} transcript"><span>${number}</span><strong>${escapeHtml(chapter.title)}</strong><small>${transcriptSeen ? "TRANSCRIPT READ" : "TRANSCRIPT READY"}</small></button></li>`;
+      return `<li><button type="button" data-action="open-terminal-transcript" data-chapter-id="${chapterId}" aria-label="Read ${escapeHtml(chapter.title)}"><span>${number}</span><strong>${escapeHtml(chapter.title)}</strong><small>READ</small></button></li>`;
     }
-    if (
-      experienced &&
-      earliestUnclearedStage(chapterId, save.story.clearedStages)
-    ) {
-      return `<li><button type="button" data-action="retry-terminal-chapter" data-chapter-id="${chapterId}" aria-label="Retry ${escapeHtml(chapter.title)}"><span>${number}</span><strong>${escapeHtml(chapter.title)}</strong><small>RETRY REQUIRED</small></button></li>`;
+    if (encountered) {
+      return `<li><button type="button" data-action="retry-terminal-chapter" data-chapter-id="${chapterId}" aria-label="Retry ${escapeHtml(chapter.title)}"><span>${number}</span><strong>${escapeHtml(chapter.title)}</strong><small>RETRY</small></button></li>`;
     }
     return `<li><div aria-label="${escapeHtml(chapter.title)} unopened"><span>${number}</span><strong>${escapeHtml(chapter.title)}</strong><small>UNOPENED</small></div></li>`;
   }).join("");
-  return `<div class="qb-page-panel qb-terminal-index"><h1 class="qb-visually-hidden" tabindex="-1">TERMINAL</h1><p class="qb-visually-hidden">Completed Story program transcripts and independent retries.</p><ol data-scroll-list>${rows}</ol>${scrollPositionMarkup()}</div>`;
+  return `<div class="qb-page-panel qb-terminal-index"><h1 class="qb-visually-hidden" tabindex="-1">TERMINAL</h1><p class="qb-visually-hidden">Cleared chapters can be read. Unfinished chapters can be retried.</p><ol data-scroll-list>${rows}</ol>${scrollPositionMarkup()}</div>`;
 }
 
 function terminalBodyTop(header: readonly string[]): number {
@@ -2230,8 +2133,9 @@ function terminalPageMarkup(
     : "";
   const accessible = [...page.header, ...page.body]
     .join("\n\n")
-    .replaceAll("\n", " ");
-  return `<article class="qb-page-panel qb-terminal-page" data-terminal-page="${escapeHtml(page.id)}" style="--story-gap: ${(storyTextLayout(page).gap / 1.8).toFixed(4)}cqh; --reading-top: ${(terminalBodyTop(page.header) / 1.8).toFixed(4)}cqh; --reading-rule: ${((terminalBodyTop(page.header) - 6) / 1.8).toFixed(4)}cqh" data-terminal-header="${page.header.length > 2 ? "extended" : "standard"}" data-terminal-density="${terminalDensity(page)}" data-terminal-complete="${complete}" data-reduced-motion="${reducedMotion}" aria-label="${escapeHtml(accessible)}"><header aria-hidden="true">${visibleHeader.map((text) => terminalTextBlock(text)).join("")}${transcriptPosition}</header><div class="qb-terminal-top-rule" aria-hidden="true" data-visible="${headerFinished}"></div><div class="qb-terminal-reading"><section class="qb-terminal-body" ${page.id === "postscript-2" ? "" : 'aria-hidden="true"'}>${visibleBody.map((text) => (page.id === "postscript-2" && text === "[MOTH]" ? `<button type="button" class="qb-postscript-link" data-action="postscript-moth" aria-label="MOTH · ENTER / A"><span data-bitmap-flow class="qb-terminal-prompt-label" style="width: ${(terminalTextWidth("MOTH") + 4) / 3.2}cqw">MOTH</span><span class="qb-terminal-cursor" aria-hidden="true"></span></button>` : terminalTextBlock(text, true))).join("")}</section><div class="qb-terminal-actions">${actions}</div></div><p class="qb-visually-hidden">${escapeHtml(accessible)}</p></article>`;
+    .replaceAll("\n", " ")
+    .replaceAll("[MOTH]", "MOTH");
+  return `<article class="qb-page-panel qb-terminal-page" data-terminal-page="${escapeHtml(page.id)}" style="--story-gap: ${(storyTextLayout(page).gap / 1.8).toFixed(4)}cqh; --reading-top: ${(terminalBodyTop(page.header) / 1.8).toFixed(4)}cqh; --reading-rule: ${((terminalBodyTop(page.header) - 6) / 1.8).toFixed(4)}cqh" data-terminal-header="${page.header.length > 2 ? "extended" : "standard"}" data-terminal-density="${terminalDensity(page)}" data-terminal-complete="${complete}" data-reduced-motion="${reducedMotion}" aria-label="${escapeHtml(accessible)}"><header aria-hidden="true">${visibleHeader.map((text) => terminalTextBlock(text)).join("")}${transcriptPosition}</header><div class="qb-terminal-top-rule" aria-hidden="true" data-visible="${headerFinished}"></div><div class="qb-terminal-reading"><section class="qb-terminal-body" ${page.id === "postscript-2" ? "" : 'aria-hidden="true"'}>${visibleBody.map((text, index) => (page.id === "postscript-2" && text === "[MOTH]" ? `<button type="button" class="qb-postscript-link" data-action="postscript-moth" aria-label="MOTH · ENTER / A"><span data-bitmap-flow class="qb-terminal-prompt-label" style="width: ${(terminalTextWidth("> MOTH") + 4) / 3.2}cqw">&gt; MOTH</span><span class="qb-terminal-cursor" aria-hidden="true"></span></button>` : terminalTextBlock(page.id === "postscript-2" && page.body[index] === "[MOTH]" ? "> " + text.replaceAll("[", "").replaceAll("]", "") : text, true))).join("")}</section><div class="qb-terminal-actions" data-inline="${storyTextLayout(page).inlineActions}">${actions}</div></div><p class="qb-visually-hidden">${escapeHtml(accessible)}</p></article>`;
 }
 
 function terminalDensity(
@@ -2320,22 +2224,16 @@ function arcadeGameMarkup(gameId: ShippedArcadeCabinetId): string {
   const engineName =
     game.engineId === "graph-v1" ? "QGRAPH-V1" : game.engineId.toUpperCase();
   const engineLabel = `${game.model} / ${engineName}`;
-  const blocks = ARCADE_INSTRUCTIONS[gameId];
-
-  const split = { qong: 4, skipixl: 1, quantman: 2, fluxball: 4, quarry: 2 }[
-    gameId
-  ];
+  const layout = arcadeInstructionLayout(gameId);
   const tutorial =
-    split === 0
-      ? blocks.map(arcadeTutorialBlock).join("")
-      : [blocks.slice(0, split), blocks.slice(split)]
-          .map(
-            (column) =>
-              `<div class="qb-tutorial-column">${column.map(arcadeTutorialBlock).join("")}</div>`,
-          )
-          .join("");
-  return `<section class="qb-page-panel qb-arcade-detail qb-arcade-detail--${gameId}" data-arcade-detail="${gameId}" aria-labelledby="arcade-${gameId}" aria-describedby="arcade-${gameId}-source"><header class="qb-arcade-detail-header"><div><h1 id="arcade-${gameId}" tabindex="-1" ${bitmapTextAttribute(game.title)}>${escapeHtml(game.title)}</h1><p ${bitmapTextAttribute(engineLabel)}>${escapeHtml(engineLabel)}</p></div>${arcadePreview(gameId)}</header><div class="qb-arcade-detail-rule qb-terminal-top-rule" aria-hidden="true"></div><div class="qb-arcade-detail-body"><section class="qb-arcade-tutorial" aria-label="Tutorial">${tutorial}</section><section class="qb-arcade-trials" aria-label="${escapeHtml(game.title)} trials"><h2 data-bitmap-text="PLAY">PLAY</h2><div class="qb-arcade-launches">${game.arcadeModes
-    .filter((mode) => permitsArcadeMode(mode, isMobilePresentation()))
+    layout.blocks
+      .map(
+        (block) =>
+          `<p data-bitmap-flow ${bitmapTextAttribute(block.text)} style="left: ${(block.x - 4) / 12.8}cqw; top: ${block.y / 7.2}cqh; width: ${(block.width + 8) / 12.8}cqw; height: ${block.height / 7.2}cqh">${escapeHtml(block.text)}</p>`,
+      )
+      .join("") +
+    `<div class="qb-arcade-section-rule" style="top: ${layout.divider / 7.2}cqh" aria-hidden="true"></div>`;
+  return `<section class="qb-page-panel qb-arcade-detail qb-arcade-detail--${gameId} qb-arcade-sheet" data-arcade-detail="${gameId}" aria-labelledby="arcade-${gameId}" aria-describedby="arcade-${gameId}-source"><header class="qb-arcade-detail-header"><div><h1 id="arcade-${gameId}" tabindex="-1" ${bitmapTextAttribute(game.title)}>${escapeHtml(game.title)}</h1><p ${bitmapTextAttribute(engineLabel)}>${escapeHtml(engineLabel)}</p></div>${arcadePreview(gameId)}</header><div class="qb-arcade-detail-rule qb-terminal-top-rule" aria-hidden="true"></div><div class="qb-arcade-detail-body"><section class="qb-arcade-tutorial" aria-label="Tutorial">${tutorial}</section><section class="qb-arcade-trials" aria-label="${escapeHtml(game.title)} trials"><h2 data-bitmap-text="PLAY">PLAY</h2><div class="qb-arcade-launches">${game.arcadeModes
     .map((mode, index) => {
       const label = arcadeModeLabel(mode);
       const placement = arcadeModePlacement(gameId, index);
@@ -2354,12 +2252,6 @@ function arcadeGameMarkup(gameId: ShippedArcadeCabinetId): string {
     .join(
       "",
     )}</div></section></div>${terminalFooterMarkup()}<span class="qb-visually-hidden" id="arcade-${gameId}-source">${escapeHtml(game.model)} · ${escapeHtml(game.sourceLabel)}</span></section>`;
-}
-
-function arcadeTutorialBlock(text: string): string {
-  const touch = TOUCH_INSTRUCTION_REPLACEMENTS[text];
-  if (!touch) return terminalTextBlock(text, true);
-  return `<div class="qb-tutorial-key-copy">${terminalTextBlock(text, true)}</div><div class="qb-tutorial-touch-copy">${terminalTextBlock(touch, true)}</div>`;
 }
 
 function arcadeModePlacement(
@@ -2413,19 +2305,20 @@ function arcadeScoreboardPageMarkup(
     request.gameId === "skipixl"
       ? `SKIPIXL · ${request.mode}`
       : `QUANTMAN · ${arcadeModeLabel(request.mode)}`;
+  const heading = `<h1 tabindex="-1" data-bitmap-text="${escapeHtml(title)}" style="min-width: ${(terminalTextWidth(title) + 4) / 3.2}cqw">${escapeHtml(title)}</h1>`;
   const resultHeading = request.gameId === "skipixl" ? "TIME" : "SCORE";
   const initials =
     request.initialsEditable && request.highlightRecordSequence !== null
-      ? `<form class="qb-scoreboard-initials" data-arcade-score-form data-record-sequence="${request.highlightRecordSequence}"><span class="qb-scoreboard-initials-label">INITIALS</span><div class="qb-scoreboard-initial-slots" role="group" aria-label="Three character score initials">${[...initialsDraft].map((character, index) => `<button type="button" data-action="initials-slot" data-initial-slot="${index}" data-bitmap-text="${escapeHtml(character)}" aria-label="Initial ${index + 1}: ${escapeHtml(character)}. Up and down change character.">${escapeHtml(character)}</button>`).join("")}</div><div class="qb-mobile-initials" aria-label="Change initials">${[0, 1, 2].map((slot) => `<div><button type="button" data-action="mobile-initial" data-slot="${slot}" data-delta="1" aria-label="Increase initial ${slot + 1}">+</button><strong data-mobile-initial-slot="${slot}" aria-label="Initial ${slot + 1}">${escapeHtml(initialsDraft[slot] ?? "A")}</strong><button type="button" data-action="mobile-initial" data-slot="${slot}" data-delta="-1" aria-label="Decrease initial ${slot + 1}">−</button></div>`).join("")}</div><input type="hidden" value="${escapeHtml(initialsDraft)}" data-arcade-score-initials/><button type="submit" data-action="save-initials" aria-label="SAVE · ENTER / A">SAVE · ENTER / A</button><p class="qb-initials-help">UP / DOWN CHANGE · LEFT / RIGHT SLOT · ENTER / A NEXT</p></form>`
+      ? `<form class="qb-scoreboard-initials" data-arcade-score-form data-record-sequence="${request.highlightRecordSequence}"><span class="qb-scoreboard-initials-label">INITIALS</span><div class="qb-scoreboard-initial-slots" role="group" aria-label="Three character score initials">${[...initialsDraft].map((character, index) => `<button type="button" data-action="initials-slot" data-initial-slot="${index}" data-bitmap-text="${escapeHtml(character)}" aria-label="Initial ${index + 1}: ${escapeHtml(character)}. Up and down change character.">${escapeHtml(character)}</button>`).join("")}</div><input type="hidden" value="${escapeHtml(initialsDraft)}" data-arcade-score-initials/><button type="submit" data-action="save-initials" aria-label="SAVE · ENTER / A">SAVE · ENTER / A</button><p class="qb-initials-help">UP / DOWN CHANGE · LEFT / RIGHT SLOT · ENTER / A NEXT</p></form>`
       : "";
   if (initials) {
     const rank = board.findIndex(
       (entry) => entry.recordedSequence === request.highlightRecordSequence,
     );
     const entry = board[rank];
-    return `<div class="qb-page-panel qb-scoreboard-page qb-score-entry"><header><p class="qb-kicker">NEW HIGH SCORE</p><h1 tabindex="-1">${escapeHtml(title)}</h1></header><p class="qb-score-entry-result">${entry ? arcadeScoreResult(entry) : ""} · RANK ${rank + 1}</p>${initials}</div>`;
+    return `<div class="qb-page-panel qb-scoreboard-page qb-score-entry"><header><p class="qb-kicker" data-bitmap-text="NEW HIGH SCORE" style="min-width: ${(pixelTextWidth("NEW HIGH SCORE", 1) + 4) / 3.2}cqw">NEW HIGH SCORE</p>${heading}</header><p class="qb-score-entry-result">${entry ? arcadeScoreResult(entry) : ""} · RANK ${rank + 1}</p>${initials}</div>`;
   }
-  return `<div class="qb-page-panel qb-scoreboard-page qb-scoreboard-list"><header><h1 tabindex="-1">${escapeHtml(title)}</h1></header><div class="qb-scoreboard-table" role="table" aria-label="${escapeHtml(title)} top five scores"><div class="qb-scoreboard-columns" role="row"><span role="columnheader">RANK</span><span role="columnheader">INITIALS</span><span role="columnheader">${resultHeading}</span></div><ol role="rowgroup">${rows.join("")}</ol></div></div>`;
+  return `<div class="qb-page-panel qb-scoreboard-page qb-scoreboard-list"><header>${heading}</header><div class="qb-scoreboard-table" role="table" aria-label="${escapeHtml(title)} top five scores"><div class="qb-scoreboard-columns" role="row"><span role="columnheader">RANK</span><span role="columnheader">INITIALS</span><span role="columnheader">${resultHeading}</span></div><ol role="rowgroup">${rows.join("")}</ol></div></div>`;
 }
 
 function arcadeScoreboardEntries(
@@ -2565,7 +2458,7 @@ function settingsSectionMarkup(
     case "controls":
       return `${keyboardSettings(save, playerId)}<button class="qb-action qb-settings-reset-keys" data-action="reset-keymap">RESTORE DEFAULT KEYS</button><button class="qb-action" data-action="controller-setup">CONTROLLER SETUP</button>`;
     case "data":
-      return `<div class="qb-settings-data"><button class="qb-action" data-action="export-save">EXPORT SAVE</button><button class="qb-action" data-action="navigate" data-page="credits">SOURCE RECORD</button><button class="qb-action qb-action--danger" data-action="reset-save">RESET SAVE</button></div>`;
+      return `<div class="qb-settings-data"><button class="qb-action" data-action="export-save">EXPORT SAVE</button><button class="qb-action qb-action--danger" data-action="reset-save">RESET SAVE</button></div>`;
   }
 }
 
@@ -2578,15 +2471,10 @@ function setting(
 }
 
 function keyboardSettings(save: QuantumBoxSave, playerId: PlayerId): string {
-  if (isMobilePresentation()) playerId = "A";
-  const playerTabs = LOCAL_HUMAN_PLAYERS.filter(
-    (id) => !isMobilePresentation() || id === "A",
-  )
-    .map(
-      (candidate) =>
-        `<button type="button" data-action="settings-player" data-player-id="${candidate}" aria-selected="${candidate === playerId}">${candidate}</button>`,
-    )
-    .join("");
+  const playerTabs = LOCAL_HUMAN_PLAYERS.map(
+    (candidate) =>
+      `<button type="button" data-action="settings-player" data-player-id="${candidate}" aria-selected="${candidate === playerId}">${candidate}</button>`,
+  ).join("");
   const bindings = KEYBOARD_CONTROLS.map(
     (control) =>
       `<button type="button" class="qb-key-binding" data-action="rebind-key" data-player-id="${playerId}" data-control="${control}"><span>${control.toUpperCase()}</span><b>${escapeHtml(displayKeyCode(save.settings.keyboardBindings[playerId][control]))}</b></button>`,
@@ -2606,7 +2494,7 @@ function fluxballLobbyMarkup(
   _humanPlayerIds: readonly PlayerId[],
   _save: QuantumBoxSave,
 ): string {
-  return `<div class="qb-page-panel qb-fluxball-lobby"><header><p class="qb-kicker">ARCADE · ${format.competitorCount} COMPETITORS · ${format.ruleMode === "global" ? "SHARED" : "SPLIT"}</p><h1 tabindex="-1" data-bitmap-flow class="qb-reading-choice">FLUXBALL PLAYERS</h1></header><p>CPU FILLS THE REMAINING PLACES.</p><div class="qb-fluxball-lobby-slots"><button type="button" data-action="lobby-start" data-human-count="1">1 PLAYER</button>${isMobilePresentation() ? "" : '<button type="button" data-action="lobby-start" data-human-count="2">2 PLAYERS</button>'}</div><footer class="qb-terminal-footer"><button type="button" data-action="lobby-cancel" aria-label="BACK · ⌫ / B">BACK · ⌫ / B</button></footer></div>`;
+  return `<div class="qb-page-panel qb-fluxball-lobby qb-arcade-sheet"><header><h1 tabindex="-1" data-bitmap-flow>FLUXBALL PLAYERS</h1><p class="qb-kicker">ARCADE · ${format.competitorCount} COMPETITORS · ${format.ruleMode === "global" ? "SHARED" : "SPLIT"}</p></header><div class="qb-arcade-detail-rule" aria-hidden="true"></div><p class="qb-fluxball-player-help" data-bitmap-flow>CPU FILLS THE REMAINING PLACES.</p><div class="qb-fluxball-lobby-slots"><button type="button" data-action="lobby-start" data-human-count="1">1 PLAYER</button><button type="button" data-action="lobby-start" data-human-count="2">2 PLAYERS</button></div><footer class="qb-terminal-footer"><button type="button" data-action="lobby-cancel" aria-label="BACK · ⌫ / B">BACK · ⌫ / B</button></footer></div>`;
 }
 
 function volumeSetting(volume: number): string {
@@ -2624,8 +2512,7 @@ function isShellPage(value: string | undefined): value is ShellPage {
     value === "terminal" ||
     value === "story-terminal" ||
     value === "settings" ||
-    value === "developer" ||
-    value === "credits"
+    value === "developer"
   );
 }
 

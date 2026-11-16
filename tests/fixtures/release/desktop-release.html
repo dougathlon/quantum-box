@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Quantum Box desktop release checks</title>
+    <style>
+      html:not(.fixture-child) {
+        color: #ead7aa;
+        background: #21160f;
+        font:
+          15px/1.45 ui-monospace,
+          monospace;
+      }
+      html:not(.fixture-child) body {
+        margin: 20px;
+      }
+      html:not(.fixture-child) h1 {
+        font-size: 22px;
+      }
+      html:not(.fixture-child) button {
+        padding: 10px 16px;
+        font: inherit;
+        cursor: pointer;
+      }
+      html:not(.fixture-child) #fixture-controls {
+        max-width: 1100px;
+      }
+      html:not(.fixture-child) #fixture-status {
+        padding: 8px 0;
+        font-weight: bold;
+      }
+      html:not(.fixture-child) [data-state="failed"] {
+        color: #ffab9c;
+      }
+      html:not(.fixture-child) [data-state="passed"] {
+        color: #adedae;
+      }
+      html:not(.fixture-child) #fixture-results {
+        white-space: pre-wrap;
+      }
+      html:not(.fixture-child) #fixture-geometry {
+        white-space: pre-wrap;
+        font-size: 12px;
+      }
+      html:not(.fixture-child) .fixture-viewport {
+        width: 1280px;
+        height: 720px;
+        border: 1px solid #ad9466;
+      }
+      html:not(.fixture-child) iframe {
+        width: 1280px;
+        height: 720px;
+        border: 0;
+        display: block;
+      }
+    </style>
+  </head>
+  <body>
+    <section id="fixture-controls">
+      <h1>DESKTOP RELEASE · TEST FIXTURE</h1>
+      <p>
+        Seeded UI routing checks using the real QuantumBoxApp. These are not
+        earned gameplay results. Local installed assets only; no provider
+        requests or external link activation.
+      </p>
+      <p>
+        Each child window uses isolated, uniquely named save keys. The normal
+        game save is never overwritten. Reload retains the test save. CLEAR TEST
+        DATA removes only namespaces created by this page.
+      </p>
+      <button id="run-checks" type="button">RUN CHECKS</button>
+      <button id="clear-checks" type="button">CLEAR TEST DATA</button>
+      <p id="fixture-status" role="status" data-state="idle">READY</p>
+      <ol id="fixture-results"></ol>
+      <details>
+        <summary>Rendered Story geometry checks</summary>
+        <pre id="fixture-geometry"></pre>
+      </details>
+    </section>
+    <div class="fixture-viewport">
+      <iframe
+        id="fixture-game"
+        title="Quantum Box isolated desktop test"
+      ></iframe>
+    </div>
+    <div id="app" hidden></div>
+    <script type="module" src="./desktop-release.ts"></script>
+  </body>
+</html>

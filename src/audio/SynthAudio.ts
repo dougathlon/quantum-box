@@ -1,5 +1,5 @@
 import quarryQuackUrl from "../assets/audio/quarry/duck-quack.mp3?url";
-import type { QuantumBoxSettings } from "../save/types";
+import { DEFAULT_SOUND_VOLUME, type QuantumBoxSettings } from "../save/types";
 import KEY_IS_OPAQUE_ASSET_URL from "./assets/key-is-opaque-backing-loop.wav?url";
 import SPARE_KEY_ASSET_URL from "./assets/spare-key-loop.wav?url";
 
@@ -844,7 +844,7 @@ export class SynthAudio {
 }
 
 export function normalizeSoundVolume(value: number): number {
-  if (!Number.isFinite(value)) return 0.35;
+  if (!Number.isFinite(value)) return DEFAULT_SOUND_VOLUME;
   return Math.min(1, Math.max(0, value));
 }
 

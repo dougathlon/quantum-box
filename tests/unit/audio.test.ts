@@ -11,13 +11,15 @@ import {
   skiCarveProfile,
   synthCueProfile,
 } from "../../src/audio/SynthAudio";
+import { DEFAULT_SOUND_VOLUME } from "../../src/save/types";
 
 describe("Quantum Box synth audio", () => {
   it("bounds presentation gain without creating simulation state", () => {
     expect(normalizeSoundVolume(-1)).toBe(0);
     expect(normalizeSoundVolume(0.4)).toBe(0.4);
     expect(normalizeSoundVolume(2)).toBe(1);
-    expect(normalizeSoundVolume(Number.NaN)).toBe(0.35);
+    expect(normalizeSoundVolume(Number.NaN)).toBe(DEFAULT_SOUND_VOLUME);
+    expect(normalizeSoundVolume(Number.POSITIVE_INFINITY)).toBe(1);
   });
 
   it.each(["ski-tree-impact", "ski-mogul-impact"] as const)(

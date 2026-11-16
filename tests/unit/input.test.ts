@@ -9,7 +9,7 @@ import {
 } from "../../src/input/KeyboardBindings";
 
 describe("Quantum Box keyboard profiles", () => {
-  it("defines four disjoint five-control profiles", () => {
+  it("retains four disjoint legacy profiles for save compatibility", () => {
     const validated = validateKeyboardBindings(DEFAULT_KEYBOARD_BINDINGS);
     const codes = Object.values(validated).flatMap((player) =>
       Object.values(player),
@@ -26,7 +26,7 @@ describe("Quantum Box keyboard profiles", () => {
     expect(validated.D.action).toBe("KeyO");
   });
 
-  it("rejects reserved and duplicate assignments", () => {
+  it("rejects reserved and duplicate active-player assignments", () => {
     expect(() =>
       validateKeyboardBindings({
         ...DEFAULT_KEYBOARD_BINDINGS,
@@ -36,7 +36,7 @@ describe("Quantum Box keyboard profiles", () => {
     expect(() =>
       validateKeyboardBindings({
         ...DEFAULT_KEYBOARD_BINDINGS,
-        D: { ...DEFAULT_KEYBOARD_BINDINGS.D, action: "Space" },
+        B: { ...DEFAULT_KEYBOARD_BINDINGS.B, action: "Space" },
       }),
     ).toThrow("already assigned");
   });
@@ -97,36 +97,39 @@ describe("Quantum Box gamepad map", () => {
 });
 
 describe("Quantum Box gamepad lifecycle", () => {
-  it("does not let a third controller drive player B", () => {
-    let frame: FrameRequestCallback | null = null;
-    const pad = {
-      id: "THIRD",
-      index: 2,
-      connected: true,
-      mapping: "standard",
-      axes: [0, -1],
-      buttons: [],
-    } as unknown as Gamepad;
-    const target = {
-      navigator: { getGamepads: () => [null, null, pad] },
-      addEventListener: () => undefined,
-      removeEventListener: () => undefined,
-      requestAnimationFrame: (callback: FrameRequestCallback) => {
-        frame = callback;
-        return 1;
-      },
-      cancelAnimationFrame: () => undefined,
-    } as unknown as Window;
-    const controller = new InputController(target, {} as Document);
-    const inputs = vi.fn();
-    const devices = vi.fn();
-    controller.subscribe(inputs);
-    controller.subscribeDevices(devices);
-    (frame as unknown as FrameRequestCallback)(0);
-    expect(inputs).not.toHaveBeenCalled();
-    expect(devices).not.toHaveBeenCalled();
-    controller.dispose();
-  });
+  it.each([2, 3])(
+    "does not let inactive controller %i drive player B",
+    (controllerIndex) => {
+      let frame: FrameRequestCallback | null = null;
+      const pad = {
+        id: "INACTIVE",
+        index: controllerIndex,
+        connected: true,
+        mapping: "standard",
+        axes: [0, -1],
+        buttons: [],
+      } as unknown as Gamepad;
+      const target = {
+        navigator: { getGamepads: () => [null, null, pad] },
+        addEventListener: () => undefined,
+        removeEventListener: () => undefined,
+        requestAnimationFrame: (callback: FrameRequestCallback) => {
+          frame = callback;
+          return 1;
+        },
+        cancelAnimationFrame: () => undefined,
+      } as unknown as Window;
+      const controller = new InputController(target, {} as Document);
+      const inputs = vi.fn();
+      const devices = vi.fn();
+      controller.subscribe(inputs);
+      controller.subscribeDevices(devices);
+      (frame as unknown as FrameRequestCallback)(0);
+      expect(inputs).not.toHaveBeenCalled();
+      expect(devices).not.toHaveBeenCalled();
+      controller.dispose();
+    },
+  );
   it("announces connection, releases held controls, and reconnects once", () => {
     let frame: FrameRequestCallback | null = null;
     const testPad = {

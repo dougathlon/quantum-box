@@ -1,4 +1,3 @@
-import { gatedStoryNode } from "../story/terminal/postscript";
 import type { RunContext } from "../core/run";
 import type { StoryChapterId, StoryStageId } from "../games/registry";
 import {
@@ -11,6 +10,7 @@ import {
 import {
   branchStoryOutcome,
   chapterStages,
+  storyTerminalPage,
   STORY_OPENING_NODE_ID,
   storyNode,
 } from "../story/terminal";
@@ -106,7 +106,6 @@ export class SaveRepository {
 
   /** Persist a terminal node before the UI or a cabinet transition begins. */
   public setStoryNode(nodeId: string): QuantumBoxSave {
-    nodeId = gatedStoryNode(nodeId, this.value.story.clearedStages);
     storyNode(nodeId);
     return this.commit({
       ...this.value,
@@ -136,7 +135,44 @@ export class SaveRepository {
         `Story action ${action} is not available on ${current.id}.`,
       );
     }
-    return this.setStoryNode(target);
+    return this.commit({
+      ...this.value,
+      story: {
+        ...this.withReadPage(current.pageId),
+        currentNodeId: target,
+        storyCompleted:
+          target === "story-complete" || this.value.story.storyCompleted,
+      },
+    });
+  }
+
+  /** Call only after a live Story page has fully displayed, never from a transcript. */
+  public markStoryPageRead(expectedNodeId: string): QuantumBoxSave {
+    if (expectedNodeId !== this.value.story.currentNodeId) return this.value;
+    const current = storyNode(expectedNodeId);
+    if (
+      !("pageId" in current) ||
+      this.value.story.readPageIds.includes(current.pageId)
+    ) {
+      return this.value;
+    }
+    return this.commit({
+      ...this.value,
+      story: this.withReadPage(current.pageId),
+    });
+  }
+
+  private withReadPage(pageId: string): QuantumBoxSave["story"] {
+    if (this.value.story.readPageIds.includes(pageId)) return this.value.story;
+    const page = storyTerminalPage(pageId);
+    const chapterId = page.chapterId === "intro" ? "qong" : page.chapterId;
+    return {
+      ...this.value.story,
+      readPageIds: [...this.value.story.readPageIds, pageId],
+      transcriptSeen: this.value.story.transcriptSeen.filter(
+        (id) => id !== chapterId,
+      ),
+    };
   }
 
   public recordStoryAttempt(
@@ -220,14 +256,16 @@ export class SaveRepository {
       ? { ...this.value.story.qualifiedRuns, [stage]: context }
       : this.value.story.qualifiedRuns;
     const firstLossExplanations =
-      !cleared && stage === "qong"
-        ? { ...this.value.story.firstLossExplanations, qong: true }
-        : !cleared && stage === "quantman-hold"
-          ? { ...this.value.story.firstLossExplanations, quantman: true }
-          : !cleared &&
-              (stage === "fluxball-global" || stage === "fluxball-individual")
-            ? { ...this.value.story.firstLossExplanations, fluxball: true }
-            : this.value.story.firstLossExplanations;
+      source !== "main-story"
+        ? this.value.story.firstLossExplanations
+        : !cleared && stage === "qong"
+          ? { ...this.value.story.firstLossExplanations, qong: true }
+          : !cleared && stage === "quantman-hold"
+            ? { ...this.value.story.firstLossExplanations, quantman: true }
+            : !cleared &&
+                (stage === "fluxball-global" || stage === "fluxball-individual")
+              ? { ...this.value.story.firstLossExplanations, fluxball: true }
+              : this.value.story.firstLossExplanations;
     return this.commit({
       ...this.value,
       story: {
@@ -247,12 +285,13 @@ export class SaveRepository {
   }
 
   public markTranscriptSeen(chapterId: StoryChapterId): QuantumBoxSave {
-    const chapterCleared = chapterStages(chapterId).every((stage) =>
-      this.value.story.clearedStages.includes(stage),
-    );
-    if (!chapterCleared) {
+    if (
+      !chapterStages(chapterId).every((stage) =>
+        this.value.story.clearedStages.includes(stage),
+      )
+    ) {
       throw new Error(
-        "A Terminal transcript unlocks only after its required clears.",
+        "All chapter stages must be cleared before reading its transcript.",
       );
     }
     if (this.value.story.transcriptSeen.includes(chapterId)) return this.value;
@@ -273,6 +312,11 @@ export class SaveRepository {
         ...this.value.story,
         currentNodeId: STORY_OPENING_NODE_ID,
         storyCompleted: false,
+        firstLossExplanations: {
+          qong: false,
+          quantman: false,
+          fluxball: false,
+        },
       },
     });
   }

@@ -1,9 +1,9 @@
-export const QUAG_RULES_VERSION = "quarry-rules-v5";
+export const QUAG_RULES_VERSION = "quarry-rules-v7";
 export const QUAG_TICKS_PER_SECOND = 20;
 export const QUAG_TOTAL_ROUNDS = 3;
 export const QUAG_ROUND_SECONDS = 60;
 export const QUAG_READY_TICKS = 3 * QUAG_TICKS_PER_SECOND;
-export const QUAG_ROUND_BREAK_TICKS = 2 * QUAG_TICKS_PER_SECOND;
+export const QUAG_ROUND_BREAK_TICKS = 3 * QUAG_TICKS_PER_SECOND;
 export const QUAG_SUBPIXELS = 16;
 export const QUAG_PLAYER_IDS = ["A", "B", "C", "D"] as const;
 export type QuagPlayerId = (typeof QUAG_PLAYER_IDS)[number];
@@ -70,6 +70,7 @@ export interface QuagMetrics {
 }
 
 export interface QuagSnapshot {
+  readonly sharedWins?: true;
   readonly phase: QuagPhase;
   readonly tick: number;
   readonly activeTick: number;
