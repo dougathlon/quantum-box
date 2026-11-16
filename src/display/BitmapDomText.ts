@@ -198,6 +198,10 @@ export function integerLogicalRect(rect: LogicalRect): IntegerLogicalRect {
  */
 export class BitmapDomTextRenderer {
   private readonly context: CanvasRenderingContext2D;
+  private readonly resizedImages = new WeakMap<
+    HTMLImageElement,
+    { source: string; canvas: HTMLCanvasElement }
+  >();
   private readonly mutationObserver: MutationObserver;
   private readonly resizeObserver: ResizeObserver;
   private animationFrame = 0;
@@ -447,12 +451,13 @@ export class BitmapDomTextRenderer {
       if (!rect || rect.width === 0 || rect.height === 0) continue;
       this.withElementClip(image, frameRect, () => {
         this.context.imageSmoothingEnabled = false;
+        const source =
+          rect.width * 2 < image.naturalWidth ||
+          rect.height * 2 < image.naturalHeight
+            ? this.resizeImage(image, rect.width * 2, rect.height * 2)
+            : image;
         this.context.drawImage(
-          image,
-          0,
-          0,
-          image.naturalWidth,
-          image.naturalHeight,
+          source,
           rect.left,
           rect.top,
           rect.width,
@@ -460,6 +465,39 @@ export class BitmapDomTextRenderer {
         );
       });
     }
+  }
+
+  private resizeImage(
+    image: HTMLImageElement,
+    width: number,
+    height: number,
+  ): HTMLCanvasElement {
+    const source = image.currentSrc || image.src;
+    const cached = this.resizedImages.get(image);
+    if (
+      cached?.source === source &&
+      cached.canvas.width === width &&
+      cached.canvas.height === height
+    ) {
+      return cached.canvas;
+    }
+    const canvas = document.createElement("canvas");
+    canvas.width = image.naturalWidth;
+    canvas.height = image.naturalHeight;
+    const context = canvas.getContext("2d", { willReadFrequently: true });
+    if (!context)
+      throw new Error("Bitmap image canvas 2D context is unavailable.");
+    // Read at native size: Firefox can interpolate a reduced drawImage even
+    // with smoothing disabled. Sample first, then copy at 1:1 raster size.
+    context.drawImage(image, 0, 0);
+    const pixels = context.getImageData(0, 0, canvas.width, canvas.height);
+    canvas.width = width;
+    canvas.height = height;
+    const resized = context.createImageData(width, height);
+    resized.data.set(nearestBitmapPixels(pixels, width, height));
+    context.putImageData(resized, 0, 0);
+    this.resizedImages.set(image, { source, canvas });
+    return canvas;
   }
 
   private drawFormControls(root: HTMLElement, frameRect: DOMRect): void {
@@ -1038,6 +1076,37 @@ export function wrapBitmapText(
     if (lines.length >= maxLines) break;
   }
   return Object.freeze(lines.slice(0, maxLines));
+}
+
+export function nearestBitmapPixels(
+  source: Pick<ImageData, "width" | "height" | "data">,
+  width: number,
+  height: number,
+): Uint8ClampedArray {
+  if (
+    ![source.width, source.height, width, height].every(
+      (value) => Number.isSafeInteger(value) && value > 0,
+    ) ||
+    source.data.length !== source.width * source.height * 4
+  ) {
+    throw new Error("Bitmap image dimensions and pixel data must agree.");
+  }
+  const result = new Uint8ClampedArray(width * height * 4);
+  for (let y = 0; y < height; y += 1) {
+    const sourceY = Math.min(
+      source.height - 1,
+      Math.floor(((y + 0.5) * source.height) / height),
+    );
+    for (let x = 0; x < width; x += 1) {
+      const sourceX = Math.min(
+        source.width - 1,
+        Math.floor(((x + 0.5) * source.width) / width),
+      );
+      const start = (sourceY * source.width + sourceX) * 4;
+      result.set(source.data.subarray(start, start + 4), (y * width + x) * 4);
+    }
+  }
+  return result;
 }
 
 export function auditBitmapCanvasPixels(image: ImageData): BitmapCanvasAudit {

@@ -28,6 +28,11 @@ async function checkReadingChoices(page: Page) {
         const scale = frame.width / 320;
         const x = Math.floor((box.left - frame.left) / scale) - 3;
         const top = Math.round((text.top - frame.top) / scale);
+        const readingScale =
+          Number(
+            getComputedStyle(anchor).getPropertyValue("--qb-reading-scale"),
+          ) || 1;
+        const middle = Math.max(2, top + Math.floor(3.5 * readingScale));
         const canvas = document.querySelector<HTMLCanvasElement>(
           '[data-ui="bitmap-text"]',
         )!;
@@ -37,7 +42,7 @@ async function checkReadingChoices(page: Page) {
           return p[0] === 214 && p[1] === 189 && p[2] === 139 && p[3] === 255;
         };
         const inkAligned =
-          x < 0 || [1, 2, 3, 4, 5].every((d) => cream(top + d));
+          x < 0 || [-2, -1, 0, 1, 2].every((d) => cream(middle + d));
         return {
           inkAligned,
           textFits:

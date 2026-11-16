@@ -10,6 +10,7 @@ import {
   bitmapTextLineLeft,
   bitmapTextLayout,
   integerLogicalRect,
+  nearestBitmapPixels,
   wrapBitmapText,
 } from "../../src/display/BitmapDomText";
 
@@ -17,6 +18,48 @@ const shellSource = readFileSync("src/ui/QuantumBoxShell.ts", "utf8");
 const cssSource = readFileSync("src/display/brownBox.css", "utf8");
 
 describe("semantic DOM bitmap mirror", () => {
+  it("reduces an image using exact source pixels without blending alpha or colours", () => {
+    const clear = [0, 0, 0, 0],
+      cream = [214, 189, 139, 255],
+      tan = [86, 67, 48, 255];
+    const source = {
+      width: 5,
+      height: 3,
+      data: new Uint8ClampedArray([
+        ...clear,
+        ...cream,
+        ...tan,
+        ...cream,
+        ...clear,
+        ...cream,
+        ...clear,
+        ...tan,
+        ...clear,
+        ...cream,
+        ...tan,
+        ...cream,
+        ...clear,
+        ...cream,
+        ...tan,
+      ]),
+    };
+    const data = nearestBitmapPixels(source, 3, 2);
+    expect([...data]).toEqual([
+      ...clear,
+      ...tan,
+      ...clear,
+      ...tan,
+      ...clear,
+      ...tan,
+    ]);
+    expect(auditBitmapCanvasPixels({ data } as ImageData)).toEqual({
+      unexpectedColours: [],
+      unexpectedAlphaValues: [],
+      opaquePixelCount: 3,
+    });
+    expect(nearestBitmapPixels(source, 5, 3)).toEqual(source.data);
+    expect(() => nearestBitmapPixels(source, 0, 2)).toThrow("dimensions");
+  });
   it("pins one aria-hidden native bitmap plane while retaining semantic controls", () => {
     expect(BITMAP_DOM_TEXT_CONTRACT.width).toBe(320);
     expect(BITMAP_DOM_TEXT_CONTRACT.height).toBe(180);
