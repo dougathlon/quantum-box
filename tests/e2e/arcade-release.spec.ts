@@ -1,6 +1,9 @@
 import { expect, test } from "@playwright/test";
 import { captureExternalRequests } from "./support/network";
 
+// Each case owns a fresh browser context and a unique fixture storage namespace.
+test.describe.configure({ mode: "parallel" });
+
 for (const id of [
   "modes",
   "controls",

@@ -877,6 +877,8 @@ async function naturalCompletion(
   for (const mode of selected) {
     await newFrame(frame);
     const storyBefore = api(frame).getSave().story;
+    const recordSequenceBefore =
+      api(frame).getSave().arcadeRecords.nextSequence;
     await launch(frame, mode);
     qa(frame).resetMeasurements();
     const started = performance.now();
@@ -899,6 +901,16 @@ async function naturalCompletion(
       );
     } finally {
       if (mode.game === "skipixl") key(frame, "keyup", "KeyS", "s");
+    }
+    if (mode.game === "skipixl" || mode.game === "quantman") {
+      // The final frame is presented before the completion callback saves its
+      // score and selects the qualifying-result controls.
+      await until(
+        () =>
+          api(frame).getSave().arcadeRecords.nextSequence >
+          recordSequenceBefore,
+        "natural result finishes saving its earned score",
+      );
     }
     const current = observed(frame);
     const panel = `.qb-cabinet-ui[data-cabinet='${current.cabinet}']`;
