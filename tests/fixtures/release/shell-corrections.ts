@@ -4,6 +4,7 @@ import {
   terminalTextWidth,
 } from "../../../src/display/TerminalTypeface";
 import {
+  auditBitmapCanvasPixels,
   bitmapTextLineLeft,
   scaledReadingGlyphRects,
   wrapBitmapText,
@@ -263,7 +264,7 @@ async function bootChild(): Promise<void> {
     ])
       assert(
         canvas.dataset[key] === "pass",
-        `Bitmap ${key}: ${canvas.dataset[key]}`,
+        `Bitmap ${key}: ${canvas.dataset[key]}; pixels: ${canvas.dataset[key] === "pass" ? "valid" : JSON.stringify(auditBitmapCanvasPixels(controlled.bitmapText.readPixels()))}`,
       );
   }
   function pixelsIn(rect: DOMRect): {

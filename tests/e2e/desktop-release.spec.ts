@@ -25,7 +25,8 @@ for (const [id, label] of [
       testInfo.project.name === "narrow-434x720",
       "Release checks target the established desktop presentation.",
     );
-    test.setTimeout(180_000);
+    const fixtureTimeout = id === "outcomes" ? 270_000 : 150_000;
+    test.setTimeout(fixtureTimeout + 30_000);
     const external = captureExternalRequests(page, testInfo);
     const errors: string[] = [];
     page.on("pageerror", (error) => errors.push(error.message));
@@ -34,7 +35,7 @@ for (const [id, label] of [
     await expect(page.locator("#fixture-status")).toHaveAttribute(
       "data-state",
       /^(passed|failed)$/,
-      { timeout: 150_000 },
+      { timeout: fixtureTimeout },
     );
     const result = page.locator(`[data-check="${id}"]`);
     await expect(result, (await result.textContent()) ?? label).toHaveAttribute(

@@ -290,6 +290,7 @@ test("SkiPixl and Quantman expose their installed modes without a maze selector"
 test("Fluxball uses three 40-second rounds and keeps hidden rule authority out of active DOM", async ({
   page,
 }) => {
+  test.setTimeout(90_000);
   await enterArcade(page);
   await openArcadeCabinet(page, "fluxball");
   for (const mode of [

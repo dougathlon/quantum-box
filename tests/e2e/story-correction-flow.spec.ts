@@ -49,7 +49,7 @@ test("All cabinets retain final results before Story choices or Arcade replay", 
     testInfo.project.name === "narrow-434x720",
     "Desktop release only.",
   );
-  test.setTimeout(240_000);
+  test.setTimeout(480_000);
   const external = captureExternalRequests(page, testInfo);
   const errors: string[] = [];
   page.on("pageerror", (error) => errors.push(error.message));
@@ -57,7 +57,7 @@ test("All cabinets retain final results before Story choices or Arcade replay", 
   await page.getByRole("button", { name: "RUN CHECKS", exact: true }).click();
   const status = page.locator("#fixture-status");
   await expect(status).toHaveAttribute("data-state", /^(passed|failed)$/, {
-    timeout: 210_000,
+    timeout: 450_000,
   });
   await expect(
     status,

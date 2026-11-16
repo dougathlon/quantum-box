@@ -619,6 +619,7 @@ async function main(): Promise<void> {
     let failed = 0;
     for (let i = 0; i < cases.length; i++) {
       const item = document.createElement("li");
+      status.textContent = `RUNNING: ${i + 1}/${cases.length}`;
       item.textContent = `${label(cases[i]!)}: RUNNING`;
       list.append(item);
       try {

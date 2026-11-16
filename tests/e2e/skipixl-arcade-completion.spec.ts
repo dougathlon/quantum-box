@@ -79,9 +79,12 @@ test("Arcade SkiPixl completes the production QPixl descent without Story author
   );
   await expect(
     cabinet.getByRole("button", { name: "PLAY AGAIN", exact: true }),
-  ).toBeVisible();
+  ).toBeHidden();
   await expect(
     cabinet.getByRole("button", { name: "BACK TO ARCADE" }),
+  ).toBeHidden();
+  await expect(
+    cabinet.getByRole("button", { name: "CONTINUE", exact: true }),
   ).toBeVisible();
   await expect(cabinet.getByRole("button", { name: "EXPORT RUN" })).toHaveCount(
     0,
@@ -126,9 +129,7 @@ test("Arcade SkiPixl completes the production QPixl descent without Story author
   expect(record.collisions).toBeGreaterThanOrEqual(0);
   expect(record.runId).toMatch(/^run-[0-9a-f]{8}$/);
 
-  await cabinet
-    .getByRole("button", { name: "BACK TO ARCADE", exact: true })
-    .click();
+  await cabinet.getByRole("button", { name: "CONTINUE", exact: true }).click();
   await expect(
     page.getByRole("heading", { name: "SKIPIXL · EASY" }),
   ).toBeVisible();

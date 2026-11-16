@@ -929,17 +929,35 @@ async function naturalCompletion(
       measurements: measurement,
       earnedRecord: false,
     };
-    const back = required<HTMLButtonElement>(
+    const scoreEntry = mode.game === "skipixl" || mode.game === "quantman";
+    const completionAction = scoreEntry
+      ? `${mode.game}-continue`
+      : "cabinet-back";
+    const next = required<HTMLButtonElement>(
       doc(frame),
-      `${panel} [data-action='cabinet-back']`,
+      `${panel} [data-action='${completionAction}']`,
     );
-    equal(back.textContent, "BACK TO ARCADE", "Completion exit label");
+    equal(
+      next.textContent,
+      scoreEntry ? "CONTINUE" : "BACK TO ARCADE",
+      "Completion action label",
+    );
     assert(
-      back.getClientRects().length > 0 && !back.disabled,
-      "Completion exit is available",
+      next.getClientRects().length > 0 && !next.disabled,
+      "Completion action is available",
     );
+    if (scoreEntry) {
+      equal(
+        required<HTMLElement>(
+          doc(frame),
+          `${panel} [data-action='cabinet-back']`,
+        ).getClientRects().length,
+        0,
+        "Qualifying scores cannot bypass initials entry",
+      );
+    }
     await delay(CABINET_RESULT_SETTLE_MS + 50);
-    click(frame, `${panel} [data-action='cabinet-back']`);
+    click(frame, `${panel} [data-action='${completionAction}']`);
     await until(
       () =>
         doc(frame).querySelector(".qb-shell")?.getAttribute("data-view") ===
