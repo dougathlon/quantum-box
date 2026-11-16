@@ -1,5 +1,7 @@
 import { expect, test, type Page } from "@playwright/test";
 
+import { CABINET_RESULT_SETTLE_MS } from "../../src/ui/CabinetResultInput";
+
 import { captureExternalRequests } from "./support/network";
 import {
   createArcadeSkiPixlBrowserPlan,
@@ -129,6 +131,9 @@ test("Arcade SkiPixl completes the production QPixl descent without Story author
   expect(record.collisions).toBeGreaterThanOrEqual(0);
   expect(record.runId).toMatch(/^run-[0-9a-f]{8}$/);
 
+  // The final outcome deliberately rejects input briefly so the last gameplay
+  // press cannot dismiss it. Wait for that guard before testing the next action.
+  await page.waitForTimeout(CABINET_RESULT_SETTLE_MS + 50);
   await cabinet.getByRole("button", { name: "CONTINUE", exact: true }).click();
   await expect(
     page.getByRole("heading", { name: "SKIPIXL · EASY" }),

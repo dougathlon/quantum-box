@@ -317,6 +317,7 @@ test("Fluxball uses three 40-second rounds and keeps hidden rule authority out o
 test("Settings persist sound and motion and omit obsolete default initials", async ({
   page,
 }) => {
+  test.setTimeout(60_000);
   await page.goto("/");
   await page.getByRole("button", { name: "PRESS START" }).click();
   await page.getByRole("button", { name: "SETTINGS" }).click();

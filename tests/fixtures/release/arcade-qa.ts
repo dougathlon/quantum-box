@@ -949,6 +949,15 @@ async function naturalCompletion(
       doc(frame),
       `${panel} [data-action='${completionAction}']`,
     );
+    // Saving sets the pending-entry flag; the following runtime frame renders
+    // its controls. Observe that frame before asserting or activating them.
+    await until(
+      () =>
+        next.textContent === (scoreEntry ? "CONTINUE" : "BACK TO ARCADE") &&
+        next.getClientRects().length > 0 &&
+        !next.disabled,
+      "completion controls finish presenting the recorded result",
+    );
     equal(
       next.textContent,
       scoreEntry ? "CONTINUE" : "BACK TO ARCADE",
