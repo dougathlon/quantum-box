@@ -208,6 +208,8 @@ export class QuantumBoxApp {
   private activeQuantmanFixture: QuantmanQpuFixtureSelection | null = null;
   private quantmanRecording: QuantmanSyntheticReplayTape | null = null;
   private quantmanArcadeCourseCursor = 0;
+  private quantmanStoryMazesCleared = 0;
+  private quantmanStoryClearRun: RunContext | null = null;
   private quagRecording: readonly QuagInput[] | null = null;
   private quagIsReplay = false;
   private activeQuarryHumanPlayerIds: readonly QuagPlayerId[] = ["A"];
@@ -434,7 +436,11 @@ export class QuantumBoxApp {
     if (signal.pressed && this.shell.isCabinetResultSettling()) return;
     if (this.fluxballLobby) {
       if (!signal.pressed) return;
-      if (signal.action === "primary" || signal.action === "start")
+      if (
+        signal.action === "primary" ||
+        signal.action === "start" ||
+        signal.action.endsWith("-action")
+      )
         this.shell.activateFocusedControl();
       else if (signal.action === "secondary")
         this.shell.activateFocusedControl();
@@ -1711,7 +1717,11 @@ export class QuantumBoxApp {
     this.pendingArcadeScoreboard = null;
     this.activeQuantmanFixture = selection;
     this.quantmanRecording = null;
-    if (playMode === "story" && !storyReplay) {
+    if (!carry) {
+      this.quantmanStoryMazesCleared = 0;
+      this.quantmanStoryClearRun = null;
+    }
+    if (playMode === "story" && !storyReplay && !carry) {
       this.shell.updateSave(
         this.saveRepository.recordStoryAttempt(
           context,
@@ -1804,7 +1814,13 @@ export class QuantumBoxApp {
       `${terminal.outcome} · score ${terminal.score}`,
     );
     this.playCompletionCue(terminal.cleared);
-    if (this.activeRun.playMode === "arcade" && terminal.cleared) {
+    if (terminal.cleared) {
+      if (this.activeRun.playMode === "story") {
+        // The run ends at death. Retain the first cleared maze's authority for
+        // its eventual Story win, rather than attributing it to the lost maze.
+        this.quantmanStoryClearRun ??= this.activeRun;
+        this.quantmanStoryMazesCleared += 1;
+      }
       this.shell.announce(
         "Screen cleared. Continue to the next maze with your score and remaining lives.",
       );
@@ -1860,11 +1876,14 @@ export class QuantumBoxApp {
         `${terminal.cleared ? "Screen cleared" : "Game over"}. Quantman ${terminal.mechanic} score recorded locally.`,
       );
     } else if (this.activeRun.playMode === "story") {
-      this.recordActiveStoryOutcome(terminal.cleared ? "won" : "lost");
+      this.recordActiveStoryOutcome(
+        this.quantmanStoryClearRun ? "won" : "lost",
+        this.quantmanStoryClearRun ?? this.activeRun,
+      );
       this.shell.announce(
-        terminal.cleared
-          ? "Quantman cleared. Continue to the terminal."
-          : "Quantman lost. Continue to the terminal.",
+        this.quantmanStoryMazesCleared > 0
+          ? "Game over. Maze cleared; continue Story."
+          : "Game over. No maze cleared; continue Story.",
       );
     }
     if (this.activeRun.playMode === "arcade" && !this.pendingArcadeScoreboard) {
@@ -1893,6 +1912,7 @@ export class QuantumBoxApp {
     const stage = this.activeRun.storyStage;
     const source = this.activeStoryAttemptSource;
     const mechanic = this.activeQuantmanMechanic;
+    const storyReplay = this.activeStoryReplay;
     const arcadeRunOrigin = this.activeArcadeRunOrigin;
     this.quantmanRuntime?.stop();
     this.quantmanRuntime = null;
@@ -1902,20 +1922,32 @@ export class QuantumBoxApp {
     this.quantmanRecording = null;
     this.shell.exitCabinet();
     this.screenScene().showLibrary();
-    if (playMode === "story" && stage && isCurrentStoryStage(stage)) {
+    if (playMode === "story" && !carry && stage && isCurrentStoryStage(stage)) {
       await this.launchStoryStage(stage, source);
       return;
     }
     try {
       const bank = await this.loadQuantmanBank();
       const runSeed = resolveRunSeed();
-      const fixture = this.selectNextQuantmanArcadeFixture(bank, runSeed);
+      const fixture =
+        playMode === "story"
+          ? selectQuantmanStoryQpuFixture(
+              bank,
+              Math.max(
+                0,
+                (this.saveRepository.snapshot().story.attempts[
+                  "quantman-hold"
+                ] ?? 1) - 1,
+              ) + this.quantmanStoryMazesCleared,
+              runSeed,
+            )
+          : this.selectNextQuantmanArcadeFixture(bank, runSeed);
       this.startQuantman(
-        "arcade",
+        playMode,
         mechanic,
         fixture,
         runSeed,
-        false,
+        storyReplay,
         arcadeRunOrigin ?? "player-arcade",
         carry,
       );
@@ -1939,16 +1971,16 @@ export class QuantumBoxApp {
   }
 
   private continueQuantman(): void {
-    if (this.activeRun?.playMode === "story") {
-      this.returnFromStoryCabinet();
-      return;
-    }
     const result = this.quantmanRuntime?.snapshot().terminal;
     if (result?.cleared) {
       void this.retryQuantman({
         score: result.score,
         lives: result.remainingLives,
       });
+      return;
+    }
+    if (this.activeRun?.playMode === "story") {
+      this.returnFromStoryCabinet();
       return;
     }
     const scoreboard = this.pendingArcadeScoreboard;
@@ -2258,6 +2290,10 @@ export class QuantumBoxApp {
       return;
     }
     if (this.quagRuntime) {
+      if (action === "continue" && !this.quagRuntime.isComplete()) {
+        this.quagRuntime.continueRound();
+        return;
+      }
       if (action === "back" || action === "continue") {
         if (
           this.quagRuntime.isComplete() &&
@@ -2278,8 +2314,10 @@ export class QuantumBoxApp {
     }
   }
 
-  private recordActiveStoryOutcome(outcome: StoryOutcome): void {
-    const run = this.activeRun;
+  private recordActiveStoryOutcome(
+    outcome: StoryOutcome,
+    run = this.activeRun,
+  ): void {
     if (!run || run.playMode !== "story" || this.activeStoryReplay) return;
     this.shell.updateSave(
       this.saveRepository.recordStoryOutcome(
@@ -2341,6 +2379,8 @@ export class QuantumBoxApp {
     this.activeQuantmanMechanic = null;
     this.activeQuantmanFixture = null;
     this.quantmanRecording = null;
+    this.quantmanStoryMazesCleared = 0;
+    this.quantmanStoryClearRun = null;
     this.quagRecording = null;
     this.quagIsReplay = false;
     this.activeQuarryHumanPlayerIds = ["A"];
@@ -2447,13 +2487,10 @@ export class QuantumBoxApp {
       this.quantmanRuntime ??
       this.quagRuntime;
     if (!runtime) return false;
-    if (
-      this.activeRun?.playMode === "arcade" &&
-      this.quantmanRuntime?.snapshot().terminal?.cleared
-    )
-      return true;
+    if (this.quantmanRuntime?.snapshot().terminal?.cleared) return true;
     if (runtime.isComplete() && this.activeRun?.playMode === "story") {
-      this.returnFromStoryCabinet();
+      // Final Story results have one forward action. Back must not secretly
+      // activate the narrator response after its duplicate button is removed.
       return true;
     }
     const intent = cabinetBackIntent(

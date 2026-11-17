@@ -25,4 +25,15 @@ describe("final cabinet result input", () => {
     expect(gate.isSettling(700)).toBe(true);
     expect(gate.isSettling(750)).toBe(false);
   });
+  it("protects Quarry round results for three seconds without changing final-result timing", () => {
+    const gate = new CabinetResultInput();
+    gate.update(true, 100, 3000);
+    gate.update(true, 2000, 3000);
+    expect(gate.isSettling(3099)).toBe(true);
+    expect(gate.isSettling(3100)).toBe(false);
+    gate.update(false, 4000);
+    gate.update(true, 5000);
+    expect(gate.isSettling(5599)).toBe(true);
+    expect(gate.isSettling(5600)).toBe(false);
+  });
 });

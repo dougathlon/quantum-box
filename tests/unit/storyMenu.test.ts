@@ -49,6 +49,12 @@ describe("Terminal archive gating", () => {
     expect(TERMINAL_TRANSCRIPT_PAGE_IDS.skipixl).toContain(
       "skipixl-feasible-success",
     );
+    expect(TERMINAL_TRANSCRIPT_PAGE_IDS.qong.slice(0, 4)).toEqual([
+      "intro-1",
+      "intro-2",
+      "intro-3",
+      "qong-intro",
+    ]);
     expect(TERMINAL_TRANSCRIPT_PAGE_IDS.quarry.slice(-6)).toEqual([
       "ending-1",
       "ending-2",

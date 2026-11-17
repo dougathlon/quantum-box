@@ -267,6 +267,64 @@ it("orders diagnostic alpha values numerically", () => {
 });
 
 describe("explicit Arcade reading roles", () => {
+  it.each(["top", "bottom"] as const)(
+    "renders two complete, equal colon dots at 5.5 cells with %s alignment",
+    (alignment) => {
+      for (const x of [0, 0.25, 0.5, 17.75]) {
+        for (const y of [0, 0.25, 0.5, 0.75, 42, 67.5]) {
+          const rects = scaledReadingGlyphRects(":", x, y, 0.75, alignment);
+          const rows = new Map<number, Set<number>>();
+          for (const rect of rects) {
+            for (
+              let row = rect.y * 2;
+              row < (rect.y + rect.height) * 2;
+              row++
+            ) {
+              const pixels = rows.get(row) ?? new Set<number>();
+              for (let col = rect.x * 2; col < (rect.x + rect.width) * 2; col++)
+                pixels.add(col);
+              rows.set(row, pixels);
+            }
+          }
+          const inkRows = [...rows.keys()].sort((a, b) => a - b);
+          expect(inkRows).toHaveLength(4);
+          expect(inkRows[1]).toBe(inkRows[0]! + 1);
+          expect(inkRows[3]).toBe(inkRows[2]! + 1);
+          expect(inkRows[2]).toBeGreaterThan(inkRows[1]! + 1);
+          const columns = [...rows.get(inkRows[0]!)!].sort((a, b) => a - b);
+          expect(columns).toHaveLength(2);
+          expect(columns[1]).toBe(columns[0]! + 1);
+          for (const row of rows.values())
+            expect([...row].sort((a, b) => a - b)).toEqual(columns);
+        }
+      }
+    },
+  );
+  it.each([0.625, 0.75, 1])(
+    "keeps scale %s glyphs identical after punctuation",
+    (scale) => {
+      const glyph = scaledReadingGlyphRects("M", 0, 42, scale, "bottom");
+      for (const prefix of [
+        "",
+        "A, ",
+        "LEFT / RIGHT: ",
+        "MOVEMENT: NORMAL. BALL: ",
+        "WHY? ",
+        "ONCE PER ROUND, ",
+        "WHEN THE SCREEN PULSES, ",
+      ]) {
+        const rendered = scaledReadingGlyphRects(
+          prefix + "M",
+          17,
+          42,
+          scale,
+          "bottom",
+        ).slice(-glyph.length);
+        const origin = Math.min(...rendered.map((r) => r.x));
+        expect(rendered.map((r) => ({ ...r, x: r.x - origin }))).toEqual(glyph);
+      }
+    },
+  );
   it.each([0.625, 0.75, 1])(
     "keeps scale %s on the binary native pixel grid",
     (scale) => {

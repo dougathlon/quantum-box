@@ -13,6 +13,12 @@ import terminalCopyProvenance from "../../src/story/terminal/text-notes-provenan
 
 // Explicit user-approved corrections; the source-document fixture stays intact.
 const approvedBodyOverrides: Readonly<Record<string, readonly string[]>> = {
+  "intro-3": [
+    "BUT IT WAS PLAY, NOT WORK, THAT TURNED MAINFRAME\nMONOLITHS INTO CONSUMER PRODUCTS.",
+    "HIPPIES HACKING SPACEWAR! MADE COMPUTERS COOL.\nARCADES DEMANDING COINS MADE COMPUTERS COMMERCIAL.\nCONSOLES COMING HOME MADE COMPUTERS PART OF LIFE.",
+    "THE VIDEO GAME MADE CLASSICAL COMPUTING PERSONAL.",
+    "IT’S TIME FOR QUANTUM COMPUTING TO HAVE ITS MAGNAVOX ODYSSEY MOMENT.",
+  ],
   "quantman-loss-later": [
     "WE CAN TRY AGAIN.",
     "OR I CAN SHOW YOU HOW THE MAZE WORKS.",

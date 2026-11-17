@@ -1,9 +1,10 @@
-export const QUAG_RULES_VERSION = "quarry-rules-v7";
+export const QUAG_RULES_VERSION = "quarry-rules-v8";
 export const QUAG_TICKS_PER_SECOND = 20;
 export const QUAG_TOTAL_ROUNDS = 3;
 export const QUAG_ROUND_SECONDS = 60;
 export const QUAG_READY_TICKS = 3 * QUAG_TICKS_PER_SECOND;
 export const QUAG_ROUND_BREAK_TICKS = 3 * QUAG_TICKS_PER_SECOND;
+export const QUAG_ROUND_RESULT_HOLD_MS = 3_000;
 export const QUAG_SUBPIXELS = 16;
 export const QUAG_PLAYER_IDS = ["A", "B", "C", "D"] as const;
 export type QuagPlayerId = (typeof QUAG_PLAYER_IDS)[number];

@@ -1,3 +1,4 @@
+import { DeterministicRng } from "../rules/rng";
 import { TUNING } from "../config/tuning";
 import {
   NEUTRAL_INPUT_FRAME,
@@ -52,6 +53,8 @@ interface RuntimeBall {
 
 export interface SportSimulationOptions {
   readonly roundNumber: number;
+  /** Only new four-player runs use equal-radius starts and seeded contact ties. */
+  readonly fairFourPlayerSeed?: number;
   readonly activePlayerIds: readonly PlayerId[];
   readonly rules: InterpretedRoundRules;
   readonly initialScore?: ScoreBoard;
@@ -136,7 +139,10 @@ function pointSegmentDistanceSquared(
   });
 }
 
-function spawnFor(playerId: PlayerId): {
+function spawnFor(
+  playerId: PlayerId,
+  equalRadius = false,
+): {
   readonly x: number;
   readonly y: number;
   readonly facing: Axis;
@@ -144,32 +150,42 @@ function spawnFor(playerId: PlayerId): {
   switch (playerId) {
     case "A":
       return {
-        x: TUNING.courtWidth * 0.22,
+        x: equalRadius
+          ? TUNING.courtWidth / 2 - TUNING.courtHeight * 0.28
+          : TUNING.courtWidth * 0.22,
         y: TUNING.courtHeight / 2,
         facing: { x: 1, y: 0 },
       };
     case "B":
       return {
-        x: TUNING.courtWidth * 0.78,
+        x: equalRadius
+          ? TUNING.courtWidth / 2 + TUNING.courtHeight * 0.28
+          : TUNING.courtWidth * 0.78,
         y: TUNING.courtHeight / 2,
         facing: { x: -1, y: 0 },
       };
     case "C":
       return {
         x: TUNING.courtWidth / 2,
-        y: TUNING.courtHeight * 0.22,
+        y: equalRadius
+          ? TUNING.courtHeight / 2 - TUNING.courtHeight * 0.28
+          : TUNING.courtHeight * 0.22,
         facing: { x: 0, y: 1 },
       };
     case "D":
       return {
         x: TUNING.courtWidth / 2,
-        y: TUNING.courtHeight * 0.78,
+        y: equalRadius
+          ? TUNING.courtHeight / 2 + TUNING.courtHeight * 0.28
+          : TUNING.courtHeight * 0.78,
         facing: { x: 0, y: -1 },
       };
   }
 }
 
 export class SportSimulation {
+  private readonly contactRng: DeterministicRng | null;
+  private collisionOrder: readonly PlayerId[] = [];
   private readonly roundNumber: number;
   private readonly roundTicks: number;
   private readonly activePlayerIds: readonly PlayerId[];
@@ -204,6 +220,11 @@ export class SportSimulation {
     ) {
       throw new Error("Sport roundTicks must be a positive integer.");
     }
+    this.contactRng =
+      options.activePlayerIds.length === 4 &&
+      options.fairFourPlayerSeed !== undefined
+        ? new DeterministicRng(options.fairFourPlayerSeed)
+        : null;
     this.roundNumber = options.roundNumber;
     this.roundTicks = options.roundTicks ?? TUNING.roundTicks;
     this.activePlayerIds = Object.freeze([...options.activePlayerIds]);
@@ -396,16 +417,16 @@ export class SportSimulation {
     const minimum = TUNING.playerRadius * 2;
     for (
       let leftIndex = 0;
-      leftIndex < this.activePlayerIds.length;
+      leftIndex < this.collisionOrder.length;
       leftIndex += 1
     ) {
       for (
         let rightIndex = leftIndex + 1;
-        rightIndex < this.activePlayerIds.length;
+        rightIndex < this.collisionOrder.length;
         rightIndex += 1
       ) {
-        const leftId = this.activePlayerIds[leftIndex];
-        const rightId = this.activePlayerIds[rightIndex];
+        const leftId = this.collisionOrder[leftIndex];
+        const rightId = this.collisionOrder[rightIndex];
         if (!leftId || !rightId) continue;
         const left = this.requirePlayer(leftId);
         const right = this.requirePlayer(rightId);
@@ -513,7 +534,22 @@ export class SportSimulation {
           distanceSquared(this.requirePlayer(rightId), this.ball);
         return difference || leftId.localeCompare(rightId);
       });
-    const playerId = candidates[0];
+    let playerId = candidates[0];
+    if (playerId && this.contactRng) {
+      const nearestDistance = distanceSquared(
+        this.requirePlayer(playerId),
+        this.ball,
+      );
+      const tied = candidates.filter(
+        (id) =>
+          Math.abs(
+            distanceSquared(this.requirePlayer(id), this.ball) -
+              nearestDistance,
+          ) < 1e-8,
+      );
+      if (tied.length > 1)
+        playerId = tied[Math.floor(this.contactRng.next() * tied.length)];
+    }
     if (playerId) this.applyBallContact(this.requirePlayer(playerId));
   }
 
@@ -807,9 +843,18 @@ export class SportSimulation {
   }
 
   private resetBodies(): void {
+    const order = [...this.activePlayerIds];
+    // Pair resolution also breaks symmetric arrival ties. Seed that order rather
+    // than systematically giving the same seat the last collision correction.
+    if (this.contactRng)
+      for (let i = order.length - 1; i > 0; i--) {
+        const j = Math.floor(this.contactRng.next() * (i + 1));
+        [order[i], order[j]] = [order[j]!, order[i]!];
+      }
+    this.collisionOrder = order;
     const players: Partial<Record<PlayerId, RuntimePlayer>> = {};
     for (const playerId of this.activePlayerIds) {
-      const spawn = spawnFor(playerId);
+      const spawn = spawnFor(playerId, this.contactRng !== null);
       const rules = this.rules[playerId];
       if (!rules) throw new Error(`Player ${playerId} has no reset rules.`);
       players[playerId] = {

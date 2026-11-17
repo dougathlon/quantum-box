@@ -458,6 +458,10 @@
   opacity: 1;
 }
 
+.qb-qong-controls [data-action="qong-observe"]:disabled {
+  color: var(--qb-cream);
+}
+
 .qb-game-ui[data-cabinet="skipixl"] .qb-skipixl-score {
   top: 1.8%;
   left: 50%;
@@ -2676,6 +2680,11 @@
 
 .qb-game-ui[data-navigation="true"] footer button:not([hidden]) {
   min-width: 20%;
+}
+
+.qb-game-ui[data-navigation="true"] .qb-cabinet-forward {
+  margin-left: auto;
+  text-align: right;
 }
 
 .qb-cabinet-selection-hint {

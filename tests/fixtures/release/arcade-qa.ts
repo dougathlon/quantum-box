@@ -501,10 +501,19 @@ async function launch(frame: HTMLIFrameElement, mode: Mode): Promise<void> {
       ["1", "2"],
       "Visible human options",
     );
-    click(
-      frame,
-      `[data-action='lobby-start'][data-human-count='${mode.humans}']`,
+    equal(
+      required<HTMLElement>(
+        doc(frame),
+        ".qb-fluxball-lobby [data-ui='selection-hint']",
+      ).textContent,
+      "SELECT · ENTER / A",
+      "Player selection retains the standard selection hint",
     );
+    required<HTMLButtonElement>(
+      doc(frame),
+      `[data-action='lobby-start'][data-human-count='${mode.humans}']`,
+    ).focus();
+    press(frame, "Space", " ");
   }
   const cabinet = mode.game === "quarry" ? "quag" : mode.game;
   await until(
@@ -520,12 +529,19 @@ async function launch(frame: HTMLIFrameElement, mode: Mode): Promise<void> {
   );
   if (observed(frame).humanCount !== undefined)
     equal(observed(frame).humanCount, mode.humans, "Human runtime assignment");
-  if (mode.game === "fluxball")
+  if (mode.game === "fluxball") {
     equal(
       observed(frame).competitorCount,
       Number(mode.mode[0]),
       "Competitor count retains four-way CPU play",
     );
+    equal(
+      required<HTMLElement>(doc(frame), "[data-fluxball='controls']")
+        .textContent,
+      "CHANGES LEFT 1/1 · SPACE / A",
+      "Space selects the player count without also spending a rule change",
+    );
+  }
 }
 async function exit(frame: HTMLIFrameElement): Promise<void> {
   if (
@@ -888,12 +904,93 @@ async function naturalCompletion(
     );
     if (mode.game === "skipixl") key(frame, "keydown", "KeyS", "s");
     if (mode.game === "quantman") press(frame, "Space", " ");
+    let quarryResultAt: number | null = null;
+    let quarrySpaceHeld = false;
     try {
       await until(
         () => {
           const current = observed(frame);
-          if (mode.game === "fluxball" && current.phase === "reveal")
-            click(frame, "[data-action='fluxball-continue']");
+          if (mode.game === "fluxball" && current.phase === "reveal") {
+            const choices = [
+              ...doc(frame).querySelectorAll<HTMLButtonElement>(
+                ".qb-cabinet-ui[data-cabinet='fluxball'] footer button",
+              ),
+            ].filter(
+              (button) => !button.hidden && button.getClientRects().length,
+            );
+            equal(
+              choices.map((button) => button.textContent),
+              ["NEXT ROUND"],
+              "Intermediate Arcade round offers only Next Round",
+            );
+            assert(
+              doc(frame).activeElement === choices[0],
+              "Next Round receives focus",
+            );
+            const rect = choices[0]!.getBoundingClientRect();
+            const footer = choices[0]!.parentElement!.getBoundingClientRect();
+            assert(
+              Math.abs(rect.right - footer.right) < 2,
+              "Next Round is on the right",
+            );
+            press(frame, "Space", " ");
+            note("Intermediate round: only Next Round; Space advances.");
+          }
+          if (mode.game === "quarry" && current.phase === "round-break") {
+            const next = required<HTMLButtonElement>(
+              doc(frame),
+              "[data-action='quag-continue']",
+            );
+            assert(
+              !next.hidden && next.textContent === "NEXT ROUND",
+              "Quarry offers Next Round",
+            );
+            const rect = next.getBoundingClientRect();
+            const footer = next.parentElement!.getBoundingClientRect();
+            assert(
+              Math.abs(rect.right - footer.right) < 2,
+              "Quarry Next Round is on the right",
+            );
+            if (quarryResultAt === null) {
+              quarryResultAt = performance.now();
+              next.click();
+              equal(
+                observed(frame).phase,
+                "round-break",
+                "Immediate pointer press is ignored",
+              );
+            }
+            const elapsed = performance.now() - quarryResultAt;
+            if (elapsed < 2700) {
+              press(frame, "Space", " ");
+              equal(
+                observed(frame).phase,
+                "round-break",
+                "Space mashing cannot skip the protected result",
+              );
+            } else if (!quarrySpaceHeld) {
+              key(frame, "keydown", "Space", " ");
+              quarrySpaceHeld = true;
+            } else if (elapsed >= 4000) {
+              equal(
+                observed(frame).phase,
+                "round-break",
+                "Held Space and elapsed time cannot auto-advance",
+              );
+              key(frame, "keyup", "Space", " ");
+              press(frame, "Space", " ");
+              equal(
+                observed(frame).phase,
+                "active",
+                "Fresh Space advances after the protected display",
+              );
+              quarryResultAt = null;
+              quarrySpaceHeld = false;
+              note(
+                "Quarry round: three-second guard resisted mashing; held Space did not advance; fresh Space advanced.",
+              );
+            }
+          }
           return current.phase === "complete" || current.phase === "lost";
         },
         `${mode.game} natural completion`,

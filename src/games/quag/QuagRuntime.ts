@@ -14,6 +14,7 @@ import { QuagSession } from "./QuagSession";
 import type { QuagScenario } from "./QuagSession";
 import {
   QUAG_PLAYER_IDS,
+  QUAG_ROUND_RESULT_HOLD_MS,
   type QuagInput,
   type QuagPhase,
   type QuagPlayerControl,
@@ -50,6 +51,7 @@ export class QuagRuntime {
   private readonly flapQueued = new Set<QuagPlayerId>();
   private readonly humanPlayerIds: ReadonlySet<QuagPlayerId>;
   private interpolationAlpha = 1;
+  private roundResultAtMs: number | null = null;
 
   public constructor(
     context: RunContext,
@@ -82,6 +84,20 @@ export class QuagRuntime {
 
   public handleInput(signal: InputSignal): void {
     if (this.stopped) return;
+    if (this.session.snapshot().phase === "round-break") {
+      if (!signal.pressed) return;
+      if (signal.action === "pause") this.togglePause();
+      else if (
+        signal.action === "primary" ||
+        QUAG_PLAYER_IDS.some(
+          (id, index) =>
+            this.humanPlayerIds.has(id) &&
+            signal.action === `p${index + 1}-action`,
+        )
+      )
+        this.continueRound();
+      return;
+    }
     const horizontalPlayer = quagHorizontalPlayer(signal.action);
     const flapPlayer = quagFlapPlayer(signal.action);
     if (this.replayInputs === null && horizontalPlayer !== null) {
@@ -141,6 +157,31 @@ export class QuagRuntime {
     this.callbacks.onRestart();
   }
 
+  public continueRound(): void {
+    if (
+      this.stopped ||
+      this.paused ||
+      this.roundResultAtMs === null ||
+      performance.now() - this.roundResultAtMs < QUAG_ROUND_RESULT_HOLD_MS
+    )
+      return;
+    let snapshot = this.session.snapshot();
+    if (snapshot.phase !== "round-break") return;
+    this.held.clear();
+    this.flapQueued.clear();
+    this.pendingInputAtMs = null;
+    // Retain the session's existing break ticks in the replay tape, without
+    // making their passage a real-time countdown or changing recorded outcomes.
+    while (snapshot.phase === "round-break") {
+      const input = this.nextInput(snapshot);
+      snapshot = this.session.step(input);
+      this.processEvents(snapshot, input);
+    }
+    this.roundResultAtMs = null;
+    this.clock.reset();
+    this.render(snapshot);
+  }
+
   public isPaused(): boolean {
     return this.paused;
   }
@@ -155,7 +196,7 @@ export class QuagRuntime {
     this.previousTimestamp = timestamp;
     let snapshot = this.session.snapshot();
     let inputApplied = false;
-    if (!this.paused) {
+    if (!this.paused && snapshot.phase !== "round-break") {
       const advance = this.clock.advance(elapsed);
       this.interpolationAlpha = advance.alpha;
       for (let step = 0; step < advance.steps; step += 1) {
@@ -165,6 +206,13 @@ export class QuagRuntime {
         snapshot = this.session.step(input);
         this.processEvents(snapshot, input);
         if (phaseBeforeStep === "active") inputApplied = true;
+        if (snapshot.phase === "round-break") {
+          this.roundResultAtMs = timestamp;
+          this.held.clear();
+          this.flapQueued.clear();
+          this.clock.reset();
+          break;
+        }
       }
     }
     this.render(snapshot);

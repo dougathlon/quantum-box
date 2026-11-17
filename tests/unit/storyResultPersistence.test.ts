@@ -76,26 +76,48 @@ describe("Story result identity boundaries", () => {
     ).toThrow("Only a Story SkiPixl result");
   });
 
-  it("binds 2P Fluxball Story runs to their exact format and pack", () => {
-    const format = {
-      competitorCount: 2,
-      ruleMode: "individual",
-      roundSeconds: 40,
-      humanPlayerIds: ["A"],
-    } as const;
-    const pack = fluxballRulePackFor(2);
-    const run = storyRun("fluxball", "fluxball-individual", pack, 83);
-    expect(
-      isInstalledFluxballStoryRun(run, "fluxball-individual", format),
-    ).toBe(true);
-    expect(
-      isInstalledFluxballStoryRun(
-        { ...run, runId: "run-00000000" },
+  it.each(["fluxball-rules-v7", "fluxball-rules-v8"])(
+    "binds %s Fluxball Story runs to their exact format and pack",
+    (rulesVersion) => {
+      const format = {
+        competitorCount: 2,
+        ruleMode: "individual",
+        roundSeconds: 40,
+        humanPlayerIds: ["A"],
+      } as const;
+      const pack = fluxballRulePackFor(2);
+      const run = storyRun(
+        "fluxball",
         "fluxball-individual",
-        format,
-      ),
-    ).toBe(false);
-  });
+        { ...pack, rulesVersion },
+        83,
+      );
+      expect(
+        isInstalledFluxballStoryRun(run, "fluxball-individual", format),
+      ).toBe(true);
+      expect(
+        isInstalledFluxballStoryRun(
+          { ...run, runId: "run-00000000" },
+          "fluxball-individual",
+          format,
+        ),
+      ).toBe(false);
+      expect(
+        isInstalledFluxballStoryRun(
+          { ...run, rulesVersion: "fluxball-rules-unrecognized" },
+          "fluxball-individual",
+          format,
+        ),
+      ).toBe(false);
+      expect(
+        isInstalledFluxballStoryRun(
+          { ...run, pack: { ...run.pack, contentSha256: "0".repeat(64) } },
+          "fluxball-individual",
+          format,
+        ),
+      ).toBe(false);
+    },
+  );
 
   it("binds Quantman Hold to the selected installed hardware capture", async () => {
     const bank = await loadInstalledQuantmanQpuBank();
@@ -129,6 +151,7 @@ describe("Story result identity boundaries", () => {
     "quarry-rules-v4",
     "quarry-rules-v5",
     "quarry-rules-v6",
+    "quarry-rules-v7",
     QUAG_RULES_VERSION,
   ])(
     "binds Quarry %s to its exact installed pack selection",

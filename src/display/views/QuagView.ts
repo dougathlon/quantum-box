@@ -371,12 +371,7 @@ function drawRoundBreakPanel(
   g: Phaser.GameObjects.Graphics,
   snapshot: QuagSnapshot,
 ): void {
-  drawRoundNotice(
-    g,
-    snapshot,
-    quagRoundOutcome(snapshot),
-    `NEXT ROUND ${Math.max(1, Math.ceil(snapshot.roundBreakTicksRemaining / 20))}`,
-  );
+  drawRoundNotice(g, snapshot, quagRoundOutcome(snapshot));
 }
 
 function drawRoundNotice(

@@ -1,6 +1,7 @@
 import { pixelTextWidth } from "../../../src/display/PixelText";
 import type { RunContext } from "../../../src/core/run";
 import type { StoryStageId } from "../../../src/games/registry";
+import type { QuantmanSyntheticRuntimeSnapshot } from "../../../src/games/quantmanSynthetic";
 import { SAVE_STORAGE_KEY } from "../../../src/save/SaveRepository";
 import { createDefaultSave } from "../../../src/save/types";
 import { storyStageIntroNodeId } from "../../../src/story/terminal";
@@ -48,6 +49,7 @@ interface Case {
   mode: string;
   playMode: "story" | "arcade";
   outcome: Outcome;
+  terminalRetry?: boolean;
 }
 const stages: { stage: StoryStageId; game: Cabinet; mode: string }[] = [
   { stage: "qong", game: "qong", mode: "HUMAN / CPU" },
@@ -70,9 +72,17 @@ const cases: Case[] = stages.flatMap((s) =>
 for (const playMode of ["story", "arcade"] as const)
   for (const outcome of ["shared", "draw"] as const)
     cases.push({ ...stages[6]!, playMode, outcome });
+for (const outcome of ["lost", "won"] as const)
+  cases.push({
+    ...stages[3]!,
+    playMode: "story",
+    outcome,
+    terminalRetry: true,
+  });
 interface Control {
-  finish(): void;
+  finish(outcome?: Outcome): void;
   run(): RunContext | null;
+  quantman(): QuantmanSyntheticRuntimeSnapshot | null;
 }
 declare global {
   interface Window {
@@ -116,7 +126,7 @@ function gameId(c: Case): string {
   return c.game === "quarry" ? "quag" : c.game;
 }
 function label(c: Case): string {
-  return `${c.playMode} / ${c.stage} / ${c.outcome}`;
+  return `${c.terminalRetry ? "terminal retry" : c.playMode} / ${c.stage} / ${c.outcome}`;
 }
 function state(d: Document): string | undefined {
   return d.querySelector<HTMLElement>("[data-ui='game']")?.dataset["phase"];
@@ -147,7 +157,13 @@ async function boot(): Promise<void> {
     JSON.stringify({
       ...base,
       settings: { ...base.settings, soundMuted: true, reducedMotion: true },
-      story: { ...base.story, currentNodeId: storyStageIntroNodeId(c.stage) },
+      story: {
+        ...base.story,
+        currentNodeId: c.terminalRetry
+          ? "ending-4"
+          : storyStageIntroNodeId(c.stage),
+        ...(c.terminalRetry ? { experiencedStages: [c.stage] } : {}),
+      },
     }),
   );
   window.addEventListener(
@@ -174,16 +190,20 @@ async function boot(): Promise<void> {
     quagRuntime: {
       session: { players: { id: string; roundWins: number; score: number }[] };
     } | null;
-    quantmanRuntime: { engine: { session: object } } | null;
+    quantmanRuntime: {
+      engine: { session: object };
+      snapshot(): QuantmanSyntheticRuntimeSnapshot;
+    } | null;
   };
   window.__CABINET_OUTCOME_FIXTURE__ = {
     run: () => control.activeRun,
-    finish: () => {
+    quantman: () => control.quantmanRuntime?.snapshot() ?? null,
+    finish: (outcome = c.outcome) => {
       assert(
         control.activeRun?.gameId === c.game,
         "Actual cabinet must be launched before controlled result",
       );
-      const won = c.outcome === "won";
+      const won = outcome === "won";
       switch (c.game) {
         case "qong":
           Object.assign(control.qongRuntime!.session, {
@@ -242,8 +262,16 @@ async function boot(): Promise<void> {
   );
   click(document, "[data-action='press-start']");
   if (c.playMode === "story") {
-    click(document, "[data-page='story-start']");
-    click(document, "[data-action='continue-story']");
+    if (c.terminalRetry) {
+      click(document, "[data-page='terminal']");
+      click(
+        document,
+        "[data-action='retry-terminal-chapter'][data-chapter-id='quantman']",
+      );
+    } else {
+      click(document, "[data-page='story-start']");
+      click(document, "[data-action='continue-story']");
+    }
     for (
       let i = 0;
       i < 10 && window.__QUANTUM_BOX_TEST__!.getPage() !== "cabinet";
@@ -318,8 +346,12 @@ async function load(index: number): Promise<HTMLIFrameElement> {
   doc(frame);
   return frame;
 }
-async function finish(frame: HTMLIFrameElement, probe: boolean): Promise<void> {
-  win(frame).__CABINET_OUTCOME_FIXTURE__!.finish();
+async function finish(
+  frame: HTMLIFrameElement,
+  probe: boolean,
+  outcome?: Outcome,
+): Promise<void> {
+  win(frame).__CABINET_OUTCOME_FIXTURE__!.finish(outcome);
   await until(
     () =>
       ["complete", "won", "lost", "game-over", "screen-cleared"].includes(
@@ -366,7 +398,7 @@ async function check(index: number): Promise<string> {
   );
   key(w, "KeyP");
   await until(() => state(doc(frame)) !== "paused", "P resumes");
-  if (c.playMode === "story") {
+  if (c.playMode === "story" && !c.terminalRetry) {
     const failureFlags = JSON.stringify(
       w.__QUANTUM_BOX_TEST__!.getSave().story.firstLossExplanations,
     );
@@ -409,10 +441,11 @@ async function check(index: number): Promise<string> {
     );
   }
   await finish(frame, true);
-  const buttons = visibleButtons(doc(frame));
+  let buttons = visibleButtons(doc(frame));
   const continueOnly =
-    c.playMode === "arcade" &&
-    (c.game === "quantman" || (c.game === "skipixl" && c.outcome === "won"));
+    c.playMode === "story" ||
+    c.game === "quantman" ||
+    (c.game === "skipixl" && c.outcome === "won");
   assert(
     buttons.length === (continueOnly ? 1 : 2),
     "Correct result choice count",
@@ -422,7 +455,9 @@ async function check(index: number): Promise<string> {
       buttons[0]!.textContent ===
         (c.game === "quantman" && c.outcome === "won"
           ? "NEXT MAZE"
-          : "CONTINUE"),
+          : c.playMode === "story"
+            ? "CONTINUE STORY"
+            : "CONTINUE"),
       "Only the required continuation is visible",
     );
   const canvas = required<HTMLCanvasElement>(
@@ -455,10 +490,75 @@ async function check(index: number): Promise<string> {
     doc(frame).activeElement === focused,
     "Reverse selection restores focus",
   );
+  const forward = buttons.at(-1)!;
+  assert(
+    Math.abs(
+      forward.getBoundingClientRect().right -
+        forward.parentElement!.getBoundingClientRect().right,
+    ) < 2,
+    "Forward result control is on the right",
+  );
+  if (c.game === "quantman" && c.outcome === "won") {
+    const firstClearRun = w.__CABINET_OUTCOME_FIXTURE__!.run()!;
+    const storyBeforeMazes = w.__QUANTUM_BOX_TEST__!.getSave().story;
+    for (let maze = 1; maze <= (c.playMode === "story" ? 2 : 1); maze++) {
+      const previousRunId = w.__CABINET_OUTCOME_FIXTURE__!.run()!.runId;
+      const result = w.__CABINET_OUTCOME_FIXTURE__!.quantman()!.terminal!;
+      key(w, "Backspace");
+      assert(
+        w.__CABINET_OUTCOME_FIXTURE__!.run()?.runId === previousRunId &&
+          w.__QUANTUM_BOX_TEST__!.getPage() === "cabinet",
+        "Back cannot abandon a cleared maze",
+      );
+      key(w, "Space");
+      await until(
+        () =>
+          Boolean(
+            w.__CABINET_OUTCOME_FIXTURE__!.run()?.runId &&
+              w.__CABINET_OUTCOME_FIXTURE__!.run()!.runId !== previousRunId,
+          ),
+        "next maze runtime",
+      );
+      const next = w.__CABINET_OUTCOME_FIXTURE__!.quantman()!;
+      assert(
+        next.simulation.score === result.score &&
+          next.simulation.lives === result.remainingLives,
+        "Next maze carries score and lives",
+      );
+      assert(
+        JSON.stringify(w.__QUANTUM_BOX_TEST__!.getSave().story) ===
+          JSON.stringify(storyBeforeMazes),
+        "Next maze does not count another Story attempt or advance narrative",
+      );
+      if (c.playMode === "story")
+        await finish(frame, true, maze === 1 ? "won" : "lost");
+    }
+    if (c.playMode === "arcade")
+      return "SCREEN CLEARED → right-hand NEXT MAZE; Back blocked; score/lives carried";
+    const savedStory = w.__QUANTUM_BOX_TEST__!.getSave().story;
+    assert(
+      savedStory.qualifiedRuns["quantman-hold"]?.runId === firstClearRun.runId,
+      "Story win retains first cleared maze authority, not death maze",
+    );
+    assert(
+      !savedStory.firstLossExplanations.quantman,
+      "Death after a clear must not count a failed attempt",
+    );
+    buttons = visibleButtons(doc(frame));
+    assert(
+      buttons.length === 1 && buttons[0]!.textContent === "CONTINUE STORY",
+      "Death after clear offers only Continue Story",
+    );
+  }
   if (c.playMode === "story") {
     assert(
       !buttons.some((b) => /RETRY|PLAY AGAIN/.test(b.textContent ?? "")),
       "Story gameplay result must not offer Retry",
+    );
+    key(w, "Backspace");
+    assert(
+      w.__QUANTUM_BOX_TEST__!.getPage() === "cabinet",
+      "Back must not secretly activate Story Continue",
     );
     click(
       doc(frame),
@@ -486,6 +586,8 @@ async function check(index: number): Promise<string> {
     const response = doc(frame).querySelector<HTMLElement>(
       "[data-terminal-page]",
     )!.dataset["terminalPage"];
+    if (c.game === "quantman" && won)
+      assert(response === "quantman-success", "Cleared run ends at AMAZING");
     if (!won && mandatoryRetry) {
       click(doc(frame), "[data-terminal-action='retry']");
       await until(
@@ -510,25 +612,12 @@ async function check(index: number): Promise<string> {
         "Later failure permits retry or continue",
       );
     }
-    return `${response}: ${expected.join(" / ")}; outcome retained and focus moves`;
-  }
-  if (c.game === "quantman" && c.outcome === "won") {
-    key(w, "Backspace");
-    assert(
-      w.__QUANTUM_BOX_TEST__!.getPage() === "cabinet" &&
-        w.__CABINET_OUTCOME_FIXTURE__!.run()?.runId === startId,
-      "Back cannot abandon a cleared maze",
-    );
-    click(doc(frame), "[data-action='quantman-continue']");
-    await until(
-      () => w.__CABINET_OUTCOME_FIXTURE__!.run()?.runId !== startId,
-      "next maze",
-    );
-    assert(
-      w.__QUANTUM_BOX_TEST__!.getPage() === "cabinet",
-      "Cleared maze continues Arcade run",
-    );
-    return "SCREEN CLEARED → NEXT MAZE; pause and result focus verified";
+    if (c.terminalRetry)
+      assert(
+        w.__QUANTUM_BOX_TEST__!.getSave().story.currentNodeId === "ending-4",
+        "Terminal Quantman leaves main Story cursor unchanged",
+      );
+    return `${response}: ${expected.join(" / ")}; sole right-hand Continue; Back ignored`;
   }
   if (c.game === "skipixl" || c.game === "quantman") {
     click(

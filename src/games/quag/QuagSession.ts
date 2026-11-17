@@ -14,7 +14,7 @@ import {
   shortestWrappedDeltaX,
   wrapQuagX,
 } from "./QuagArena";
-import { chooseQuagCpuInput } from "./QuagCpuPolicy";
+import { chooseQuagCpuInput, QuagCpuPolicy } from "./QuagCpuPolicy";
 import {
   QUAG_PLAYER_IDS,
   QUAG_READY_TICKS,
@@ -126,6 +126,7 @@ export class QuagSession {
   private readonly totalRounds: number;
   private readonly roundBreakTicks: number;
   private readonly cpuEnabled: boolean;
+  private readonly cpuPolicies = new Map<QuagPlayerId, QuagCpuPolicy>();
   private readonly relationshipSource: "MODEL" | "QPU";
   private readonly arena: QuagArena;
   private readonly humanPlayerIds: ReadonlySet<QuagPlayerId>;
@@ -165,6 +166,7 @@ export class QuagSession {
       (context.playMode !== "arcade" && context.playMode !== "story") ||
       (context.gameId === "quag" && context.playMode !== "arcade") ||
       (context.rulesVersion !== QUAG_RULES_VERSION &&
+        context.rulesVersion !== "quarry-rules-v7" &&
         context.rulesVersion !== "quarry-rules-v6" &&
         context.rulesVersion !== "quarry-rules-v5" &&
         context.rulesVersion !== "quarry-rules-v4")
@@ -211,7 +213,7 @@ export class QuagSession {
     this.totalRounds = scenario.totalRounds ?? QUAG_TOTAL_ROUNDS;
     this.roundBreakTicks =
       scenario.roundBreakTicks ??
-      (context.rulesVersion === QUAG_RULES_VERSION
+      ([QUAG_RULES_VERSION, "quarry-rules-v7"].includes(context.rulesVersion)
         ? QUAG_ROUND_BREAK_TICKS
         : 2 * QUAG_TICKS_PER_SECOND);
     if (
@@ -293,7 +295,7 @@ export class QuagSession {
   public snapshot(): QuagSnapshot {
     const players = this.playerSnapshots();
     return deepFreeze({
-      ...([QUAG_RULES_VERSION, "quarry-rules-v6"].includes(
+      ...([QUAG_RULES_VERSION, "quarry-rules-v7", "quarry-rules-v6"].includes(
         this.context.rulesVersion,
       )
         ? { sharedWins: true as const }
@@ -357,7 +359,7 @@ export class QuagSession {
     const leaders = roundLeaderIds(this.players);
     this.roundWinnerIds = Object.freeze([...leaders]);
     const sharedWin =
-      [QUAG_RULES_VERSION, "quarry-rules-v6"].includes(
+      [QUAG_RULES_VERSION, "quarry-rules-v7", "quarry-rules-v6"].includes(
         this.context.rulesVersion,
       ) &&
       leaders.length > 1 &&
@@ -423,6 +425,26 @@ export class QuagSession {
       player.graceTicks = 0;
     });
     for (const key of this.pairCooldowns.keys()) this.pairCooldowns.set(key, 0);
+    this.cpuPolicies.clear();
+  }
+
+  private chooseCpuInput(
+    observation: Parameters<typeof chooseQuagCpuInput>[0],
+  ): QuagInput {
+    if (this.context.rulesVersion !== QUAG_RULES_VERSION)
+      return chooseQuagCpuInput(observation);
+    let policy = this.cpuPolicies.get(observation.playerId);
+    if (!policy) {
+      policy = new QuagCpuPolicy();
+      this.cpuPolicies.set(observation.playerId, policy);
+    }
+    const graph = this.graphFrames[this.graphFrameIndex];
+    return policy.decide({
+      ...observation,
+      incomingHunters: QUAG_PLAYER_IDS.filter((id) =>
+        graph?.get(id)?.has(observation.playerId),
+      ),
+    });
   }
 
   private simulatePlayers(humanInput: QuagInput): void {
@@ -434,7 +456,7 @@ export class QuagSession {
       const control = this.humanPlayerIds.has(player.id)
         ? inputForPlayer(humanInput, player.id)
         : this.cpuEnabled
-          ? chooseQuagCpuInput({
+          ? this.chooseCpuInput({
               playerId: player.id,
               tick: this.activeTick,
               graphPhase: this.graphEpoch,

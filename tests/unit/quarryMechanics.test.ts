@@ -29,6 +29,7 @@ import {
 describe("Quarry current-context and multiplayer mechanics", () => {
   it.each([
     [QUAG_RULES_VERSION, 60],
+    ["quarry-rules-v7", 60],
     ["quarry-rules-v6", 40],
     ["quarry-rules-v5", 40],
     ["quarry-rules-v4", 40],
@@ -51,6 +52,7 @@ describe("Quarry current-context and multiplayer mechanics", () => {
       expect(next.phase).toBe("active");
       expect(Boolean(next.sharedWins)).toBe(
         rulesVersion === QUAG_RULES_VERSION ||
+          rulesVersion === "quarry-rules-v7" ||
           rulesVersion === "quarry-rules-v6",
       );
     },

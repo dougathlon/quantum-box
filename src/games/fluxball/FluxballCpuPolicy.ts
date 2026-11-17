@@ -33,6 +33,9 @@ export interface FluxballPolicyTuning {
   readonly fourPlayerDecisionInterval: number;
   /** Consecutive unblocked displacement samples required (20 Hz). */
   readonly movementEvidenceTicks: number;
+  readonly recoverClippedStrike: boolean;
+  readonly twoPlayerCarrierLookAhead: number;
+  readonly fourPlayerCarrierLookAhead: number;
   /** Ignore reversal inertia until the issued direction has settled. */
   readonly movementSettleTicks: number;
   /** Live blocked ticks at a court boundary before testing the opposite input. */
@@ -42,8 +45,11 @@ export interface FluxballPolicyTuning {
 }
 
 export const FORGIVING_CPU_TUNING: FluxballPolicyTuning = Object.freeze({
-  twoPlayerDecisionInterval: 3,
-  fourPlayerDecisionInterval: 4,
+  recoverClippedStrike: true,
+  twoPlayerDecisionInterval: 4,
+  fourPlayerDecisionInterval: 7,
+  twoPlayerCarrierLookAhead: 0.25,
+  fourPlayerCarrierLookAhead: 0.15,
   movementEvidenceTicks: 3,
   movementSettleTicks: 4,
   blockedMovementTicks: 8,
@@ -51,16 +57,32 @@ export const FORGIVING_CPU_TUNING: FluxballPolicyTuning = Object.freeze({
 });
 
 export const ARCADE_CPU_TUNING: FluxballPolicyTuning = Object.freeze({
-  twoPlayerDecisionInterval: 3,
-  fourPlayerDecisionInterval: 4,
+  recoverClippedStrike: true,
+  twoPlayerDecisionInterval: 4,
+  fourPlayerDecisionInterval: 7,
+  twoPlayerCarrierLookAhead: 0.25,
+  fourPlayerCarrierLookAhead: 0.15,
   movementEvidenceTicks: 3,
   movementSettleTicks: 4,
   blockedMovementTicks: 8,
   boundaryProbeTicks: 24,
 });
 
+// Recorded v7 and earlier runs retain their original pursuit behavior.
+export const LEGACY_CPU_TUNING: FluxballPolicyTuning = Object.freeze({
+  ...ARCADE_CPU_TUNING,
+  recoverClippedStrike: false,
+  twoPlayerDecisionInterval: 3,
+  fourPlayerDecisionInterval: 4,
+  twoPlayerCarrierLookAhead: 0.36,
+  fourPlayerCarrierLookAhead: 0.36,
+});
+
 export const CAPABLE_PUBLIC_POLICY_TUNING: FluxballPolicyTuning = Object.freeze(
   {
+    recoverClippedStrike: true,
+    twoPlayerCarrierLookAhead: 0.36,
+    fourPlayerCarrierLookAhead: 0.36,
     twoPlayerDecisionInterval: 1,
     fourPlayerDecisionInterval: 1,
     movementEvidenceTicks: 3,
@@ -137,10 +159,20 @@ export class FluxballCpuPolicy {
     if (!player) throw new Error(`CPU Player ${this.playerId} is not active.`);
     this.observeGoal(observation);
     this.observe(observation, player);
-    const interval =
+    const normalInterval =
       observation.activePlayerIds.length === 4
         ? this.tuning.fourPlayerDecisionInterval
         : this.tuning.twoPlayerDecisionInterval;
+    // Slower pursuit must not break the existing close-range kick staging route.
+    const interval =
+      (this.belief.interaction === "STRIKE" &&
+        observation.ball.carrierId === null) ||
+      observation.ball.carrierId === this.playerId
+        ? Math.min(
+            normalInterval,
+            observation.activePlayerIds.length === 4 ? 4 : 3,
+          )
+        : normalInterval;
     if (
       this.cachedDecision &&
       observation.roundTick - this.lastDecisionTick < interval
@@ -212,7 +244,9 @@ export class FluxballCpuPolicy {
         target = predictPoint(
           carrier,
           carrier.resolvedMotion,
-          0.36,
+          observation.activePlayerIds.length === 4
+            ? this.tuning.fourPlayerCarrierLookAhead
+            : this.tuning.twoPlayerCarrierLookAhead,
           observation,
         );
         reason = "challenge-carrier";
@@ -319,10 +353,25 @@ export class FluxballCpuPolicy {
     }
     const waypointAlong =
       across * this.strikeSide >= 55 ? -70 : Math.max(-70, along);
-    const target = onCourt({
+    const waypoint = {
       x: ball.x + side.x * this.strikeSide * 90 + forward.x * waypointAlong,
       y: ball.y + side.y * this.strikeSide * 90 + forward.y * waypointAlong,
-    });
+    };
+    const target = onCourt(waypoint);
+    if (
+      this.tuning.recoverClippedStrike &&
+      Math.hypot(target.x - waypoint.x, target.y - waypoint.y) > 1 &&
+      Math.hypot(target.x - player.x, target.y - player.y) < 28 &&
+      Math.hypot(target.x - ball.x, target.y - ball.y) > 70
+    ) {
+      // A moving ball can leave the chosen side pinned against a sideline.
+      // Choose the other clearance side rather than circling the clipped waypoint.
+      this.strikeSide = this.strikeSide === 1 ? -1 : 1;
+      return {
+        target: onCourt(behind(this.strikeSide)),
+        reason: "stage-strike",
+      };
+    }
     return { target, reason: "stage-strike" };
   }
 

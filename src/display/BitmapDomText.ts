@@ -92,16 +92,32 @@ export function scaledReadingGlyphRects(
   verticalAlign: "top" | "bottom" = "top",
 ) {
   const snap = (value: number) => Math.round(value * 2) / 2;
-  const rects = terminalGlyphRects(text, 0, 0)
-    .map((rect) => {
-      const left = snap(x + rect.x * scale),
-        top = snap(y + rect.y * scale);
-      return {
-        x: left,
-        y: top,
-        width: snap(x + (rect.x + rect.width) * scale) - left,
-        height: snap(y + (rect.y + rect.height) * scale) - top,
-      };
+  let advance = 0;
+  const rects = [...text]
+    .flatMap((character) => {
+      // Sample every glyph from the same raster origin. A comma's fractional
+      // advance must not change the weight of every letter that follows it.
+      const origin = snap(x + advance);
+      advance += terminalTextWidth(character, scale) + scale;
+      // At 5.5 cells, independent row rounding halves the upper colon dot.
+      // Hint both dots as complete native squares without changing the advance.
+      if (character === ":" && scale === 0.75)
+        return [1, 4].map((row) => ({
+          x: origin,
+          y: snap(y + row * scale),
+          width: 1,
+          height: 1,
+        }));
+      return terminalGlyphRects(character).map((rect) => {
+        const left = origin + snap(rect.x * scale),
+          top = snap(y + rect.y * scale);
+        return {
+          x: left,
+          y: top,
+          width: origin + snap((rect.x + rect.width) * scale) - left,
+          height: snap(y + (rect.y + rect.height) * scale) - top,
+        };
+      });
     })
     .filter((rect) => rect.width > 0 && rect.height > 0);
   if (verticalAlign === "top") return rects;
@@ -1337,7 +1353,8 @@ function textColour(owner: HTMLElement): string {
   const disabled = owner.closest<HTMLElement>(
     ":disabled, [aria-disabled='true']",
   );
-  if (disabled) return MUTED_TAN;
+  if (disabled && !disabled.matches("[data-action='qong-observe']"))
+    return MUTED_TAN;
   const interactive = owner.closest<HTMLElement>(
     "button, summary, label, [role='button']",
   );

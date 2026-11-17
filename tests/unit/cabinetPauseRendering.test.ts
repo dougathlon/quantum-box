@@ -166,8 +166,10 @@ describe("shared cabinet pause rendering", () => {
       const frame = raster();
       renderQuag(frame.graphics, { ...snapshot, phase }, false);
       const header = text.mock.calls.filter(([, , options]) => options.y < 24);
-      expect(header).toHaveLength(phase === "round-break" ? 3 : 2);
-      if (phase === "round-break") expect(header[2]![1]).toBe("NEXT ROUND 1");
+      expect(header).toHaveLength(2);
+      expect(header.some(([, value]) => value.includes("NEXT ROUND"))).toBe(
+        false,
+      );
       expect(header.some(([, value]) => /SPACE|EXIT|RETRY/.test(value))).toBe(
         false,
       );

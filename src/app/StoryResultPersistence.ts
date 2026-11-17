@@ -2,7 +2,10 @@ import type { RunContext } from "../core/run";
 import { createRunContext } from "../core/run";
 import { canonicalJson } from "../core/canonicalJson";
 import { fluxballRulePackFor } from "../games/fluxball/fluxballControlPacks";
-import type { FluxballFormat } from "../games/fluxball/types";
+import {
+  FLUXBALL_PRE_AI_RULES_VERSION,
+  type FluxballFormat,
+} from "../games/fluxball/types";
 import type { StoryStageId } from "../games/registry";
 import {
   selectQongStoryPack,
@@ -122,11 +125,17 @@ export function isInstalledFluxballStoryRun(
 ): boolean {
   if (!savedRun) return false;
   const pack = fluxballRulePackFor(format.competitorCount);
+  if (
+    ![pack.rulesVersion, FLUXBALL_PRE_AI_RULES_VERSION].includes(
+      savedRun.rulesVersion,
+    )
+  )
+    return false;
   const expected = createRunContext({
     gameId: "fluxball",
     storyStage: stage,
     playMode: "story",
-    rulesVersion: pack.rulesVersion,
+    rulesVersion: savedRun.rulesVersion,
     runSeed: savedRun.runSeed,
     pack: {
       packId: pack.packId,
@@ -228,6 +237,7 @@ export function isInstalledQuarryStoryRun(
       "quarry-rules-v4",
       "quarry-rules-v5",
       "quarry-rules-v6",
+      "quarry-rules-v7",
       QUAG_RULES_VERSION,
     ].includes(savedRun.rulesVersion)
   )

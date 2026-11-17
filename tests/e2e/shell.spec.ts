@@ -257,6 +257,41 @@ test("Qong Arcade is playable without mutating Story authority", async ({
   await expect(game).toBeVisible();
   await expect(game).toContainText("RULE STATE: UNRESOLVED");
   await expect(game).toContainText("REVEALS LEFT 3/3");
+  const reveal = game.locator("[data-action='qong-observe']");
+  await page.keyboard.press("Space");
+  await expect(reveal).toBeDisabled();
+  await expect(game).toContainText("REVEALS LEFT 2/3");
+  await expect(reveal).toHaveCSS("color", "rgb(214, 189, 139)");
+  await expect
+    .poll(async () =>
+      page.evaluate(() => {
+        const button = document.querySelector<HTMLButtonElement>(
+          "[data-action='qong-observe']",
+        )!;
+        const canvas = document.querySelector<HTMLCanvasElement>(
+          "[data-ui='bitmap-text']",
+        )!;
+        const r = button.getBoundingClientRect();
+        const c = canvas.getBoundingClientRect();
+        const x = Math.floor(((r.left - c.left) * canvas.width) / c.width);
+        const y = Math.floor(((r.top - c.top) * canvas.height) / c.height);
+        const w = Math.ceil((r.width * canvas.width) / c.width);
+        const h = Math.ceil((r.height * canvas.height) / c.height);
+        const data = canvas.getContext("2d")!.getImageData(x, y, w, h).data;
+        let cream = 0;
+        let muted = 0;
+        for (let i = 0; i < data.length; i += 4) {
+          if (!data[i + 3]) continue;
+          if (data[i] === 214 && data[i + 1] === 189 && data[i + 2] === 139)
+            cream++;
+          else muted++;
+        }
+        return cream > 0 && muted === 0;
+      }),
+    )
+    .toBe(true);
+  await page.keyboard.press("Space");
+  await expect(game).toContainText("REVEALS LEFT 2/3");
   await game.getByRole("button", { name: "PAUSE · P / START" }).click();
   await game.getByRole("button", { name: "EXIT · ⌫ / B" }).click();
   expect(
@@ -287,6 +322,44 @@ test("SkiPixl and Quantman expose their installed modes without a maze selector"
   ).toHaveCount(0);
 });
 
+for (const humanCount of [1, 2]) {
+  test(`Fluxball player selection accepts Space for ${humanCount} player(s)`, async ({
+    page,
+  }) => {
+    await enterArcade(page);
+    await openArcadeCabinet(page, "fluxball");
+    await page
+      .getByRole("button", { name: "2-WAY SHARED", exact: true })
+      .click();
+    const lobby = page.locator(".qb-fluxball-lobby");
+    await expect(
+      lobby.getByRole("button", { name: "BACK · ⌫ / B" }),
+    ).toBeVisible();
+    await expect(lobby.locator("[data-ui='selection-hint']")).toHaveText(
+      "SELECT · ENTER / A",
+    );
+    await expect(lobby.locator("[data-ui='selection-hint']")).toBeVisible();
+    await expect(
+      lobby.getByRole("button", { name: "1 PLAYER", exact: true }),
+    ).toBeFocused();
+    if (humanCount === 2) await page.keyboard.press("ArrowRight");
+    await expect(
+      lobby.locator(`[data-human-count='${humanCount}']`),
+    ).toBeFocused();
+    await page.keyboard.press("Space");
+    const game = page.getByRole("region", { name: "Fluxball game" });
+    await expect(game).toBeVisible();
+    // The selection press must not also spend the new round's allowance.
+    await expect(game.locator("[data-fluxball='controls']")).toHaveText(
+      "CHANGES LEFT 1/1 · SPACE / A",
+    );
+    await page.keyboard.press("Backspace");
+    await expect(
+      game.getByRole("button", { name: "EXIT · ⌫ / B" }),
+    ).toBeVisible();
+  });
+}
+
 test("Fluxball uses three 40-second rounds and keeps hidden rule authority out of active DOM", async ({
   page,
 }) => {
@@ -305,7 +378,7 @@ test("Fluxball uses three 40-second rounds and keeps hidden rule authority out o
     await expect(game).toBeVisible();
     await expect(game).toContainText("R 1/3");
     await expect(game).toContainText("40");
-    await expect(game).toContainText("CHANGE RULES · SPACE / A");
+    await expect(game).toContainText("CHANGES LEFT 1/1 · SPACE / A");
     await expect(game).not.toContainText(
       /\bDIRECT\b|\bINVERTED\b|\bCARRY\b|\bSTRIKE\b|\bOPPOSITE\b|\bOWN\b|\bFIXTURE\b/u,
     );

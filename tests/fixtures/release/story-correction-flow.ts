@@ -3,6 +3,7 @@ import type { StoryChapterId, StoryStageId } from "../../../src/games/registry";
 import { SAVE_STORAGE_KEY } from "../../../src/save/SaveRepository";
 import { createDefaultSave } from "../../../src/save/types";
 import type { StoryOutcome } from "../../../src/story/terminal";
+import { TERMINAL_TRANSCRIPT_PAGE_IDS } from "../../../src/story/terminal";
 
 const params = new URLSearchParams(location.search);
 const namespaceRoot = "quantum-box/story-correction-test/";
@@ -59,7 +60,9 @@ function seed(chapter: string) {
       ? "skipixl-feasible"
       : chapter === "fluxball"
         ? "fluxball-global"
-        : "qong";
+        : chapter === "quarry"
+          ? "quarry"
+          : "qong";
   const cleared: StoryStageId[] = chapter === "qong" ? [] : [first];
   return {
     ...base,
@@ -371,8 +374,24 @@ const checks: Record<string, () => Promise<void>> = {
       frame,
       "[data-action='open-terminal-transcript'][data-chapter-id='qong']",
     );
-    await page(frame, "qong-intro");
-    equal(actions(frame), ["continue"], "Transcript is read-only");
+    for (const id of [
+      "intro-1",
+      "intro-2",
+      "intro-3",
+      "qong-intro",
+      "qong-tutorial",
+      "qong-success",
+      "qong-debrief-1",
+      "qong-debrief-2",
+    ]) {
+      await page(frame, id);
+      equal(actions(frame), ["continue"], "Transcript is read-only");
+      click(frame, "[data-terminal-action='continue']");
+    }
+    await until(
+      () => api(frame).getPage() === "terminal",
+      "full Qong transcript returns to index",
+    );
     const saved = api(frame).getSave();
     await reload(frame);
     equal(api(frame).getSave(), saved, "Terminal-earned clear survives reload");
@@ -381,6 +400,29 @@ const checks: Record<string, () => Promise<void>> = {
     partial("skipixl", "skipixl-overloaded", "skipixl-overloaded-intro"),
   "fluxball-partial": () =>
     partial("fluxball", "fluxball-individual", "fluxball-split-intro"),
+  "quarry-read": async () => {
+    const frame = await newFrame("quarry");
+    const before = api(frame).getSave();
+    openTerminal(frame);
+    click(
+      frame,
+      "[data-action='open-terminal-transcript'][data-chapter-id='quarry']",
+    );
+    for (const id of TERMINAL_TRANSCRIPT_PAGE_IDS.quarry) {
+      await page(frame, id);
+      equal(
+        actions(frame),
+        ["continue"],
+        "Quarry transcript never launches gameplay",
+      );
+      click(frame, "[data-terminal-action='continue']");
+    }
+    await until(
+      () => api(frame).getPage() === "terminal",
+      "Quarry ending and Postscript return to index",
+    );
+    preserved(frame, before);
+  },
 };
 async function partial(
   chapter: "skipixl" | "fluxball",

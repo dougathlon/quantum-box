@@ -3,7 +3,7 @@
   "sourceFilename": "Quantum Box agreed story text 2026-09-11 v2.docx",
   "sourceSha256": "40b81f5188c8ea0a8213bc2450090432b61294d34e56465613e67635b45bfd29",
   "authorityThrough": "end-of-demonstration",
-  "runtimePageCorpusSha256": "e5b56a26a04542f36a0310fca5488bfcdbed0cabbb15ce154e9d1db200890444",
+  "runtimePageCorpusSha256": "f6253dd3f172724f02583131ba8ff1bd3ea1592e30422388d8ac4aa53d46cbf2",
   "normalization": {
     "actionMarkers": ["CONTINUE", "PLAY", "RETRY"],
     "excludedMaterial": [
@@ -22,7 +22,9 @@
       "User correction 2026-11-15 supersedes the broad 2026-11-10 outcome policy: all wins offer Continue only; first completed Qong and Quantman failures require Retry; later failures and the first failures of SkiPixl, Fluxball and Quarry offer Retry/Continue. New Story resets first-loss routing without erasing wins.",
       "User-approved 2026-11-15 copy: feasible SkiPixl success gains WELL DONE.; feasible failure becomes WHOOPS. WOULD YOU LIKE TO TRY AGAIN?; its common QTG explanation remains Continue only. Quantman later failure becomes WE CAN TRY AGAIN. OR I CAN SHOW YOU HOW THE MAZE WORKS.; Quantman success becomes AMAZING.",
       "User-approved 2026-11-15 deletion: remove WHAT WORKS FOR THE OTHER PLAYER MAY NOT WORK FOR YOU. and FIND OUT BY PLAYING. from the Split Fluxball tutorial.",
-      "User correction 2026-11-15: Terminal offers Retry for an uncleared chapter or Read for a cleared chapter, never both. Read follows the coherent complete chapter text; Quarry includes the ending and Postscript. Retry starts with the earliest uncleared stage introduction and genuine clears count toward Story completion."
+      "User correction 2026-11-15: Terminal offers Retry for an uncleared chapter or Read for a cleared chapter, never both. Read follows the coherent complete chapter text; Quarry includes the ending and Postscript. Retry starts with the earliest uncleared stage introduction and genuine clears count toward Story completion.",
+      "User correction 2026-11-16: Qong Read includes the three opening panels. Quantman Story continues through Next Maze until death; clearing at least one maze qualifies that completed run for AMAZING, otherwise first-loss and later-loss retry rules remain. Final Story result screens offer Continue Story only.",
+      "User copy correction 2026-11-16: intro-3 ends with a separate paragraph reading IT’S TIME FOR QUANTUM COMPUTING TO HAVE ITS MAGNAVOX ODYSSEY MOMENT."
     ]
   },
   "lateStoryCopy": {}

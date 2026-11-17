@@ -24,6 +24,7 @@ test("Terminal correction flows preserve main Story and qualify isolated test wi
     "qong-win",
     "skipixl-partial",
     "fluxball-partial",
+    "quarry-read",
   ]) {
     const result = page.locator(`[data-check='${id}']`);
     await expect(result, (await result.textContent()) ?? id).toHaveAttribute(
@@ -62,10 +63,10 @@ test("All cabinets retain final results before Story choices or Arcade replay", 
   await expect(
     status,
     await page.locator("#fixture-results").innerText(),
-  ).toHaveText("PASSED: 32/32");
+  ).toHaveText("PASSED: 34/34");
   await expect(
     page.locator("#fixture-results [data-state='passed']"),
-  ).toHaveCount(32);
+  ).toHaveCount(34);
   expect(errors).toEqual([]);
   expect(external).toEqual([]);
 });

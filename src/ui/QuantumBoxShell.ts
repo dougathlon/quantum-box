@@ -64,7 +64,10 @@ import {
   BROWN_BOX_BACKGROUND_PROGRAMMES,
   type BrownBoxBackgroundProgrammeId,
 } from "../display/backgrounds/BrownBoxBackgroundPrograms";
-import type { QuagSnapshot } from "../games/quag/types";
+import {
+  QUAG_ROUND_RESULT_HOLD_MS,
+  type QuagSnapshot,
+} from "../games/quag/types";
 import { quagHudModel, quagHuntRows } from "../games/quag/presentation";
 import { requireQGraphCabinetFrame } from "../assets/QGraphCabinetAssets";
 import {
@@ -761,9 +764,7 @@ export class QuantumBoxShell {
     this.updateCabinetChoices(
       paused,
       snapshot.terminal !== null,
-      this.cabinetPlayMode === "arcade" && snapshot.terminal?.cleared
-        ? "NEXT MAZE"
-        : undefined,
+      snapshot.terminal?.cleared ? "NEXT MAZE" : undefined,
     );
   }
 
@@ -809,7 +810,7 @@ export class QuantumBoxShell {
     required<HTMLButtonElement>(
       this.quagUi,
       "[data-action='quag-continue']",
-    ).hidden = !complete;
+    ).hidden = !complete && snapshot.phase !== "round-break";
     required<HTMLButtonElement>(
       this.quagUi,
       "[data-action='quag-restart']",
@@ -820,7 +821,11 @@ export class QuantumBoxShell {
     ).hidden = complete;
     required<HTMLElement>(this.quagUi, "[data-quag='controls']").hidden =
       complete;
-    this.updateCabinetChoices(paused, snapshot.phase === "complete", undefined);
+    this.updateCabinetChoices(
+      paused,
+      complete,
+      snapshot.phase === "round-break" ? "NEXT ROUND" : undefined,
+    );
   }
 
   public updateFluxballHud(
@@ -1024,11 +1029,16 @@ export class QuantumBoxShell {
     complete: boolean,
     next?: string,
   ): void {
-    this.resultInput.update(complete, performance.now());
+    const cabinet = this.gameUi.dataset["cabinet"];
+    const quarryRoundBreak = cabinet === "quag" && next === "NEXT ROUND";
+    this.resultInput.update(
+      complete || quarryRoundBreak,
+      performance.now(),
+      quarryRoundBreak ? QUAG_ROUND_RESULT_HOLD_MS : undefined,
+    );
     const navigating = paused || complete || next !== undefined;
     const wasNavigating = this.gameUi.dataset["navigation"] === "true";
     this.gameUi.dataset["navigation"] = String(navigating);
-    const cabinet = this.gameUi.dataset["cabinet"];
     const panel = (
       {
         qong: this.qongUi,
@@ -1073,10 +1083,19 @@ export class QuantumBoxShell {
     const primary = panel.querySelector<HTMLButtonElement>(
       `[data-action='${cabinet === "qong" ? "qong-observe" : cabinet + "-continue"}']`,
     )!;
+    primary.classList.toggle(
+      "qb-cabinet-forward",
+      complete || next !== undefined,
+    );
     const continueOnly =
-      complete &&
-      this.cabinetPlayMode === "arcade" &&
-      (next === "NEXT MAZE" || this.arcadeScoreEntryPending);
+      !paused &&
+      ((this.cabinetPlayMode === "arcade" &&
+        (cabinet === "fluxball" || cabinet === "quag") &&
+        next === "NEXT ROUND") ||
+        (complete &&
+          (this.cabinetPlayMode === "story" ||
+            next === "NEXT MAZE" ||
+            this.arcadeScoreEntryPending)));
     if (paused) primary.hidden = true;
     else if (navigating) {
       const primaryLabel =
@@ -1107,7 +1126,9 @@ export class QuantumBoxShell {
     if (continueOnly) {
       retry.hidden = true;
       primary.hidden = false;
-      primary.textContent = next ?? "CONTINUE";
+      primary.textContent =
+        next ??
+        (this.cabinetPlayMode === "story" ? "CONTINUE STORY" : "CONTINUE");
       if (document.activeElement !== primary)
         primary.focus({ preventScroll: true });
     }
@@ -1970,7 +1991,7 @@ function shellMarkup(): string {
             </header>
             <output class="qb-fluxball-notice qb-visually-hidden" data-fluxball="notice" aria-live="polite"></output>
             <div class="qb-fluxball-reveal" data-fluxball="reveal"></div>
-            <footer class="qb-fluxball-controls"><button type="button" data-action="cabinet-back" aria-label="BACK · ⌫ / B">BACK · ⌫ / B</button><span>MOVE · WASD / ↑↓←→</span><span data-fluxball="controls">CHANGE RULES · SPACE / A</span><button type="button" data-action="fluxball-replay" hidden>RETRY · X / X</button><button type="button" data-action="fluxball-continue" hidden>NEXT ROUND · SPACE / A</button><button type="button" data-action="fluxball-pause">PAUSE · P / START</button></footer>
+            <footer class="qb-fluxball-controls"><button type="button" data-action="cabinet-back" aria-label="BACK · ⌫ / B">BACK · ⌫ / B</button><span>MOVE · WASD / ↑↓←→</span><span data-fluxball="controls">CHANGES LEFT 1/1 · SPACE / A</span><button type="button" data-action="fluxball-replay" hidden>RETRY · X / X</button><button type="button" data-action="fluxball-continue" hidden>NEXT ROUND · SPACE / A</button><button type="button" data-action="fluxball-pause">PAUSE · P / START</button></footer>
           </section>
           <section class="qb-cabinet-ui" data-cabinet="quantman" role="region" aria-label="Quantman QPU-derived gaze maze" hidden>
             <header class="qb-quantman-hud qb-visually-hidden"><div><small>REMAINING</small><strong data-quantman="fragments">100</strong></div><div><span data-quantman="lives">LIVES 3</span><span data-quantman="state">SCORE 00000 · READY</span><span data-quantman="focus">GAZE READY · RECORDED IBM FEZ RETURN</span></div><div><small>MODE</small><strong data-quantman="time">HOLD</strong></div></header>
@@ -2494,7 +2515,7 @@ function fluxballLobbyMarkup(
   _humanPlayerIds: readonly PlayerId[],
   _save: QuantumBoxSave,
 ): string {
-  return `<div class="qb-page-panel qb-fluxball-lobby qb-arcade-sheet"><header><h1 tabindex="-1" data-bitmap-flow>FLUXBALL PLAYERS</h1><p class="qb-kicker">ARCADE · ${format.competitorCount} COMPETITORS · ${format.ruleMode === "global" ? "SHARED" : "SPLIT"}</p></header><div class="qb-arcade-detail-rule" aria-hidden="true"></div><p class="qb-fluxball-player-help" data-bitmap-flow>CPU FILLS THE REMAINING PLACES.</p><div class="qb-fluxball-lobby-slots"><button type="button" data-action="lobby-start" data-human-count="1">1 PLAYER</button><button type="button" data-action="lobby-start" data-human-count="2">2 PLAYERS</button></div><footer class="qb-terminal-footer"><button type="button" data-action="lobby-cancel" aria-label="BACK · ⌫ / B">BACK · ⌫ / B</button></footer></div>`;
+  return `<div class="qb-page-panel qb-fluxball-lobby qb-arcade-sheet"><header><h1 tabindex="-1" data-bitmap-flow>FLUXBALL PLAYERS</h1><p class="qb-kicker">ARCADE · ${format.competitorCount} COMPETITORS · ${format.ruleMode === "global" ? "SHARED" : "SPLIT"}</p></header><div class="qb-arcade-detail-rule" aria-hidden="true"></div><p class="qb-fluxball-player-help" data-bitmap-flow>CPU FILLS THE REMAINING PLACES.</p><div class="qb-fluxball-lobby-slots"><button type="button" data-action="lobby-start" data-human-count="1">1 PLAYER</button><button type="button" data-action="lobby-start" data-human-count="2">2 PLAYERS</button></div><footer class="qb-terminal-footer"><button type="button" data-action="lobby-cancel" aria-label="BACK · ⌫ / B">BACK · ⌫ / B</button><span data-ui="selection-hint">SELECT · ENTER / A</span></footer></div>`;
 }
 
 function volumeSetting(volume: number): string {
@@ -2662,8 +2683,8 @@ function renderFluxballSemanticHistory(
 
 function fluxballControlSummary(snapshot: FluxballSnapshot): string {
   return snapshot.remainingRuleChanges === 1
-    ? "CHANGE RULES · SPACE / A"
-    : "RULE CHANGE USED";
+    ? "CHANGES LEFT 1/1 · SPACE / A"
+    : "CHANGES LEFT 0/1";
 }
 
 function renderFluxballLiveDisclosure(

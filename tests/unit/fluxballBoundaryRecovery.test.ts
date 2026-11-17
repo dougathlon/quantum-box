@@ -1,6 +1,9 @@
 import { describe, expect, it } from "vitest";
 import { createRunContext } from "../../src/core/run";
-import { FluxballCpuPolicy } from "../../src/games/fluxball/FluxballCpuPolicy";
+import {
+  FluxballCpuPolicy,
+  ARCADE_CPU_TUNING,
+} from "../../src/games/fluxball/FluxballCpuPolicy";
 import { FluxballSession } from "../../src/games/fluxball/FluxballSession";
 import { FLUXBALL_PLAYABLE_RULE_BANK as bank } from "../../src/games/fluxball/fluxballControlPacks";
 import {
@@ -160,7 +163,8 @@ describe("Fluxball boundary recovery", () => {
     for (let tick = 0; tick < 90; tick++) {
       const decision = cpu.decide(blockedObservation(tick, true));
       const input = JSON.stringify(decision.rawInput);
-      if (lastInput && input !== lastInput) expect(tick % 3).toBe(0);
+      if (lastInput && input !== lastInput)
+        expect(tick % ARCADE_CPU_TUNING.twoPlayerDecisionInterval).toBe(0);
       if (decision.reason === "recover-blocked-motion") probes++;
       expect(cpu.snapshotBelief().action.value).toBe("UNKNOWN");
       lastInput = input;

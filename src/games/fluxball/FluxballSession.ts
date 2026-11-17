@@ -1,5 +1,9 @@
 import type { RunContext } from "../../core/run";
-import { ARCADE_CPU_TUNING, FluxballCpuPolicy } from "./FluxballCpuPolicy";
+import {
+  ARCADE_CPU_TUNING,
+  LEGACY_CPU_TUNING,
+  FluxballCpuPolicy,
+} from "./FluxballCpuPolicy";
 import { isCertifiedFluxballStorySeed } from "./FluxballStorySeed";
 import {
   buildFluxballRuleSchedule,
@@ -32,6 +36,7 @@ import {
 } from "./standalone/simulation";
 import {
   FLUXBALL_RULES_VERSION,
+  FLUXBALL_PRE_AI_RULES_VERSION,
   FLUXBALL_FIXED_SCHEDULE_RULES_VERSION,
   FLUXBALL_PREVIOUS_RULES_VERSION,
   FLUXBALL_LEGACY_RULES_VERSION,
@@ -97,8 +102,9 @@ export class FluxballSession {
   ) {
     validateContext(context, format);
     this.totalRounds =
-      context.rulesVersion === FLUXBALL_RULES_VERSION ||
-      context.rulesVersion === FLUXBALL_FIXED_SCHEDULE_RULES_VERSION
+      [FLUXBALL_RULES_VERSION, FLUXBALL_PRE_AI_RULES_VERSION].includes(
+        context.rulesVersion,
+      ) || context.rulesVersion === FLUXBALL_FIXED_SCHEDULE_RULES_VERSION
         ? FLUXBALL_TOTAL_ROUNDS
         : 4;
     if (
@@ -106,8 +112,9 @@ export class FluxballSession {
       !isCertifiedFluxballStorySeed(
         context.runSeed,
         format.competitorCount,
-        context.rulesVersion !== FLUXBALL_RULES_VERSION &&
-          context.rulesVersion !== FLUXBALL_FIXED_SCHEDULE_RULES_VERSION,
+        ![FLUXBALL_RULES_VERSION, FLUXBALL_PRE_AI_RULES_VERSION].includes(
+          context.rulesVersion,
+        ) && context.rulesVersion !== FLUXBALL_FIXED_SCHEDULE_RULES_VERSION,
       )
     ) {
       throw new Error(
@@ -136,7 +143,9 @@ export class FluxballSession {
           varyAcquisitionCategories:
             context.playMode === "arcade" &&
             format.competitorCount === 4 &&
-            context.rulesVersion === FLUXBALL_RULES_VERSION,
+            [FLUXBALL_RULES_VERSION, FLUXBALL_PRE_AI_RULES_VERSION].includes(
+              context.rulesVersion,
+            ),
         }).map((state) => ({
           ...state,
           rules: interpretRoundRules(state.trace, format.ruleMode),
@@ -254,6 +263,11 @@ export class FluxballSession {
       rules: this.rules,
       roundTicks: this.roundTicks,
       ruleStateIndex: 0,
+      ...(this.context.rulesVersion === FLUXBALL_RULES_VERSION
+        ? {
+            fairFourPlayerSeed: mixSeed(this.context.runSeed, this.roundNumber),
+          }
+        : {}),
     });
     this.resetCpuPolicies();
   }
@@ -271,7 +285,9 @@ export class FluxballSession {
               playerId.charCodeAt(0),
             ),
           ),
-          ARCADE_CPU_TUNING,
+          this.context.rulesVersion === FLUXBALL_RULES_VERSION
+            ? ARCADE_CPU_TUNING
+            : LEGACY_CPU_TUNING,
         ),
       ]),
     );
@@ -457,7 +473,9 @@ function awardedIds(event: PhysicalGoalEvent): readonly PlayerId[] {
 function validateContext(context: RunContext, format: FluxballFormat): void {
   if (
     context.gameId !== "fluxball" ||
-    (context.rulesVersion !== FLUXBALL_RULES_VERSION &&
+    (![FLUXBALL_RULES_VERSION, FLUXBALL_PRE_AI_RULES_VERSION].includes(
+      context.rulesVersion,
+    ) &&
       context.rulesVersion !== FLUXBALL_FIXED_SCHEDULE_RULES_VERSION &&
       context.rulesVersion !== FLUXBALL_PREVIOUS_RULES_VERSION &&
       context.rulesVersion !== FLUXBALL_LEGACY_RULES_VERSION &&
@@ -469,7 +487,9 @@ function validateContext(context: RunContext, format: FluxballFormat): void {
     );
   }
   const currentDuration =
-    context.rulesVersion === FLUXBALL_RULES_VERSION ||
+    [FLUXBALL_RULES_VERSION, FLUXBALL_PRE_AI_RULES_VERSION].includes(
+      context.rulesVersion,
+    ) ||
     context.rulesVersion === FLUXBALL_PREVIOUS_RULES_VERSION ||
     context.rulesVersion === FLUXBALL_FIXED_SCHEDULE_RULES_VERSION;
   const uniformMinuteDuration =
@@ -484,7 +504,7 @@ function validateContext(context: RunContext, format: FluxballFormat): void {
   ) {
     throw new Error(
       currentDuration
-        ? "Quantum Box Fluxball v5/v6/v7 requires 40-second rounds in every format."
+        ? "Quantum Box Fluxball v5/v6/v7/v8 requires 40-second rounds in every format."
         : uniformMinuteDuration
           ? "Quantum Box Fluxball v4 requires 60-second rounds in every format."
           : "Older Quantum Box Fluxball requires 2P/40s or 4P/60s rounds.",
