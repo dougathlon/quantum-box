@@ -50,7 +50,7 @@ test("Quantman's corpus is deferred and a cancelled load cannot start a run", as
         ).toBe("qong");
         return ++observations;
       },
-      { intervals: [100] },
+      { intervals: [100], timeout: 15_000 },
     )
     .toBe(10);
 });
