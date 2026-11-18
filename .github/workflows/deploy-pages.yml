@@ -107,7 +107,9 @@ jobs:
         if: matrix.browser == 'firefox'
         run: pnpm test:e2e tests/e2e/shell-corrections.spec.ts --project=${{ matrix.project }} --reporter=line
       - name: Execute browser journeys
-        run: pnpm test:e2e --project=${{ matrix.project }} --reporter=line --max-failures=5
+        # WebKit's concurrent WebGL/Story fixtures contend on hosted runners.
+        # Keep the full suite; run its browser contexts one at a time.
+        run: pnpm test:e2e --project=${{ matrix.project }} --reporter=line --max-failures=5 ${{ matrix.browser == 'webkit' && '--workers=1' || '' }}
       - name: Retain browser failure evidence
         if: failure()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
