@@ -24,6 +24,9 @@ test("Arcade SkiPixl completes the production QPixl descent without Story author
 
   const externalRequests = captureExternalRequests(page, testInfo);
   await page.goto("/");
+  await expect(
+    page.getByRole("button", { name: "PRESS START", exact: true }),
+  ).toBeVisible();
   const saveBefore = await readSaveState(page);
   expect(saveBefore.snapshot).toBeDefined();
   const plan = await createArcadeSkiPixlBrowserPlan(
