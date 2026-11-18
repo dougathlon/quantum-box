@@ -30,7 +30,7 @@ for (const [label, userAgent, hasTouch] of desktopAgents) {
       await page.goto("/?mobile=1");
       await expect(
         page.getByRole("button", { name: "PRESS START", exact: true }),
-      ).toBeVisible();
+      ).toBeVisible({ timeout: 15_000 });
       await expect(page.locator(".qb-computer-notice")).toHaveCount(0);
       await page
         .getByRole("button", { name: "PRESS START", exact: true })

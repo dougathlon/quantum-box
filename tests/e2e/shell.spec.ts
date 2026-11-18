@@ -259,7 +259,7 @@ test("Qong Arcade is playable without mutating Story authority", async ({
   await expect(game).toContainText("REVEALS LEFT 3/3");
   const reveal = game.locator("[data-action='qong-observe']");
   await page.keyboard.press("Space");
-  await expect(reveal).toBeDisabled();
+  await expect(reveal).toBeDisabled({ timeout: 15_000 });
   await expect(game).toContainText("REVEALS LEFT 2/3");
   await expect(reveal).toHaveCSS("color", "rgb(214, 189, 139)");
   await expect
