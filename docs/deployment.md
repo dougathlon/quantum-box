@@ -53,3 +53,22 @@ served-browser evidence; do not relabel collection as execution.
 
 The repository intentionally has no project licence. Do not add one as part of
 a release unless the maintainer authorizes that separate decision.
+
+## Scoped build-tool advisory exception
+
+Reviewed and approved on 2026-11-17: `CVE-2026-112366` /
+[GHSA-fc5q-39xc-vjpf](https://github.com/advisories/GHSA-fc5q-39xc-vjpf)
+affects picomatch through 4.0.7; no patched npm release was available at review.
+It concerns denial of service from attacker-supplied repeated-extglob patterns.
+
+This repository uses picomatch through Vite and its test/build tooling against
+trusted repository files and configuration. It is not included in the shipped
+browser game. Pages serves static output, not the Vite development server; the
+local development server binds to loopback. Players cannot submit build globs.
+
+The pinned pnpm 10 audit configuration exempts only this CVE. All other
+advisories retain the moderate-or-higher failure threshold, and source, build,
+asset and browser checks remain mandatory. This is accepted build-tool risk,
+not a claim that the dependency is patched. Remove the exception when a fixed
+release is available; reassess before accepting untrusted patterns or exposing
+build/development tooling as a service.

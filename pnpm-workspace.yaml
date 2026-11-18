@@ -6,3 +6,8 @@ overrides:
 
 allowBuilds:
   esbuild: true
+
+# Build-only exception reviewed 2026-11-17; see docs/deployment.md.
+auditConfig:
+  ignoreCves:
+    - CVE-2026-112366
