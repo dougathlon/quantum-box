@@ -2,6 +2,7 @@ import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 
 const mainSource = readFileSync("src/main.ts", "utf8");
+const startGameSource = readFileSync("src/entry/startGame.ts", "utf8");
 const indexSource = readFileSync("index.html", "utf8");
 const appSource = readFileSync("src/app/QuantumBoxApp.ts", "utf8");
 const brownBoxCss = readFileSync("src/display/brownBox.css", "utf8");
@@ -45,7 +46,9 @@ describe("Brown Box internal visual contract", () => {
   });
 
   it("imports the native visual guard without the retired Designer stylesheet", () => {
-    expect(mainSource).toContain('import "./display/brownBox.css"');
+    expect(mainSource).toContain('await import("./entry/startGame")');
+    expect(startGameSource).toContain('import "../display/brownBox.css"');
+    expect(startGameSource).not.toContain("qongDesigner.css");
     expect(mainSource).not.toContain("qongDesigner.css");
   });
 

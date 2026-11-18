@@ -1,9 +1,15 @@
-import { QuantumBoxApp } from "./app/QuantumBoxApp";
-import "./styles.css";
-import "./display/brownBox.css";
+import { requiresComputerNotice } from "./entry/deviceSupport";
 
-const root = document.querySelector<HTMLElement>("#app");
-if (!root) throw new Error("Quantum Box requires an #app root element.");
-
-const app = new QuantumBoxApp(root);
-window.addEventListener("beforeunload", () => app.destroy(), { once: true });
+if (
+  requiresComputerNotice({
+    userAgent: navigator.userAgent,
+    maxTouchPoints: navigator.maxTouchPoints,
+    coarsePointer: matchMedia("(pointer: coarse)").matches,
+    finePointer: matchMedia("(any-pointer: fine)").matches,
+  })
+) {
+  const { showComputerNotice } = await import("./entry/ComputerNotice");
+  showComputerNotice();
+} else {
+  await import("./entry/startGame");
+}
